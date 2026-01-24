@@ -109,11 +109,16 @@ Query usage analytics with filtering and grouping:
 
 ```bash
 # Usage for a date range grouped by tag
-opper usage list --from-date=2025-05-15 --to-date=2025-05-16 --fields=total_tokens,cost --group-by=customer_id
+opper usage list --from-date=2025-05-15 --to-date=2025-05-16 --fields=total_tokens --group-by=customer_id
+
+# Time-precise query (RFC3339 format)
+opper usage list --from-date=2025-05-15T14:00:00Z --to-date=2025-05-15T16:00:00Z --granularity=minute
 
 # Export as CSV
 opper usage list --out=csv
 ```
+
+Note: `cost` and `count` are always included automatically. Valid `--fields` values: `total_tokens`, `prompt_tokens`, `completion_tokens`. Do NOT pass `count` as a field.
 
 ## Global Flags
 
@@ -148,6 +153,7 @@ opper completion fish > ~/.config/fish/completions/opper.fish
 - For function management details, see [references/FUNCTIONS.md](references/FUNCTIONS.md)
 - For index/knowledge base operations, see [references/INDEXES.md](references/INDEXES.md)
 - For usage analytics and cost tracking, see [references/USAGE.md](references/USAGE.md)
+- For API key configuration, see [references/CONFIG.md](references/CONFIG.md)
 
 ## Related Skills
 
