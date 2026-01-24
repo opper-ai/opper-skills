@@ -1,0 +1,178 @@
+# Knowledge Bases Reference (Node SDK)
+
+Knowledge bases provide semantic search over your documents using vector embeddings. Use them for RAG (Retrieval-Augmented Generation) pipelines.
+
+## Creating a Knowledge Base
+
+```typescript
+import { Opper } from "opperai";
+
+const opper = new Opper({
+  httpBearer: process.env["OPPER_HTTP_BEARER"] ?? "",
+});
+
+const kb = await opper.knowledge.create({
+  name: "support_docs",
+});
+```
+
+## Adding Documents
+
+```typescript
+await opper.knowledge.add({
+  id: kb.id,
+  content: "To reset your password, click 'Forgot Password' on the login page.",
+  key: "doc_001",
+  metadata: { category: "auth", source: "helpdesk" },
+});
+
+// Add multiple documents
+const docs = [
+  {
+    key: "doc_002",
+    content: "Billing cycles run on the 1st of each month.",
+    metadata: { category: "billing" },
+  },
+  {
+    key: "doc_003",
+    content: "To upgrade your plan, go to Settings > Subscription.",
+    metadata: { category: "account" },
+  },
+];
+
+for (const doc of docs) {
+  await opper.knowledge.add({ id: kb.id, ...doc });
+}
+```
+
+## Querying (Semantic Search)
+
+```typescript
+const results = await opper.knowledge.query({
+  id: kb.id,
+  query: "How do I change my password?",
+  k: 3,
+});
+
+for (const result of results) {
+  console.log(`Score: ${result.score.toFixed(3)}`);
+  console.log(`Content: ${result.content}`);
+  console.log(`Metadata: ${JSON.stringify(result.metadata)}`);
+}
+```
+
+## Query with Filters
+
+```typescript
+const results = await opper.knowledge.query({
+  id: kb.id,
+  query: "billing question",
+  k: 5,
+  filters: { category: "billing" },
+});
+```
+
+## RAG Pattern: Query + Call
+
+Combine knowledge base retrieval with task completion:
+
+```typescript
+async function answerWithContext(question: string) {
+  // 1. Retrieve relevant context
+  const results = await opper.knowledge.query({
+    id: kb.id,
+    query: question,
+    k: 3,
+  });
+
+  // 2. Build context string
+  const context = results
+    .map((r) => `[${r.metadata?.source ?? "unknown"}]: ${r.content}`)
+    .join("\n");
+
+  // 3. Call with context
+  const result = await opper.call({
+    name: "answer_with_rag",
+    instructions: "Answer the question using only the provided context. Cite sources.",
+    input: `Context:\n${context}\n\nQuestion: ${question}`,
+    outputSchema: {
+      type: "object",
+      properties: {
+        answer: { type: "string" },
+        sources: { type: "array", items: { type: "string" } },
+      },
+      required: ["answer", "sources"],
+    },
+  });
+
+  return result.jsonPayload;
+}
+```
+
+## Listing Knowledge Bases
+
+```typescript
+const knowledgeBases = await opper.knowledge.list();
+for (const kb of knowledgeBases) {
+  console.log(`${kb.name}: ${kb.id}`);
+}
+```
+
+## Getting a Knowledge Base
+
+```typescript
+// By ID
+const kb = await opper.knowledge.get({ id: "kb_123" });
+
+// By name
+const kb = await opper.knowledge.getByName({ name: "support_docs" });
+```
+
+## File Upload
+
+Upload files (PDF, DOCX, etc.) for automatic processing:
+
+```typescript
+// Get upload URL
+const uploadInfo = await opper.knowledge.getUploadUrl({
+  id: kb.id,
+  filename: "manual.pdf",
+});
+
+// Upload the file
+await fetch(uploadInfo.url, {
+  method: "PUT",
+  body: fileBuffer,
+});
+
+// Register the upload
+await opper.knowledge.registerFileUpload({
+  id: kb.id,
+  uploadId: uploadInfo.uploadId,
+  filename: "manual.pdf",
+});
+```
+
+## Deleting Documents
+
+```typescript
+await opper.knowledge.deleteFile({
+  id: kb.id,
+  key: "doc_001",
+});
+```
+
+## Deleting a Knowledge Base
+
+```typescript
+await opper.knowledge.delete({ id: kb.id });
+```
+
+## Best Practices
+
+- Use meaningful `key` values for document management
+- Keep documents focused — one topic per document
+- Add `metadata` for filtering (category, source, date)
+- Use `k=3` to `k=5` for most queries
+- Update documents by re-adding with the same `key`
+- Use `parentSpanId` in calls for tracing RAG pipelines
