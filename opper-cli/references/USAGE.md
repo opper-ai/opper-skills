@@ -10,6 +10,9 @@ opper usage list
 
 # Specify date range
 opper usage list --from-date=2025-05-15 --to-date=2025-05-16
+
+# Specify exact time range (ISO 8601)
+opper usage list --from-date=2025-05-15T14:00:00 --to-date=2025-05-15T16:00:00
 ```
 
 ## Filtering and Grouping
@@ -67,5 +70,5 @@ opper usage list --group-by=project
 
 - Use `--tags` in `opper call` to enable granular usage tracking later
 - CSV export is useful for importing into spreadsheets or billing systems
-- Date format is `YYYY-MM-DD`
+- Date format is `YYYY-MM-DD` or full ISO 8601 `YYYY-MM-DDTHH:MM:SS` for time-level granularity
 - Usage data is available shortly after calls complete
