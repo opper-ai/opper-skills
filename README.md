@@ -4,6 +4,10 @@ Agent Skills for building AI applications with [Opper](https://opper.ai). Compat
 
 ## Installation
 
+### Claude Code
+
+Install all skills:
+
 ```bash
 npx skills add opper-ai/opper-skills
 ```
@@ -19,14 +23,29 @@ npx skills add opper-ai/opper-skills/opper-node-agents
 npx skills add opper-ai/opper-skills/opper-cli
 ```
 
-### Alternative: Clone directly
+### Manual setup
+
+Skills are just folders with a `SKILL.md` file placed in `.claude/skills/`. You can copy them directly:
 
 ```bash
+# Clone the repo
 git clone https://github.com/opper-ai/opper-skills.git
-# Then point your agent's skills directory at this folder
+
+# Copy the skills you need into your project
+mkdir -p .claude/skills
+cp -r opper-skills/opper-python-sdk opper-skills/opper-python-agents .claude/skills/
 ```
 
-Skills are just folders with a `SKILL.md` file. Any method that gets them on disk works — clone, copy, or symlink into your agent's skills directory (e.g., `.claude/skills/` for Claude Code).
+Or symlink for local development (changes reflect immediately):
+
+```bash
+mkdir -p .claude/skills
+ln -s /path/to/opper-skills/opper-python-sdk .claude/skills/opper-python-sdk
+```
+
+### Other agents
+
+Any agent that supports the [Agent Skills](https://agentskills.io) standard can use these skills. The skill folders just need to be in the agent's configured skills directory.
 
 ## Available Skills
 

@@ -5,7 +5,7 @@ Connect agents to external tool providers via the Model Context Protocol (MCP). 
 ## Basic MCP Setup
 
 ```python
-from opper_agent import Agent, mcp, MCPServerConfig
+from opper_agents import Agent, mcp, MCPServerConfig
 
 # Configure an MCP server
 server = MCPServerConfig(
@@ -95,7 +95,7 @@ agent = Agent(
 Combine MCP tools with your own `@tool` functions:
 
 ```python
-from opper_agent import tool
+from opper_agents import tool
 
 @tool
 def summarize(text: str) -> str:
@@ -179,7 +179,7 @@ MCP servers are automatically started when the agent runs and cleaned up when it
 ## Error Handling
 
 ```python
-from opper_agent import Agent, mcp, MCPServerConfig
+from opper_agents import Agent, mcp, MCPServerConfig
 
 try:
     result = await agent.process("Read the config file")

@@ -33,7 +33,7 @@ Get your API key from [platform.opper.ai](https://platform.opper.ai).
 Define tools with the `@tool` decorator, create an agent, and run it:
 
 ```python
-from opper_agent import Agent, tool
+from opper_agents import Agent, tool
 
 @tool
 def get_weather(city: str) -> str:
@@ -163,7 +163,7 @@ result = await coordinator.process("What is 15 * 23, and who invented calculus?"
 Connect to MCP servers for external tool access:
 
 ```python
-from opper_agent import mcp, MCPServerConfig
+from opper_agents import mcp, MCPServerConfig
 
 filesystem_server = MCPServerConfig(
     name="filesystem",
@@ -184,8 +184,8 @@ agent = Agent(
 Monitor agent lifecycle events:
 
 ```python
-from opper_agent import hook
-from opper_agent.base.context import AgentContext
+from opper_agents import hook
+from opper_agents.base.context import AgentContext
 
 @hook("agent_start")
 async def on_start(context: AgentContext, agent):

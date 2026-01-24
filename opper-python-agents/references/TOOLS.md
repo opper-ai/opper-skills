@@ -5,7 +5,7 @@ Tools give agents the ability to interact with the world. Define tools with the 
 ## Basic Tool Definition
 
 ```python
-from opper_agent import tool
+from opper_agents import tool
 
 @tool
 def search_web(query: str) -> str:
@@ -137,7 +137,7 @@ def context_aware_tool(query: str) -> str:
 ## Using Tools with Agents
 
 ```python
-from opper_agent import Agent
+from opper_agents import Agent
 
 agent = Agent(
     name="ResearchBot",

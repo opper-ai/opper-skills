@@ -23,9 +23,9 @@ Hooks let you run code at specific points in the agent's lifecycle for logging, 
 Use the `@hook` decorator with the event name:
 
 ```python
-from opper_agent import hook
-from opper_agent.base.context import AgentContext
-from opper_agent.base.agent import BaseAgent
+from opper_agents import hook
+from opper_agents.base.context import AgentContext
+from opper_agents.base.agent import BaseAgent
 
 @hook("agent_start")
 async def on_start(context: AgentContext, agent: BaseAgent):
@@ -45,7 +45,7 @@ async def on_error(context: AgentContext, agent: BaseAgent, error: Exception):
 Pass hooks as a list when creating the agent:
 
 ```python
-from opper_agent import Agent
+from opper_agents import Agent
 
 agent = Agent(
     name="MyAgent",

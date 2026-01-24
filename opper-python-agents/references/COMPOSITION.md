@@ -7,7 +7,7 @@ Build complex systems by using agents as tools within other agents. This enables
 Use `agent.as_tool()` to convert an agent into a tool:
 
 ```python
-from opper_agent import Agent, tool
+from opper_agents import Agent, tool
 
 @tool
 def add(a: int, b: int) -> int:

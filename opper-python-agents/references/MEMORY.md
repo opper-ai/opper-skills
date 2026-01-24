@@ -5,7 +5,7 @@ Memory gives agents persistent state across iterations and multiple `process()` 
 ## Enabling Memory
 
 ```python
-from opper_agent import Agent
+from opper_agents import Agent
 
 agent = Agent(
     name="AssistantBot",
@@ -72,8 +72,8 @@ await agent.process("What's on my task list?")
 Use hooks to observe memory operations:
 
 ```python
-from opper_agent import hook
-from opper_agent.base.context import AgentContext
+from opper_agents import hook
+from opper_agents.base.context import AgentContext
 
 @hook("memory_read")
 async def on_memory_read(context: AgentContext, key: str, value):
