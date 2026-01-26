@@ -134,7 +134,10 @@ const stream = await opper.functions.stream({
 });
 
 for await (const event of stream) {
-  process.stdout.write(event.delta ?? "");
+  const delta = event.data?.delta;
+  if (delta) {
+    process.stdout.write(delta);
+  }
 }
 ```
 

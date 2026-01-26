@@ -3,64 +3,68 @@
 Knowledge bases provide semantic search over your documents using vector embeddings. Use them for RAG (Retrieval-Augmented Generation) pipelines.
 
 ## Contents
-- [Creating an Index](#creating-an-index)
+- [Creating a Knowledge Base](#creating-a-knowledge-base)
 - [Adding Documents](#adding-documents)
 - [Querying (Semantic Search)](#querying-semantic-search)
 - [Query with Metadata Filters](#query-with-metadata-filters)
 - [RAG Pattern: Query + Call](#rag-pattern-query--call)
-- [Listing Indexes](#listing-indexes)
-- [Getting an Index](#getting-an-index)
+- [Listing Knowledge Bases](#listing-knowledge-bases)
+- [Getting a Knowledge Base](#getting-a-knowledge-base)
 - [Deleting Documents](#deleting-documents)
-- [Deleting an Index](#deleting-an-index)
+- [Deleting a Knowledge Base](#deleting-a-knowledge-base)
 - [File Upload](#file-upload)
 - [Document Structure](#document-structure)
 - [Best Practices](#best-practices)
 
-## Creating an Index
+## Creating a Knowledge Base
 
 ```python
 from opperai import Opper
 
 opper = Opper()
 
-# Create a new knowledge base index
-index = opper.indexes.create("support_docs")
+# Create a new knowledge base
+kb = opper.knowledge.create(name="support_docs")
 ```
 
 ## Adding Documents
 
 ```python
-from opperai.types import DocumentIn
-
 # Add a single document
-index.add(DocumentIn(
-    key="doc_001",
+opper.knowledge.add(
+    index_id=kb.id,
     content="To reset your password, click 'Forgot Password' on the login page.",
     metadata={"category": "auth", "source": "helpdesk"},
-))
+)
 
 # Add multiple documents
 documents = [
-    DocumentIn(
-        key="doc_002",
-        content="Billing cycles run on the 1st of each month.",
-        metadata={"category": "billing"},
-    ),
-    DocumentIn(
-        key="doc_003",
-        content="To upgrade your plan, go to Settings > Subscription.",
-        metadata={"category": "account"},
-    ),
+    {
+        "content": "Billing cycles run on the 1st of each month.",
+        "metadata": {"category": "billing"},
+    },
+    {
+        "content": "To upgrade your plan, go to Settings > Subscription.",
+        "metadata": {"category": "account"},
+    },
 ]
 for doc in documents:
-    index.add(doc)
+    opper.knowledge.add(
+        index_id=kb.id,
+        content=doc["content"],
+        metadata=doc["metadata"],
+    )
 ```
 
 ## Querying (Semantic Search)
 
 ```python
 # Basic query - returns most relevant documents
-results = index.query("How do I change my password?", k=3)
+results = opper.knowledge.query(
+    index_id=kb.id,
+    query="How do I change my password?",
+    k=3,
+)
 
 for result in results:
     print(f"Score: {result.score:.3f}")
@@ -73,8 +77,9 @@ for result in results:
 
 ```python
 # Filter results by metadata
-results = index.query(
-    "billing question",
+results = opper.knowledge.query(
+    index_id=kb.id,
+    query="billing question",
     k=5,
     filters={"category": "billing"},
 )
@@ -85,20 +90,17 @@ results = index.query(
 Combine knowledge base retrieval with task completion:
 
 ```python
-from opperai import Opper, trace
-from opperai.types import DocumentIn
-from opperai.types.indexes import RetrievalResponse
-from pydantic import BaseModel
-from typing import List
+from opperai import Opper
 
-class AnswerWithSources(BaseModel):
-    answer: str
-    sources: List[str]
+opper = Opper()
 
-@trace
-def answer_with_context(question: str) -> AnswerWithSources:
+def answer_with_context(question: str, kb_id: str) -> dict:
     # 1. Retrieve relevant context
-    results = index.query(question, k=3)
+    results = opper.knowledge.query(
+        index_id=kb_id,
+        query=question,
+        k=3,
+    )
 
     # 2. Build context string
     context = "\n".join([
@@ -111,40 +113,50 @@ def answer_with_context(question: str) -> AnswerWithSources:
         name="answer_with_rag",
         instructions="Answer the question using only the provided context. Cite sources.",
         input=f"Context:\n{context}\n\nQuestion: {question}",
-        output_type=AnswerWithSources,
+        output_schema={
+            "type": "object",
+            "properties": {
+                "answer": {"type": "string"},
+                "sources": {"type": "array", "items": {"type": "string"}},
+            },
+            "required": ["answer", "sources"],
+        },
     )
     return result
 ```
 
-## Listing Indexes
+## Listing Knowledge Bases
 
 ```python
-indexes = opper.indexes.list()
+indexes = opper.knowledge.list()
 for idx in indexes:
     print(f"{idx.name}: {idx.id}")
 ```
 
-## Getting an Index
+## Getting a Knowledge Base
 
 ```python
 # By name
-index = opper.indexes.get_by_name("support_docs")
+kb = opper.knowledge.get_by_name("support_docs")
 
 # By ID
-index = opper.indexes.get(index_id="idx_123")
+kb = opper.knowledge.get(index_id="idx_123")
 ```
 
 ## Deleting Documents
 
 ```python
 # Delete a specific document by key
-index.delete(key="doc_001")
+opper.knowledge.delete_document(
+    index_id=kb.id,
+    key="doc_001",
+)
 ```
 
-## Deleting an Index
+## Deleting a Knowledge Base
 
 ```python
-opper.indexes.delete(index_id="idx_123")
+opper.knowledge.delete(index_id="idx_123")
 ```
 
 ## File Upload
@@ -153,7 +165,10 @@ Upload files (PDF, DOCX, etc.) for automatic processing:
 
 ```python
 # Get upload URL
-upload_info = index.get_upload_url(filename="manual.pdf")
+upload_info = opper.knowledge.get_upload_url(
+    index_id=kb.id,
+    filename="manual.pdf",
+)
 
 # Upload the file (use requests or similar)
 import requests
@@ -161,7 +176,8 @@ with open("manual.pdf", "rb") as f:
     requests.put(upload_info.url, data=f)
 
 # Register the upload
-index.register_file_upload(
+opper.knowledge.register_file_upload(
+    index_id=kb.id,
     upload_id=upload_info.upload_id,
     filename="manual.pdf",
 )
@@ -180,5 +196,5 @@ Each document has:
 - Keep documents focused — one topic per document works better than large multi-topic docs
 - Add relevant `metadata` for filtering (category, source, date, etc.)
 - Use `k=3` to `k=5` for most queries — more results can add noise
-- Combine with the `@trace` decorator for observability in RAG pipelines
+- Use `parent_span_id` for tracing RAG pipelines
 - Update documents by re-adding with the same `key`

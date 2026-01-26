@@ -32,10 +32,9 @@ const kb = await opper.knowledge.create({
 ## Adding Documents
 
 ```typescript
-await opper.knowledge.add({
-  id: kb.id,
+await opper.knowledge.add(kb.id, {
   content: "To reset your password, click 'Forgot Password' on the login page.",
-  key: "doc_001",
+  key: "doc_001",  // optional
   metadata: { category: "auth", source: "helpdesk" },
 });
 
@@ -54,17 +53,16 @@ const docs = [
 ];
 
 for (const doc of docs) {
-  await opper.knowledge.add({ id: kb.id, ...doc });
+  await opper.knowledge.add(kb.id, doc);
 }
 ```
 
 ## Querying (Semantic Search)
 
 ```typescript
-const results = await opper.knowledge.query({
-  id: kb.id,
+const results = await opper.knowledge.query(kb.id, {
   query: "How do I change my password?",
-  k: 3,
+  topK: 3,
 });
 
 for (const result of results) {
@@ -77,11 +75,11 @@ for (const result of results) {
 ## Query with Filters
 
 ```typescript
-const results = await opper.knowledge.query({
-  id: kb.id,
+// Filters use array of { field, operation, value } objects
+const results = await opper.knowledge.query(kb.id, {
   query: "billing question",
-  k: 5,
-  filters: { category: "billing" },
+  topK: 5,
+  filters: [{ field: "category", operation: "=", value: "billing" }],
 });
 ```
 
@@ -92,10 +90,9 @@ Combine knowledge base retrieval with task completion:
 ```typescript
 async function answerWithContext(question: string) {
   // 1. Retrieve relevant context
-  const results = await opper.knowledge.query({
-    id: kb.id,
+  const results = await opper.knowledge.query(kb.id, {
     query: question,
-    k: 3,
+    topK: 3,
   });
 
   // 2. Build context string
@@ -134,11 +131,11 @@ for (const kb of knowledgeBases) {
 ## Getting a Knowledge Base
 
 ```typescript
-// By ID
-const kb = await opper.knowledge.get({ id: "kb_123" });
+// By ID (pass string directly, not object)
+const kb = await opper.knowledge.get("kb_123");
 
-// By name
-const kb = await opper.knowledge.getByName({ name: "support_docs" });
+// By name (pass string directly, not object)
+const kb = await opper.knowledge.getByName("support_docs");
 ```
 
 ## File Upload
@@ -169,16 +166,15 @@ await opper.knowledge.registerFileUpload({
 ## Deleting Documents
 
 ```typescript
-await opper.knowledge.deleteFile({
-  id: kb.id,
-  key: "doc_001",
-});
+// Pass knowledgeBaseId and fileId as separate string params
+await opper.knowledge.deleteFile(kb.id, "file_123");
 ```
 
 ## Deleting a Knowledge Base
 
 ```typescript
-await opper.knowledge.delete({ id: kb.id });
+// Pass string directly, not object
+await opper.knowledge.delete(kb.id);
 ```
 
 ## Best Practices
@@ -186,6 +182,6 @@ await opper.knowledge.delete({ id: kb.id });
 - Use meaningful `key` values for document management
 - Keep documents focused — one topic per document
 - Add `metadata` for filtering (category, source, date)
-- Use `k=3` to `k=5` for most queries
+- Use `topK: 3` to `topK: 5` for most queries
 - Update documents by re-adding with the same `key`
 - Use `parentSpanId` in calls for tracing RAG pipelines

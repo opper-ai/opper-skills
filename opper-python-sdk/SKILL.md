@@ -1,7 +1,7 @@
 ---
 name: opper-python-sdk
 description: >
-  Use the Opper Python SDK (opperai) for AI task completion, structured output with Pydantic schemas, knowledge base semantic search, and tracing/observability. Activate when building Python applications that need LLM-powered task completion, RAG pipelines, document indexing, or AI function orchestration with the Opper platform.
+  Use the Opper Python SDK (opperai) for AI task completion, structured output with JSON Schema, knowledge base semantic search, and tracing/observability. Activate when building Python applications that need LLM-powered task completion, RAG pipelines, document indexing, or AI function orchestration with the Opper platform.
 ---
 
 # Opper Python SDK
@@ -28,7 +28,6 @@ The `opper.call()` method is the primary interface. Describe a task declarativel
 
 ```python
 from opperai import Opper
-from pydantic import BaseModel
 
 opper = Opper()
 
@@ -40,43 +39,58 @@ result, response = opper.call(
 )
 print(result)  # "Opper enables reliable AI integrations with structured outputs."
 
-# Structured output with Pydantic
-class Sentiment(BaseModel):
-    label: str
-    confidence: float
-
+# Structured output with schema dict
 result, response = opper.call(
     name="analyze_sentiment",
     instructions="Analyze the sentiment of the text",
     input="I love this product!",
-    output_type=Sentiment,
+    output_schema={
+        "type": "object",
+        "properties": {
+            "label": {"type": "string"},
+            "confidence": {"type": "number"},
+        },
+        "required": ["label", "confidence"],
+    },
 )
-print(result.label)       # "positive"
-print(result.confidence)  # 0.95
+print(result["label"])       # "positive"
+print(result["confidence"])  # 0.95
 ```
 
-## Structured Output with Pydantic
+## Structured Output with Schema
 
-Define input and output schemas using Pydantic models for type-safe AI interactions:
+Define output schemas using JSON Schema dictionaries:
 
 ```python
-from typing import List
-from pydantic import BaseModel, Field
-
-class ExtractedEntities(BaseModel):
-    people: List[str] = Field(description="Names of people mentioned")
-    locations: List[str] = Field(description="Geographic locations")
-    organizations: List[str] = Field(description="Company or org names")
-
 result, _ = opper.call(
     name="extract_entities",
     instructions="Extract all named entities from the text",
     input="Tim Cook announced Apple's new office in Austin, Texas.",
-    output_type=ExtractedEntities,
+    output_schema={
+        "type": "object",
+        "properties": {
+            "people": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Names of people mentioned",
+            },
+            "locations": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Geographic locations",
+            },
+            "organizations": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Company or org names",
+            },
+        },
+        "required": ["people", "locations", "organizations"],
+    },
 )
-# result.people => ["Tim Cook"]
-# result.locations => ["Austin", "Texas"]
-# result.organizations => ["Apple"]
+# result["people"] => ["Tim Cook"]
+# result["locations"] => ["Austin", "Texas"]
+# result["organizations"] => ["Apple"]
 ```
 
 ## Model Selection
@@ -112,7 +126,6 @@ result, _ = opper.call(
     name="classify_ticket",
     instructions="Classify the support ticket",
     input="My payment was declined",
-    output_type=str,
     examples=[
         {"input": "I can't log in", "output": "authentication"},
         {"input": "Charge me twice", "output": "billing"},
@@ -126,24 +139,30 @@ result, _ = opper.call(
 Track AI operations with spans and metrics:
 
 ```python
-from opperai import Opper, trace
+from opperai import Opper
 
 opper = Opper()
 
-@trace
-def answer_question(question: str) -> str:
-    result, response = opper.call(
-        name="answer",
-        instructions="Answer the question accurately",
-        input=question,
-    )
-    # Save a metric on the span
-    response.span.save_metric("quality_score", 4.5)
-    return result
+# Create a span to group operations
+span = opper.spans.create(name="qa_pipeline")
 
-# Start a trace to group operations
-with opper.traces.start("qa_pipeline") as t:
-    answer = answer_question("What is Opper?")
+# Call with parent span for hierarchy
+result, response = opper.call(
+    name="answer",
+    instructions="Answer the question accurately",
+    input="What is Opper?",
+    parent_span_id=span.id,
+)
+
+# Save a metric on the span
+opper.span_metrics.create_metric(
+    span_id=response.span_id,
+    dimension="quality_score",
+    value=4.5,
+)
+
+# List traces
+traces = opper.traces.list()
 ```
 
 ## Knowledge Bases
@@ -151,20 +170,26 @@ with opper.traces.start("qa_pipeline") as t:
 Create and query semantic search indexes:
 
 ```python
-from opperai.types import DocumentIn
+from opperai import Opper
 
-# Create an index
-index = opper.indexes.create("support_docs")
+opper = Opper()
 
-# Add documents
-index.add(DocumentIn(
-    key="doc1",
+# Create a knowledge base
+kb = opper.knowledge.create(name="support_docs")
+
+# Add a document
+opper.knowledge.add(
+    index_id=kb.id,
     content="To reset your password, click Forgot Password on the login page.",
     metadata={"category": "auth"},
-))
+)
 
 # Query with semantic search
-results = index.query("How do I change my password?", k=3)
+results = opper.knowledge.query(
+    index_id=kb.id,
+    query="How do I change my password?",
+    k=3,
+)
 for result in results:
     print(result.content, result.score)
 ```
@@ -184,9 +209,9 @@ result, _ = opper.call(
 
 ## Common Mistakes
 
-- **Missing `output_type`**: Without it, the result is a plain string. Use Pydantic models for structured data.
+- **Missing `output_schema`**: Without it, the result is a plain string. Use schema dicts for structured data.
 - **Not using `name`**: Every call needs a unique name for tracking in the dashboard.
-- **Ignoring the response object**: The second return value contains the span for metrics and tracing.
+- **Ignoring the response object**: The second return value contains `span_id` for metrics and tracing.
 - **Large inputs without chunking**: For large documents, split into chunks and use knowledge bases instead.
 
 ## Additional Resources

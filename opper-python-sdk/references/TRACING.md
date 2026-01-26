@@ -3,8 +3,8 @@
 Tracing provides full observability into your AI operations with hierarchical spans, metrics, and dashboard visibility.
 
 ## Contents
-- [Starting a Trace](#starting-a-trace)
-- [The @trace Decorator](#the-trace-decorator)
+- [Creating Spans](#creating-spans)
+- [Span Hierarchy with parent_span_id](#span-hierarchy-with-parent_span_id)
 - [Saving Metrics on Spans](#saving-metrics-on-spans)
 - [Listing Traces](#listing-traces)
 - [Getting a Trace](#getting-a-trace)
@@ -15,59 +15,66 @@ Tracing provides full observability into your AI operations with hierarchical sp
 - [Dashboard Integration](#dashboard-integration)
 - [Best Practices](#best-practices)
 
-## Starting a Trace
+## Creating Spans
 
-A trace groups related operations together:
+Create spans manually to group related operations:
 
 ```python
 from opperai import Opper
 
 opper = Opper()
 
-# Context manager pattern (recommended)
-with opper.traces.start("my_pipeline") as trace:
-    # All operations inside are grouped under this trace
-    result1, _ = opper.call(name="step1", instructions="...", input="...")
-    result2, _ = opper.call(name="step2", instructions="...", input=result1)
+# Create a span manually
+span = opper.spans.create(name="my_pipeline")
+
+# All operations can reference this span as parent
+result1, response1 = opper.call(
+    name="step1",
+    instructions="First step",
+    input="...",
+    parent_span_id=span.id,
+)
+
+result2, response2 = opper.call(
+    name="step2",
+    instructions="Second step",
+    input=result1,
+    parent_span_id=span.id,
+)
 ```
 
-## The @trace Decorator
+## Span Hierarchy with parent_span_id
 
-Automatically create spans for functions:
+Create parent-child relationships between spans:
 
 ```python
-from opperai import Opper, trace
+from opperai import Opper
 
 opper = Opper()
 
-@trace
-def process_document(doc: str) -> str:
-    result, _ = opper.call(
-        name="summarize",
-        instructions="Summarize the document",
-        input=doc,
-    )
-    return result
+# Create a top-level span for the pipeline
+pipeline_span = opper.spans.create(name="document_pipeline")
 
-@trace
-def enrich_summary(summary: str) -> dict:
-    result, _ = opper.call(
-        name="extract_topics",
-        instructions="Extract key topics",
-        input=summary,
-        output_type=dict,
-    )
-    return result
+# First operation under the pipeline
+result1, response1 = opper.call(
+    name="summarize",
+    instructions="Summarize the document",
+    input="Long document text...",
+    parent_span_id=pipeline_span.id,
+)
 
-# Nested traces create parent-child spans automatically
-with opper.traces.start("document_pipeline") as t:
-    summary = process_document("Long document text...")
-    enriched = enrich_summary(summary)
+# Second operation under the pipeline
+result2, response2 = opper.call(
+    name="extract_topics",
+    instructions="Extract key topics",
+    input=result1,
+    parent_span_id=pipeline_span.id,
+)
 ```
 
 ## Saving Metrics on Spans
 
-Attach custom metrics to any span:
+Attach custom metrics to any span using `opper.span_metrics.create_metric()`:
 
 ```python
 result, response = opper.call(
@@ -77,9 +84,23 @@ result, response = opper.call(
 )
 
 # Save metrics on the span
-response.span.save_metric("quality_score", 4.5)
-response.span.save_metric("relevance", 0.92)
-response.span.save_metric("latency_ms", 320)
+opper.span_metrics.create_metric(
+    span_id=response.span_id,
+    dimension="quality_score",
+    value=4.5,
+)
+
+opper.span_metrics.create_metric(
+    span_id=response.span_id,
+    dimension="relevance",
+    value=0.92,
+)
+
+opper.span_metrics.create_metric(
+    span_id=response.span_id,
+    dimension="latency_ms",
+    value=320,
+)
 ```
 
 ## Listing Traces
@@ -166,9 +187,8 @@ All traces and spans appear in the Opper dashboard at [platform.opper.ai](https:
 
 ## Best Practices
 
-- Use descriptive trace names: `"user_query_pipeline"` not `"trace1"`
-- Add `@trace` to all significant functions in your pipeline
+- Use descriptive span names: `"user_query_pipeline"` not `"trace1"`
+- Use `parent_span_id` to create hierarchical relationships
 - Save metrics that matter for quality: accuracy, relevance, latency
 - Use tags consistently across calls for effective filtering
-- Keep trace names stable — changing them breaks dashboard filters
-- Use the context manager for top-level traces to ensure proper cleanup
+- Keep span names stable — changing them breaks dashboard filters

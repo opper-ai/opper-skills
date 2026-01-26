@@ -67,16 +67,15 @@ await opper.spans.update({
 ## Saving Metrics
 
 ```typescript
-await opper.spanMetrics.createMetric({
-  spanId: span.id,
-  name: "quality_score",
+await opper.spanMetrics.createMetric(span.id, {
+  dimension: "quality_score",
   value: 4.5,
 });
 
-await opper.spanMetrics.createMetric({
-  spanId: span.id,
-  name: "relevance",
+await opper.spanMetrics.createMetric(span.id, {
+  dimension: "relevance",
   value: 0.92,
+  comment: "Optional comment for this metric",
 });
 ```
 
@@ -84,13 +83,13 @@ await opper.spanMetrics.createMetric({
 
 ```typescript
 // List metrics for a span
-const metrics = await opper.spanMetrics.list({ spanId: span.id });
+const metrics = await opper.spanMetrics.list(span.id);
 for (const m of metrics) {
-  console.log(`${m.name}: ${m.value}`);
+  console.log(`${m.dimension}: ${m.value}`);
 }
 
-// Get a specific metric
-const metric = await opper.spanMetrics.get({ id: "metric_123" });
+// Get a specific metric (requires both spanId and metricId)
+const metric = await opper.spanMetrics.get(span.id, "metric_123");
 ```
 
 ## Listing Traces
@@ -150,8 +149,8 @@ const result = await opper.call({
 ## Deleting Spans and Metrics
 
 ```typescript
-// Delete a metric
-await opper.spanMetrics.delete({ id: "metric_123" });
+// Delete a metric (requires both spanId and metricId)
+await opper.spanMetrics.delete(span.id, "metric_123");
 
 // Delete a span
 await opper.spans.delete({ id: "span_456" });

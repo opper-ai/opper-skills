@@ -30,7 +30,10 @@ const stream = await opper.stream({
 });
 
 for await (const event of stream) {
-  process.stdout.write(event.delta ?? "");
+  const delta = event.data?.delta;
+  if (delta) {
+    process.stdout.write(delta);
+  }
 }
 ```
 
@@ -56,8 +59,11 @@ const stream = await opper.stream({
 
 let fullResponse = "";
 for await (const event of stream) {
-  fullResponse += event.delta ?? "";
-  process.stdout.write(event.delta ?? "");
+  const delta = event.data?.delta;
+  if (delta) {
+    fullResponse += delta;
+    process.stdout.write(delta);
+  }
 }
 ```
 
@@ -89,7 +95,10 @@ const stream = await opper.stream({
 });
 
 for await (const event of stream) {
-  process.stdout.write(event.delta ?? "");
+  const delta = event.data?.delta;
+  if (delta) {
+    process.stdout.write(delta);
+  }
 }
 ```
 
@@ -107,7 +116,10 @@ const stream = await opper.stream({
 });
 
 for await (const event of stream) {
-  process.stdout.write(event.delta ?? "");
+  const delta = event.data?.delta;
+  if (delta) {
+    process.stdout.write(delta);
+  }
 }
 ```
 
@@ -122,7 +134,10 @@ const stream = await opper.functions.stream({
 });
 
 for await (const event of stream) {
-  process.stdout.write(event.delta ?? "");
+  const delta = event.data?.delta;
+  if (delta) {
+    process.stdout.write(delta);
+  }
 }
 
 // Stream a specific revision
@@ -158,7 +173,10 @@ app.get("/generate", async (req, res) => {
   });
 
   for await (const event of stream) {
-    res.write(`data: ${JSON.stringify({ delta: event.delta })}\n\n`);
+    const delta = event.data?.delta;
+    if (delta) {
+      res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+    }
   }
 
   res.write("data: [DONE]\n\n");
@@ -172,10 +190,14 @@ Each event in the stream contains:
 
 ```typescript
 interface StreamEvent {
-  delta?: string;      // The new text chunk
+  data?: {
+    delta?: string;    // The new text chunk
+  };
   // Additional metadata may be included
 }
 ```
+
+Access the delta via `event.data?.delta`.
 
 ## Best Practices
 

@@ -11,21 +11,23 @@ Stream responses token-by-token for real-time output in user-facing applications
 
 ## Basic Streaming
 
-Use `opper.call()` with `stream=True` to get an iterator of chunks:
+Use `opper.stream()` (not `opper.call()`) to get a streaming response:
 
 ```python
 from opperai import Opper
 
 opper = Opper()
 
-# Stream a response
-for chunk in opper.call(
+# Stream a response using opper.stream()
+response = opper.stream(
     name="write_story",
     instructions="Write a short story about the given topic",
     input="a robot learning to cook",
-    stream=True,
-):
-    print(chunk, end="", flush=True)
+)
+
+for event in response.result:
+    if hasattr(event.data, 'delta'):
+        print(event.data.delta, end="", flush=True)
 ```
 
 ## Streaming with Structured Output
@@ -33,24 +35,24 @@ for chunk in opper.call(
 Stream while still getting validated structured output at the end:
 
 ```python
-from pydantic import BaseModel
-from typing import List
-
-class Story(BaseModel):
-    title: str
-    paragraphs: List[str]
-
-# The stream yields deltas; the final result is validated against the schema
-chunks = []
-for chunk in opper.call(
+# The stream yields deltas; use output_schema for structure
+response = opper.stream(
     name="write_structured_story",
     instructions="Write a story with a title and paragraphs",
     input="space exploration",
-    output_type=Story,
-    stream=True,
-):
-    chunks.append(chunk)
-    print(chunk, end="", flush=True)
+    output_schema={
+        "type": "object",
+        "properties": {
+            "title": {"type": "string"},
+            "paragraphs": {"type": "array", "items": {"type": "string"}},
+        },
+        "required": ["title", "paragraphs"],
+    },
+)
+
+for event in response.result:
+    if hasattr(event.data, 'delta'):
+        print(event.data.delta, end="", flush=True)
 ```
 
 ## Web Server Integration (FastAPI)
@@ -68,13 +70,14 @@ opper = Opper()
 @app.get("/generate")
 async def generate(topic: str):
     def stream_generator():
-        for chunk in opper.call(
+        response = opper.stream(
             name="generate_content",
             instructions="Write content about the topic",
             input=topic,
-            stream=True,
-        ):
-            yield chunk
+        )
+        for event in response.result:
+            if hasattr(event.data, 'delta'):
+                yield event.data.delta
 
     return StreamingResponse(
         stream_generator(),
@@ -84,33 +87,39 @@ async def generate(topic: str):
 
 ## Streaming with Tracing
 
-Streaming works with the tracing system:
+Streaming works with the tracing system using `parent_span_id`:
 
 ```python
-from opperai import trace
+from opperai import Opper
 
-@trace
-def stream_answer(question: str):
-    response_text = ""
-    for chunk in opper.call(
-        name="answer_question",
-        instructions="Answer the question",
-        input=question,
-        stream=True,
-    ):
-        response_text += chunk
-        print(chunk, end="", flush=True)
-    return response_text
+opper = Opper()
 
-with opper.traces.start("streaming_qa"):
-    answer = stream_answer("What is machine learning?")
+# Create a span for the streaming operation
+span = opper.spans.create(name="streaming_qa")
+
+response_text = ""
+response = opper.stream(
+    name="answer_question",
+    instructions="Answer the question",
+    input="What is machine learning?",
+    parent_span_id=span.id,
+)
+
+for event in response.result:
+    if hasattr(event.data, 'delta'):
+        response_text += event.data.delta
+        print(event.data.delta, end="", flush=True)
+
+print()  # Newline after streaming
 ```
 
 ## Best Practices
 
+- Use `opper.stream()` instead of `opper.call()` for streaming
 - Always use `flush=True` when printing chunks to ensure immediate display
+- Check for `hasattr(event.data, 'delta')` before accessing delta content
 - For web servers, use `StreamingResponse` with appropriate content types
-- Accumulate chunks if you need the full response for downstream processing
+- Accumulate deltas if you need the full response for downstream processing
 - Streaming works with all models that support it
 - Use streaming for user-facing applications where perceived latency matters
-- For batch processing without user interaction, non-streaming is simpler
+- For batch processing without user interaction, non-streaming `opper.call()` is simpler
