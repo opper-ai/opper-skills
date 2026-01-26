@@ -57,6 +57,29 @@ curl -X POST https://api.opper.ai/v2/knowledge/{kb_id}/query \
   -d '{"query": "How do I change my password?", "top_k": 3}'
 ```
 
+### Filtering Results
+
+Use `filters` to narrow results by metadata:
+
+```bash
+curl -X POST https://api.opper.ai/v2/knowledge/{kb_id}/query \
+  -H "Authorization: Bearer $OPPER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "How to reset password?",
+    "top_k": 3,
+    "filters": [
+      {"field": "category", "operation": "=", "value": "auth"}
+    ]
+  }'
+```
+
+Filter format: `{"field": "metadata_key", "operation": "op", "value": "match_value"}`
+
+Supported operations: `=`, `!=`, `>`, `<`, `>=`, `<=`, `in`
+
+Multiple filters are combined with AND logic.
+
 Response:
 
 ```json

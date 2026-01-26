@@ -254,11 +254,7 @@ Response: `{data: [{id, name, start_time, end_time, duration_ms, status, total_t
 
 ### GET /v2/traces/{id}
 
-Get trace details.
-
-### GET /v2/traces/{id}/spans
-
-Get trace with all child spans.
+Get trace details (includes all child spans).
 
 ---
 
@@ -269,7 +265,7 @@ Get trace with all child spans.
 Create metric on span.
 
 ```json
-{"name": "string", "value": "number"}
+{"dimension": "string", "value": "number", "comment": "string (optional)"}
 ```
 
 ### GET /v2/spans/{span_id}/metrics

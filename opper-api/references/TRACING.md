@@ -106,12 +106,12 @@ Attach evaluation metrics:
 curl -X POST https://api.opper.ai/v2/spans/{span_id}/metrics \
   -H "Authorization: Bearer $OPPER_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"name": "quality_score", "value": 4.5}'
+  -d '{"dimension": "quality_score", "value": 4.5}'
 
 curl -X POST https://api.opper.ai/v2/spans/{span_id}/metrics \
   -H "Authorization: Bearer $OPPER_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"name": "relevance", "value": 0.92}'
+  -d '{"dimension": "relevance", "value": 0.92, "comment": "optional note"}'
 ```
 
 ## List Metrics
@@ -176,11 +176,11 @@ Response:
 ## Get Trace with Spans
 
 ```bash
-curl https://api.opper.ai/v2/traces/{trace_id}/spans \
+curl https://api.opper.ai/v2/traces/{trace_id} \
   -H "Authorization: Bearer $OPPER_API_KEY"
 ```
 
-Returns the full trace tree with all child spans.
+Returns the trace details including all child spans.
 
 ## Tags for Filtering
 
