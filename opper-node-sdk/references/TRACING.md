@@ -2,6 +2,20 @@
 
 Tracing provides full observability into your AI operations with hierarchical spans, metrics, and dashboard visibility.
 
+## Contents
+- [Spans and Parent-Child Relationships](#spans-and-parent-child-relationships)
+- [Creating Spans](#creating-spans)
+- [Saving Metrics](#saving-metrics)
+- [Listing and Getting Metrics](#listing-and-getting-metrics)
+- [Listing Traces](#listing-traces)
+- [Getting a Trace](#getting-a-trace)
+- [Getting Span Details](#getting-span-details)
+- [Saving Spans to Datasets](#saving-spans-to-datasets)
+- [Tags for Filtering](#tags-for-filtering)
+- [Deleting Spans and Metrics](#deleting-spans-and-metrics)
+- [Trace Hierarchy](#trace-hierarchy)
+- [Best Practices](#best-practices)
+
 ## Spans and Parent-Child Relationships
 
 Group related operations using `parentSpanId`:

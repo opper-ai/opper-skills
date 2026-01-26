@@ -2,6 +2,20 @@
 
 Knowledge bases provide semantic search over your documents using vector embeddings. Use them for RAG (Retrieval-Augmented Generation) pipelines.
 
+## Contents
+- [Creating an Index](#creating-an-index)
+- [Adding Documents](#adding-documents)
+- [Querying (Semantic Search)](#querying-semantic-search)
+- [Query with Metadata Filters](#query-with-metadata-filters)
+- [RAG Pattern: Query + Call](#rag-pattern-query--call)
+- [Listing Indexes](#listing-indexes)
+- [Getting an Index](#getting-an-index)
+- [Deleting Documents](#deleting-documents)
+- [Deleting an Index](#deleting-an-index)
+- [File Upload](#file-upload)
+- [Document Structure](#document-structure)
+- [Best Practices](#best-practices)
+
 ## Creating an Index
 
 ```python

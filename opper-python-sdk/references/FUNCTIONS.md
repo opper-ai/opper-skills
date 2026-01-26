@@ -2,6 +2,18 @@
 
 Functions are server-side managed task definitions that allow you to version, reuse, and monitor AI tasks at scale.
 
+## Contents
+- [Why Use Functions?](#why-use-functions)
+- [Creating Functions](#creating-functions)
+- [Calling Functions by Name](#calling-functions-by-name)
+- [Listing Functions](#listing-functions)
+- [Getting a Function](#getting-a-function)
+- [Updating Functions](#updating-functions)
+- [Deleting Functions](#deleting-functions)
+- [Inline vs. Managed Functions](#inline-vs-managed-functions)
+- [Function Configuration Options](#function-configuration-options)
+- [Best Practices](#best-practices)
+
 ## Why Use Functions?
 
 - **Versioning**: Track changes to instructions and schemas over time

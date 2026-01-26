@@ -2,6 +2,18 @@
 
 Connect agents to external tool providers via the Model Context Protocol (MCP). MCP servers expose tools for filesystem access, databases, APIs, and more.
 
+## Contents
+- [Basic MCP Setup](#basic-mcp-setup)
+- [Transport Types](#transport-types)
+- [Multiple MCP Servers](#multiple-mcp-servers)
+- [Mixing MCP and Custom Tools](#mixing-mcp-and-custom-tools)
+- [Docker-Based MCP Servers](#docker-based-mcp-servers)
+- [Common MCP Servers](#common-mcp-servers)
+- [Tool Naming](#tool-naming)
+- [Lifecycle Management](#lifecycle-management)
+- [Error Handling](#error-handling)
+- [Best Practices](#best-practices)
+
 ## Basic MCP Setup
 
 ```typescript

@@ -2,6 +2,13 @@
 
 Stream responses token-by-token for real-time output in user-facing applications.
 
+## Contents
+- [Basic Streaming](#basic-streaming)
+- [Streaming with Structured Output](#streaming-with-structured-output)
+- [Web Server Integration (FastAPI)](#web-server-integration-fastapi)
+- [Streaming with Tracing](#streaming-with-tracing)
+- [Best Practices](#best-practices)
+
 ## Basic Streaming
 
 Use `opper.call()` with `stream=True` to get an iterator of chunks:

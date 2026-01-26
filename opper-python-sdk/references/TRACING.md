@@ -2,6 +2,19 @@
 
 Tracing provides full observability into your AI operations with hierarchical spans, metrics, and dashboard visibility.
 
+## Contents
+- [Starting a Trace](#starting-a-trace)
+- [The @trace Decorator](#the-trace-decorator)
+- [Saving Metrics on Spans](#saving-metrics-on-spans)
+- [Listing Traces](#listing-traces)
+- [Getting a Trace](#getting-a-trace)
+- [Span Operations](#span-operations)
+- [Saving Spans to Datasets](#saving-spans-to-datasets)
+- [Tags for Filtering](#tags-for-filtering)
+- [Trace Hierarchy](#trace-hierarchy)
+- [Dashboard Integration](#dashboard-integration)
+- [Best Practices](#best-practices)
+
 ## Starting a Trace
 
 A trace groups related operations together:

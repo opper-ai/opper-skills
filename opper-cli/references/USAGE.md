@@ -2,6 +2,17 @@
 
 Track token usage, costs, and analytics from the command line.
 
+## Contents
+- [Basic Usage](#basic-usage)
+- [All Flags](#all-flags)
+- [Fields (--fields)](#fields---fields)
+- [Grouping (--group-by)](#grouping---group-by)
+- [Output Formats](#output-formats)
+- [Graph Mode](#graph-mode)
+- [Examples](#examples)
+- [Response Format](#response-format)
+- [Tips](#tips)
+
 ## Basic Usage
 
 ```bash

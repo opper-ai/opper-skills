@@ -2,12 +2,6 @@
 name: opper-python-sdk
 description: >
   Use the Opper Python SDK (opperai) for AI task completion, structured output with Pydantic schemas, knowledge base semantic search, and tracing/observability. Activate when building Python applications that need LLM-powered task completion, RAG pipelines, document indexing, or AI function orchestration with the Opper platform.
-license: MIT
-metadata:
-  author: opper-ai
-  version: "1.0"
-  language: python
-  package: opperai
 ---
 
 # Opper Python SDK

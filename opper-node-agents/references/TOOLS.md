@@ -2,6 +2,18 @@
 
 Tools give agents capabilities to interact with the world. Define tools with `createFunctionTool` or the `@tool` decorator class pattern.
 
+## Contents
+- [createFunctionTool](#createfunctiontool)
+- [Tool with Complex Schema](#tool-with-complex-schema)
+- [ToolResultFactory](#toolresultfactory)
+- [Async Tools](#async-tools)
+- [Class-Based @tool Decorator](#class-based-tool-decorator)
+- [Class with Async Methods](#class-with-async-methods)
+- [Using Tools with Agents](#using-tools-with-agents)
+- [Tool Return Values](#tool-return-values)
+- [Zod Schema Features](#zod-schema-features)
+- [Best Practices](#best-practices)
+
 ## createFunctionTool
 
 The primary way to define tools with Zod schema validation:

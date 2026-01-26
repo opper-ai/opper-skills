@@ -2,12 +2,6 @@
 name: opper-node-sdk
 description: >
   Use the Opper Node/TypeScript SDK (opperai) for AI task completion, structured output with JSON Schema or Zod, knowledge base semantic search, streaming responses, and tracing. Activate when building TypeScript or JavaScript applications that need LLM-powered task completion, RAG pipelines, or AI function orchestration with the Opper platform.
-license: MIT
-metadata:
-  author: opper-ai
-  version: "1.0"
-  language: typescript
-  package: opperai
 ---
 
 # Opper Node SDK

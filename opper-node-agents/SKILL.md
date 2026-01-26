@@ -2,12 +2,6 @@
 name: opper-node-agents
 description: >
   Use the Opper TypeScript Agent SDK (@opperai/agents) to build AI agents with think-act reasoning loops, tool use via createFunctionTool or @tool decorator, Zod schema validation, multi-agent composition, MCP integration, streaming, and hooks for observability. Activate when building TypeScript AI agents, autonomous systems, or tool-using reasoning loops with the Opper platform.
-license: MIT
-metadata:
-  author: opper-ai
-  version: "1.0"
-  language: typescript
-  package: "@opperai/agents"
 ---
 
 # Opper Node Agents

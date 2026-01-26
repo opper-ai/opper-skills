@@ -2,12 +2,6 @@
 name: opper-python-agents
 description: >
   Use the Opper Python Agent SDK (opper-agents) to build AI agents with think-act reasoning loops, tool use via @tool decorator, multi-agent composition, MCP integration, persistent memory, hooks for observability, and Pydantic schema validation. Activate when building Python AI agents, autonomous systems, or tool-using reasoning loops with the Opper platform.
-license: MIT
-metadata:
-  author: opper-ai
-  version: "1.0"
-  language: python
-  package: opper-agents
 ---
 
 # Opper Python Agents

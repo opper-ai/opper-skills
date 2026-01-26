@@ -2,12 +2,6 @@
 name: opper-cli
 description: >
   Use the Opper CLI (oppercli) for terminal-based AI task completion, function management, knowledge base operations, model configuration, trace inspection, and usage analytics. Activate when users want to call Opper functions from the command line, manage indexes, inspect traces, track costs, or configure models via terminal.
-license: MIT
-metadata:
-  author: opper-ai
-  version: "1.0"
-  language: bash
-  binary: opper
 ---
 
 # Opper CLI

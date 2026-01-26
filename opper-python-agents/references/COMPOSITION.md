@@ -2,6 +2,17 @@
 
 Build complex systems by using agents as tools within other agents. This enables delegation, specialization, and hierarchical reasoning.
 
+## Contents
+- [Basic Composition](#basic-composition)
+- [How Composition Works](#how-composition-works)
+- [Multiple Specialist Agents](#multiple-specialist-agents)
+- [Custom Tool Names and Descriptions](#custom-tool-names-and-descriptions)
+- [Manual Agent Wrapping](#manual-agent-wrapping)
+- [Multi-Level Hierarchies](#multi-level-hierarchies)
+- [Structured Output in Composed Agents](#structured-output-in-composed-agents)
+- [Tracing Composed Agents](#tracing-composed-agents)
+- [Best Practices](#best-practices)
+
 ## Basic Composition
 
 Use `agent.as_tool()` to convert an agent into a tool:

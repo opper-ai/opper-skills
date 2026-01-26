@@ -2,6 +2,22 @@
 
 Complete HTTP API for creating traces, spans, metrics, and feedback for observability.
 
+## Contents
+- [Create a Span](#create-a-span)
+- [Child Spans](#child-spans)
+- [Link Calls to Spans](#link-calls-to-spans)
+- [Update a Span](#update-a-span)
+- [Add Metrics to Spans](#add-metrics-to-spans)
+- [List Metrics](#list-metrics)
+- [Submit Feedback](#submit-feedback)
+- [Save to Dataset](#save-to-dataset)
+- [List Traces](#list-traces)
+- [Get Trace with Spans](#get-trace-with-spans)
+- [Tags for Filtering](#tags-for-filtering)
+- [Delete Operations](#delete-operations)
+- [Trace Hierarchy Example](#trace-hierarchy-example)
+- [Best Practices](#best-practices)
+
 ## Create a Span
 
 Spans are the building blocks of traces. Create a root span to start a trace:

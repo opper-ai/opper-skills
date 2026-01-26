@@ -2,6 +2,18 @@
 
 All endpoints use base URL `https://api.opper.ai` and require `Authorization: Bearer $OPPER_API_KEY`.
 
+## Contents
+- [Task Completion](#task-completion)
+- [Functions](#functions)
+- [Knowledge Bases](#knowledge-bases)
+- [Traces & Spans](#traces--spans)
+- [Span Metrics](#span-metrics)
+- [Datasets](#datasets)
+- [Embeddings](#embeddings)
+- [Models](#models)
+- [Other Endpoints](#other-endpoints)
+- [Common Response Patterns](#common-response-patterns)
+
 ## Task Completion
 
 ### POST /v2/call

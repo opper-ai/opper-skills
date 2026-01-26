@@ -2,6 +2,19 @@
 
 Hooks let you run code at specific points in the agent's lifecycle for logging, monitoring, metrics, and custom behavior.
 
+## Contents
+- [Available Hook Events](#available-hook-events)
+- [Defining Hooks](#defining-hooks)
+- [Registering Hooks with Agents](#registering-hooks-with-agents)
+- [Loop Hooks](#loop-hooks)
+- [LLM Hooks](#llm-hooks)
+- [Think Hook](#think-hook)
+- [Tool Hooks](#tool-hooks)
+- [Practical Examples](#practical-examples)
+- [AgentContext Fields](#agentcontext-fields)
+- [Error Handling in Hooks](#error-handling-in-hooks)
+- [Best Practices](#best-practices)
+
 ## Available Hook Events
 
 | Event | Trigger | Payload |

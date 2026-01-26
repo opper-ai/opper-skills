@@ -2,6 +2,19 @@
 
 Complete HTTP API for creating, managing, and querying knowledge bases with semantic search.
 
+## Contents
+- [Create a Knowledge Base](#create-a-knowledge-base)
+- [Add Documents](#add-documents)
+- [Query (Semantic Search)](#query-semantic-search)
+- [RAG Pattern](#rag-pattern)
+- [File Upload](#file-upload)
+- [List Knowledge Bases](#list-knowledge-bases)
+- [Get Knowledge Base](#get-knowledge-base)
+- [List Files](#list-files)
+- [Delete a File](#delete-a-file)
+- [Delete a Knowledge Base](#delete-a-knowledge-base)
+- [Best Practices](#best-practices)
+
 ## Create a Knowledge Base
 
 ```bash

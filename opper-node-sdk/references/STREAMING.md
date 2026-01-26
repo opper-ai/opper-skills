@@ -2,6 +2,16 @@
 
 Stream responses token-by-token using server-sent events for real-time output.
 
+## Contents
+- [Basic Streaming](#basic-streaming)
+- [Streaming with Schemas](#streaming-with-schemas)
+- [Streaming with Input/Output Schemas](#streaming-with-inputoutput-schemas)
+- [Streaming with Tracing](#streaming-with-tracing)
+- [Streaming Functions](#streaming-functions)
+- [Web Server Integration (Express)](#web-server-integration-express)
+- [Event Structure](#event-structure)
+- [Best Practices](#best-practices)
+
 ## Basic Streaming
 
 Use `opper.stream()` to get an async iterable of events:

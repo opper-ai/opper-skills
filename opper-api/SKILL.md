@@ -2,12 +2,6 @@
 name: opper-api
 description: >
   Use the Opper REST API directly via HTTP for AI task completion, structured output with JSON Schema, streaming via SSE, knowledge base semantic search, function management, and tracing. Activate when calling the Opper API with curl, fetch, or any HTTP client without using the Python or Node SDKs.
-license: MIT
-metadata:
-  author: opper-ai
-  version: "1.0"
-  language: http
-  base-url: https://api.opper.ai
 ---
 
 # Opper REST API

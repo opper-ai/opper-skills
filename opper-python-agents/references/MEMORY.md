@@ -2,6 +2,17 @@
 
 Memory gives agents persistent state across iterations and multiple `process()` calls. Agents can remember facts, preferences, and context.
 
+## Contents
+- [Enabling Memory](#enabling-memory)
+- [How Memory Works](#how-memory-works)
+- [Memory Operations](#memory-operations)
+- [Example: Remembering User Preferences](#example-remembering-user-preferences)
+- [Memory Across Multiple Calls](#memory-across-multiple-calls)
+- [Monitoring Memory with Hooks](#monitoring-memory-with-hooks)
+- [Custom Memory Backends](#custom-memory-backends)
+- [Memory vs. Context](#memory-vs-context)
+- [Best Practices](#best-practices)
+
 ## Enabling Memory
 
 ```python

@@ -2,6 +2,19 @@
 
 Knowledge bases provide semantic search over your documents using vector embeddings. Use them for RAG (Retrieval-Augmented Generation) pipelines.
 
+## Contents
+- [Creating a Knowledge Base](#creating-a-knowledge-base)
+- [Adding Documents](#adding-documents)
+- [Querying (Semantic Search)](#querying-semantic-search)
+- [Query with Filters](#query-with-filters)
+- [RAG Pattern: Query + Call](#rag-pattern-query--call)
+- [Listing Knowledge Bases](#listing-knowledge-bases)
+- [Getting a Knowledge Base](#getting-a-knowledge-base)
+- [File Upload](#file-upload)
+- [Deleting Documents](#deleting-documents)
+- [Deleting a Knowledge Base](#deleting-a-knowledge-base)
+- [Best Practices](#best-practices)
+
 ## Creating a Knowledge Base
 
 ```typescript

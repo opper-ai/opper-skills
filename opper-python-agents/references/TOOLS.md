@@ -2,6 +2,18 @@
 
 Tools give agents the ability to interact with the world. Define tools with the `@tool` decorator and provide them to agents.
 
+## Contents
+- [Basic Tool Definition](#basic-tool-definition)
+- [Tool with Complex Parameters](#tool-with-complex-parameters)
+- [Tool with Pydantic Schema](#tool-with-pydantic-schema)
+- [Async Tools](#async-tools)
+- [Tool Return Values](#tool-return-values)
+- [Tool Error Handling](#tool-error-handling)
+- [Tool Execution Context](#tool-execution-context)
+- [Using Tools with Agents](#using-tools-with-agents)
+- [Tool Naming](#tool-naming)
+- [Best Practices](#best-practices)
+
 ## Basic Tool Definition
 
 ```python

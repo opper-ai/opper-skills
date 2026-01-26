@@ -2,6 +2,18 @@
 
 Enable real-time token-by-token output from agents. Both the think loop and final result can stream incrementally.
 
+## Contents
+- [Enabling Streaming](#enabling-streaming)
+- [Stream Callbacks](#stream-callbacks)
+- [Call Types](#call-types)
+- [Hook-Based Streaming](#hook-based-streaming)
+- [Event Emitter Pattern](#event-emitter-pattern)
+- [Chunk Data Structure](#chunk-data-structure)
+- [Streaming with Structured Output](#streaming-with-structured-output)
+- [Web Server Integration (Express)](#web-server-integration-express)
+- [Streaming in Composed Agents](#streaming-in-composed-agents)
+- [Best Practices](#best-practices)
+
 ## Enabling Streaming
 
 Set `enableStreaming: true` on any agent:
