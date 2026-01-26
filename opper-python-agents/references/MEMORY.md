@@ -8,7 +8,6 @@ Memory gives agents persistent state across iterations and multiple `process()` 
 - [Memory Operations](#memory-operations)
 - [Example: Remembering User Preferences](#example-remembering-user-preferences)
 - [Memory Across Multiple Calls](#memory-across-multiple-calls)
-- [Monitoring Memory with Hooks](#monitoring-memory-with-hooks)
 - [Custom Memory Backends](#custom-memory-backends)
 - [Memory vs. Context](#memory-vs-context)
 - [Best Practices](#best-practices)
@@ -78,30 +77,6 @@ await agent.process("What's on my task list?")
 # Agent reads from memory: ["buy groceries", "call dentist"]
 ```
 
-## Monitoring Memory with Hooks
-
-Use hooks to observe memory operations:
-
-```python
-from opper_agents import hook
-from opper_agents.base.context import AgentContext
-
-@hook("memory_read")
-async def on_memory_read(context: AgentContext, key: str, value):
-    print(f"  Memory read: {key} = {value}")
-
-@hook("memory_write")
-async def on_memory_write(context: AgentContext, key: str, value):
-    print(f"  Memory write: {key} = {value}")
-
-agent = Agent(
-    name="MemoryBot",
-    instructions="Remember things.",
-    enable_memory=True,
-    hooks=[on_memory_read, on_memory_write],
-)
-```
-
 ## Custom Memory Backends
 
 Implement a custom backend for production use (e.g., Redis, database):
@@ -157,14 +132,9 @@ class RedisMemory(MemoryBackend):
     async def delete(self, key: str) -> None:
         await self.client.delete(self._key(key))
 
-# Usage
+# Usage — custom backends require manual integration
+# The agent uses an in-memory backend by default when enable_memory=True
 memory = RedisMemory("redis://localhost:6379")
-agent = Agent(
-    name="PersistentBot",
-    instructions="Remember things across sessions.",
-    enable_memory=True,
-    memory_backend=memory,
-)
 ```
 
 ## Memory vs. Context

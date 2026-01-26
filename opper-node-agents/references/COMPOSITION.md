@@ -60,19 +60,24 @@ const { result, usage } = await coordinator.run("What is (5 + 3) * 7?");
 
 Each child runs independently with its own tools, model, and iteration limit.
 
-## Custom Tool Names
+## Custom Tool Names and Descriptions
 
-Provide a custom name when creating the tool:
+Provide a custom name and optional description when creating the tool:
 
 ```typescript
 const coordinator = new Agent<string, string>({
   name: "Coordinator",
   tools: [
-    mathAgent.asTool("calculate"),      // Custom name
-    researchAgent.asTool("research"),   // Custom name
+    mathAgent.asTool("calculate"),                              // Custom name only
+    mathAgent.asTool("calculate", "Solve arithmetic problems"), // Name + description
+    researchAgent.asTool("research", "Look up facts online"),   // Name + description
   ],
 });
 ```
+
+The `asTool(toolName, toolDescription?)` method accepts:
+- `toolName` (required): The name the coordinator sees for this tool
+- `toolDescription` (optional): Helps the coordinator understand when to use this agent
 
 ## Multiple Specialist Agents
 

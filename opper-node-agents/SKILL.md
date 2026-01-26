@@ -230,8 +230,8 @@ agent.registerHook(HookEvents.AgentStart, ({ context }) => {
   console.log(`Starting with goal: ${context.goal}`);
 });
 
-agent.registerHook(HookEvents.ToolAfter, ({ toolName, result }) => {
-  console.log(`Tool ${toolName} returned: ${JSON.stringify(result)}`);
+agent.registerHook(HookEvents.AfterTool, ({ tool, result }) => {
+  console.log(`Tool ${tool.name} returned: ${JSON.stringify(result)}`);
 });
 
 agent.registerHook(HookEvents.AgentEnd, ({ context }) => {

@@ -89,9 +89,9 @@ agent.registerHook(HookEvents.StreamStart, ({ callType }) => {
   console.log(`Stream started: ${callType}`);
 });
 
-agent.registerHook(HookEvents.StreamChunk, ({ callType, delta, fieldBuffers }) => {
-  if (callType === "think" && fieldBuffers?.reasoning) {
-    console.debug(fieldBuffers.reasoning);
+agent.registerHook(HookEvents.StreamChunk, ({ chunkData, accumulated }) => {
+  if (chunkData.callType === "think" && chunkData.fieldBuffers?.reasoning) {
+    console.debug(chunkData.fieldBuffers.reasoning);
   }
 });
 
@@ -109,8 +109,8 @@ agent.registerHook(HookEvents.StreamError, ({ error }) => {
 Subscribe and unsubscribe dynamically:
 
 ```typescript
-agent.on(HookEvents.StreamChunk, ({ callType, accumulated }) => {
-  if (callType === "final_result") {
+agent.on(HookEvents.StreamChunk, ({ chunkData, accumulated }) => {
+  if (chunkData.callType === "final_result") {
     process.stdout.write(accumulated);
   }
 });
