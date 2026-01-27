@@ -109,7 +109,7 @@ def answer_with_context(question: str, kb_id: str) -> dict:
     ])
 
     # 3. Call with context
-    result, _ = opper.call(
+    response = opper.call(
         name="answer_with_rag",
         instructions="Answer the question using only the provided context. Cite sources.",
         input=f"Context:\n{context}\n\nQuestion: {question}",
@@ -122,7 +122,7 @@ def answer_with_context(question: str, kb_id: str) -> dict:
             "required": ["answer", "sources"],
         },
     )
-    return result
+    return response.json_payload
 ```
 
 ## Listing Knowledge Bases

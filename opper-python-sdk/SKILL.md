@@ -24,23 +24,27 @@ Get your API key from [platform.opper.ai](https://platform.opper.ai).
 
 ## Core Pattern: Task Completion
 
-The `opper.call()` method is the primary interface. Describe a task declaratively and get structured results:
+The `opper.call()` method is the primary interface. Describe a task declaratively and get results.
+
+**Important**: The response field to read depends on whether you use `output_schema`:
+- **No `output_schema`** → read `response.message` (returns `str`)
+- **With `output_schema`** → read `response.json_payload` (returns `dict` or `list`)
 
 ```python
 from opperai import Opper
 
 opper = Opper()
 
-# Simple string output
-result, response = opper.call(
+# WITHOUT output_schema → use response.message (str)
+response = opper.call(
     name="summarize",
     instructions="Summarize the text in one sentence",
     input="Opper is a platform for building reliable AI integrations...",
 )
-print(result)  # "Opper enables reliable AI integrations with structured outputs."
+print(response.message)  # "Opper enables reliable AI integrations with structured outputs."
 
-# Structured output with schema dict
-result, response = opper.call(
+# WITH output_schema → use response.json_payload (dict)
+response = opper.call(
     name="analyze_sentiment",
     instructions="Analyze the sentiment of the text",
     input="I love this product!",
@@ -53,8 +57,8 @@ result, response = opper.call(
         "required": ["label", "confidence"],
     },
 )
-print(result["label"])       # "positive"
-print(result["confidence"])  # 0.95
+print(response.json_payload["label"])       # "positive"
+print(response.json_payload["confidence"])  # 0.95
 ```
 
 ## Structured Output with Schema
@@ -62,7 +66,7 @@ print(result["confidence"])  # 0.95
 Define output schemas using JSON Schema dictionaries:
 
 ```python
-result, _ = opper.call(
+response = opper.call(
     name="extract_entities",
     instructions="Extract all named entities from the text",
     input="Tim Cook announced Apple's new office in Austin, Texas.",
@@ -88,9 +92,9 @@ result, _ = opper.call(
         "required": ["people", "locations", "organizations"],
     },
 )
-# result["people"] => ["Tim Cook"]
-# result["locations"] => ["Austin", "Texas"]
-# result["organizations"] => ["Apple"]
+# response.json_payload["people"] => ["Tim Cook"]
+# response.json_payload["locations"] => ["Austin", "Texas"]
+# response.json_payload["organizations"] => ["Apple"]
 ```
 
 ## Model Selection
@@ -99,7 +103,7 @@ Specify which LLM to use via the `model` parameter:
 
 ```python
 # Use a specific model
-result, _ = opper.call(
+response = opper.call(
     name="generate",
     instructions="Write a haiku",
     input="autumn",
@@ -107,7 +111,7 @@ result, _ = opper.call(
 )
 
 # Use multiple models (fallback chain)
-result, _ = opper.call(
+response = opper.call(
     name="generate",
     instructions="Write a haiku",
     input="autumn",
@@ -122,7 +126,7 @@ Available models include providers like `openai/`, `anthropic/`, `google/`, and 
 Provide examples to guide the model's behavior:
 
 ```python
-result, _ = opper.call(
+response = opper.call(
     name="classify_ticket",
     instructions="Classify the support ticket",
     input="My payment was declined",
@@ -147,7 +151,7 @@ opper = Opper()
 span = opper.spans.create(name="qa_pipeline")
 
 # Call with parent span for hierarchy
-result, response = opper.call(
+response = opper.call(
     name="answer",
     instructions="Answer the question accurately",
     input="What is Opper?",
@@ -199,7 +203,7 @@ for result in results:
 Add metadata to calls for filtering and cost tracking:
 
 ```python
-result, _ = opper.call(
+response = opper.call(
     name="translate",
     instructions="Translate to French",
     input="Hello world",
@@ -209,10 +213,48 @@ result, _ = opper.call(
 
 ## Common Mistakes
 
-- **Missing `output_schema`**: Without it, the result is a plain string. Use schema dicts for structured data.
+- **Missing `output_schema`**: Without it, the result is in `response.message` (string). Use schema dicts for structured data in `response.json_payload`.
 - **Not using `name`**: Every call needs a unique name for tracking in the dashboard.
-- **Ignoring the response object**: The second return value contains `span_id` for metrics and tracing.
+- **Not accessing response fields correctly**: Use `response.message` for string output, `response.json_payload` for structured output, and `response.span_id` for tracing.
 - **Large inputs without chunking**: For large documents, split into chunks and use knowledge bases instead.
+
+## Response Object Fields
+
+The `opper.call()` method returns a response object with these fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `span_id` | str | The ID of the span for tracing |
+| `message` | str \| None | Result when no `output_schema` is used |
+| `json_payload` | dict/list \| None | Result when `output_schema` is used |
+| `cached` | bool \| None | True if result was from cache |
+| `usage` | dict \| None | Token usage (input/output/total) |
+| `cost` | dict \| None | Cost in USD (total/generation/platform) |
+
+### Accessing Results: `message` vs `json_payload`
+
+**Use `response.message`** when calling WITHOUT `output_schema`:
+```python
+response = opper.call(
+    name="summarize",
+    instructions="Summarize in one sentence",
+    input="...",
+)
+text = response.message  # Returns str: "Summary of the text."
+```
+
+**Use `response.json_payload`** when calling WITH `output_schema`:
+```python
+response = opper.call(
+    name="extract",
+    instructions="Extract entities",
+    input="...",
+    output_schema={"type": "object", "properties": {...}},
+)
+data = response.json_payload  # Returns dict: {"entities": [...]}
+```
+
+**Key rule**: If you pass `output_schema`, read from `json_payload`. If you don't, read from `message`.
 
 ## Additional Resources
 

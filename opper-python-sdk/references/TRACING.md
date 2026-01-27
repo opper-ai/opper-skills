@@ -28,17 +28,17 @@ opper = Opper()
 span = opper.spans.create(name="my_pipeline")
 
 # All operations can reference this span as parent
-result1, response1 = opper.call(
+response1 = opper.call(
     name="step1",
     instructions="First step",
     input="...",
     parent_span_id=span.id,
 )
 
-result2, response2 = opper.call(
+response2 = opper.call(
     name="step2",
     instructions="Second step",
-    input=result1,
+    input=response1.message,
     parent_span_id=span.id,
 )
 ```
@@ -56,7 +56,7 @@ opper = Opper()
 pipeline_span = opper.spans.create(name="document_pipeline")
 
 # First operation under the pipeline
-result1, response1 = opper.call(
+response1 = opper.call(
     name="summarize",
     instructions="Summarize the document",
     input="Long document text...",
@@ -64,10 +64,10 @@ result1, response1 = opper.call(
 )
 
 # Second operation under the pipeline
-result2, response2 = opper.call(
+response2 = opper.call(
     name="extract_topics",
     instructions="Extract key topics",
-    input=result1,
+    input=response1.message,
     parent_span_id=pipeline_span.id,
 )
 ```
@@ -77,7 +77,7 @@ result2, response2 = opper.call(
 Attach custom metrics to any span using `opper.span_metrics.create_metric()`:
 
 ```python
-result, response = opper.call(
+response = opper.call(
     name="generate_answer",
     instructions="Answer the question",
     input="What is Opper?",
@@ -150,7 +150,7 @@ opper.spans.save_examples(
 Tags on calls automatically appear on their spans:
 
 ```python
-result, _ = opper.call(
+response = opper.call(
     name="classify",
     instructions="Classify the text",
     input="some text",

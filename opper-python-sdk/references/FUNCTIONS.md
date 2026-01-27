@@ -59,11 +59,11 @@ function = opper.functions.create(
 Once created, call functions by their name:
 
 ```python
-result, response = opper.call(
+response = opper.call(
     name="classify_support_ticket",
     input={"text": "I was charged twice for my subscription"},
 )
-print(result)  # {"category": "billing", "confidence": 0.95}
+print(response.json_payload)  # {"category": "billing", "confidence": 0.95}
 ```
 
 ## Listing Functions
@@ -106,7 +106,7 @@ When you call `opper.call()` with a `name` that doesn't exist as a managed funct
 
 ```python
 # This creates the function on first call if it doesn't exist
-result, _ = opper.call(
+response = opper.call(
     name="my_new_task",
     instructions="Do something useful",
     input="hello",
