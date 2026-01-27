@@ -21,10 +21,11 @@ Create spans manually to group related operations:
 
 ```python
 from opperai import Opper
+from datetime import datetime, timezone
 
 opper = Opper()
 
-# Create a span manually
+# Create a parent span for a pipeline
 span = opper.spans.create(name="my_pipeline")
 
 # All operations can reference this span as parent
@@ -41,6 +42,13 @@ response2 = opper.call(
     input=response1.message,
     parent_span_id=span.id,
 )
+
+# IMPORTANT: Close the parent span by setting end_time
+# This is required for duration_ms to be calculated in the dashboard
+opper.spans.update(
+    span_id=span.id,
+    end_time=datetime.now(timezone.utc),
+)
 ```
 
 ## Span Hierarchy with parent_span_id
@@ -49,6 +57,7 @@ Create parent-child relationships between spans:
 
 ```python
 from opperai import Opper
+from datetime import datetime, timezone
 
 opper = Opper()
 
@@ -69,6 +78,12 @@ response2 = opper.call(
     instructions="Extract key topics",
     input=response1.message,
     parent_span_id=pipeline_span.id,
+)
+
+# Close the parent span
+opper.spans.update(
+    span_id=pipeline_span.id,
+    end_time=datetime.now(timezone.utc),
 )
 ```
 
@@ -129,7 +144,7 @@ span = opper.spans.get(span_id="span_456")
 # Update span metadata
 opper.spans.update(
     span_id="span_456",
-    metadata={"reviewed": True},
+    meta={"reviewed": True},
 )
 ```
 
@@ -187,6 +202,8 @@ All traces and spans appear in the Opper dashboard at [platform.opper.ai](https:
 
 ## Best Practices
 
+- **Close parent spans**: Set `end_time` on manually created spans so duration is calculated
+- **String outputs**: `spans.update()` requires `output` to be a string — use `json.dumps()` for dicts
 - Use descriptive span names: `"user_query_pipeline"` not `"trace1"`
 - Use `parent_span_id` to create hierarchical relationships
 - Save metrics that matter for quality: accuracy, relevance, latency
