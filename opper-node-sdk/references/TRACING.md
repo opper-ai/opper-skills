@@ -13,6 +13,7 @@ Tracing provides full observability into your AI operations with hierarchical sp
 - [Saving Spans to Datasets](#saving-spans-to-datasets)
 - [Tags for Filtering](#tags-for-filtering)
 - [Deleting Spans and Metrics](#deleting-spans-and-metrics)
+- [Submitting Feedback](#submitting-feedback)
 - [Trace Hierarchy](#trace-hierarchy)
 - [Best Practices](#best-practices)
 
@@ -58,8 +59,7 @@ const span = await opper.spans.create({
 });
 
 // Update span with output when done
-await opper.spans.update({
-  id: span.id,
+await opper.spans.update(span.id, {
   output: { result: "processed" },
 });
 ```
@@ -104,7 +104,7 @@ for (const trace of traces) {
 ## Getting a Trace
 
 ```typescript
-const trace = await opper.traces.get({ id: "trace_123" });
+const trace = await opper.traces.get("trace_123");
 console.log(trace.name);
 console.log(trace.spans); // Child spans
 ```
@@ -112,7 +112,7 @@ console.log(trace.spans); // Child spans
 ## Getting Span Details
 
 ```typescript
-const span = await opper.spans.get({ id: "span_456" });
+const span = await opper.spans.get("span_456");
 console.log(span.input);
 console.log(span.output);
 console.log(span.metadata);
@@ -123,10 +123,7 @@ console.log(span.metadata);
 Export span data as training examples:
 
 ```typescript
-await opper.spans.saveExamples({
-  spanId: "span_456",
-  datasetName: "training_data",
-});
+await opper.spans.saveExamples("span_456");
 ```
 
 ## Tags for Filtering
@@ -153,7 +150,18 @@ const result = await opper.call({
 await opper.spanMetrics.delete(span.id, "metric_123");
 
 // Delete a span
-await opper.spans.delete({ id: "span_456" });
+await opper.spans.delete("span_456");
+```
+
+## Submitting Feedback
+
+Submit human feedback (thumbs up/down) on a span's output:
+
+```typescript
+await opper.spans.submitFeedback(span.id, {
+  score: 1.0, // 1.0 = thumbs up, 0.0 = thumbs down
+  comment: "Great response!", // optional
+});
 ```
 
 ## Trace Hierarchy

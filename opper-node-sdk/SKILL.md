@@ -87,16 +87,14 @@ console.log(result.jsonPayload);
 
 ## Model Selection
 
-Control which LLM to use with the `model` field in configuration:
+Control which LLM to use with the `model` parameter:
 
 ```typescript
 const result = await opper.call({
   name: "generate",
   instructions: "Write a haiku about the given topic",
   input: "autumn leaves",
-  configuration: {
-    model: "anthropic/claude-4-sonnet",
-  },
+  model: "anthropic/claude-4-sonnet",
 });
 ```
 
