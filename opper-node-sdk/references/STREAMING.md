@@ -23,11 +23,14 @@ const opper = new Opper({
   httpBearer: process.env["OPPER_HTTP_BEARER"] ?? "",
 });
 
-const stream = await opper.stream({
+const outer = await opper.stream({
   name: "write_story",
   instructions: "Write a short story about the given topic",
   input: "a robot learning to cook",
 });
+
+// Access the result stream directly
+const stream = outer.result;
 
 for await (const event of stream) {
   const delta = event.data?.delta;
@@ -42,7 +45,7 @@ for await (const event of stream) {
 Stream while still defining structured output:
 
 ```typescript
-const stream = await opper.stream({
+const outer = await opper.stream({
   name: "analyze",
   instructions: "Analyze the given text",
   input: "Opper is an AI platform...",
@@ -56,6 +59,9 @@ const stream = await opper.stream({
     required: ["summary", "topics", "sentiment"],
   },
 });
+
+// Access the result stream directly
+const stream = outer.result;
 
 let fullResponse = "";
 for await (const event of stream) {
@@ -72,7 +78,7 @@ for await (const event of stream) {
 Full schema definitions work with streaming:
 
 ```typescript
-const stream = await opper.stream({
+const outer = await opper.stream({
   name: "translate",
   instructions: "Translate the text to the target language",
   inputSchema: {
@@ -94,6 +100,9 @@ const stream = await opper.stream({
   input: { text: "Hello world", targetLanguage: "French" },
 });
 
+// Access the result stream directly
+const stream = outer.result;
+
 for await (const event of stream) {
   const delta = event.data?.delta;
   if (delta) {
@@ -107,13 +116,16 @@ for await (const event of stream) {
 Add trace context to streamed calls:
 
 ```typescript
-const stream = await opper.stream({
+const outer = await opper.stream({
   name: "generate_response",
   instructions: "Generate a detailed response",
   input: "Explain quantum computing",
   parentSpanId: "parent-span-uuid",
   tags: { user: "usr_123" },
 });
+
+// Access the result stream directly
+const stream = outer.result;
 
 for await (const event of stream) {
   const delta = event.data?.delta;
@@ -128,10 +140,13 @@ for await (const event of stream) {
 Stream from managed functions:
 
 ```typescript
-const stream = await opper.functions.stream({
+const outer = await opper.functions.stream({
   id: "fn_123",
   input: { text: "Generate content" },
 });
+
+// Access the result stream directly
+const stream = outer.result;
 
 for await (const event of stream) {
   const delta = event.data?.delta;
@@ -141,11 +156,12 @@ for await (const event of stream) {
 }
 
 // Stream a specific revision
-const stream = await opper.functions.streamRevision({
+const revisionOuter = await opper.functions.streamRevision({
   id: "fn_123",
   revisionId: "rev_456",
   input: { text: "Generate content" },
 });
+const revisionStream = revisionOuter.result;
 ```
 
 ## Web Server Integration (Express)
@@ -166,11 +182,14 @@ app.get("/generate", async (req, res) => {
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
 
-  const stream = await opper.stream({
+  const outer = await opper.stream({
     name: "generate_content",
     instructions: "Write content about the topic",
     input: topic as string,
   });
+
+  // Access the result stream directly
+  const stream = outer.result;
 
   for await (const event of stream) {
     const delta = event.data?.delta;
@@ -201,6 +220,7 @@ Access the delta via `event.data?.delta`.
 
 ## Best Practices
 
+- Extract the stream from `outer.result` before iterating
 - Always handle the stream completely — don't abandon it mid-stream
 - Use `process.stdout.write` (not `console.log`) to avoid extra newlines
 - For web servers, use SSE format (`text/event-stream`)

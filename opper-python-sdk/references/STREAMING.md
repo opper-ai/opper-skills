@@ -19,15 +19,19 @@ from opperai import Opper
 opper = Opper()
 
 # Stream a response using opper.stream()
-response = opper.stream(
+outer = opper.stream(
     name="write_story",
     instructions="Write a short story about the given topic",
     input="a robot learning to cook",
 )
 
-for event in response.result:
-    if hasattr(event.data, 'delta'):
-        print(event.data.delta, end="", flush=True)
+# Extract the stream from the response
+stream = next(value for key, value in outer if key == "result")
+
+for event in stream:
+    delta = getattr(event.data, "delta", None)
+    if delta:  # skip keep-alives and Unset values
+        print(delta, end="", flush=True)
 ```
 
 ## Streaming with Structured Output
@@ -36,7 +40,7 @@ Stream while still getting validated structured output at the end:
 
 ```python
 # The stream yields deltas; use output_schema for structure
-response = opper.stream(
+outer = opper.stream(
     name="write_structured_story",
     instructions="Write a story with a title and paragraphs",
     input="space exploration",
@@ -50,9 +54,13 @@ response = opper.stream(
     },
 )
 
-for event in response.result:
-    if hasattr(event.data, 'delta'):
-        print(event.data.delta, end="", flush=True)
+# Extract the stream from the response
+stream = next(value for key, value in outer if key == "result")
+
+for event in stream:
+    delta = getattr(event.data, "delta", None)
+    if delta:
+        print(delta, end="", flush=True)
 ```
 
 ## Web Server Integration (FastAPI)
@@ -70,14 +78,17 @@ opper = Opper()
 @app.get("/generate")
 async def generate(topic: str):
     def stream_generator():
-        response = opper.stream(
+        outer = opper.stream(
             name="generate_content",
             instructions="Write content about the topic",
             input=topic,
         )
-        for event in response.result:
-            if hasattr(event.data, 'delta'):
-                yield event.data.delta
+        # Extract the stream from the response
+        stream = next(value for key, value in outer if key == "result")
+        for event in stream:
+            delta = getattr(event.data, "delta", None)
+            if delta:
+                yield delta
 
     return StreamingResponse(
         stream_generator(),
@@ -98,17 +109,21 @@ opper = Opper()
 span = opper.spans.create(name="streaming_qa")
 
 response_text = ""
-response = opper.stream(
+outer = opper.stream(
     name="answer_question",
     instructions="Answer the question",
     input="What is machine learning?",
     parent_span_id=span.id,
 )
 
-for event in response.result:
-    if hasattr(event.data, 'delta'):
-        response_text += event.data.delta
-        print(event.data.delta, end="", flush=True)
+# Extract the stream from the response
+stream = next(value for key, value in outer if key == "result")
+
+for event in stream:
+    delta = getattr(event.data, "delta", None)
+    if delta:
+        response_text += delta
+        print(delta, end="", flush=True)
 
 print()  # Newline after streaming
 ```
@@ -117,7 +132,7 @@ print()  # Newline after streaming
 
 - Use `opper.stream()` instead of `opper.call()` for streaming
 - Always use `flush=True` when printing chunks to ensure immediate display
-- Check for `hasattr(event.data, 'delta')` before accessing delta content
+- Use `getattr(event.data, "delta", None)` to safely access delta (handles Unset values)
 - For web servers, use `StreamingResponse` with appropriate content types
 - Accumulate deltas if you need the full response for downstream processing
 - Streaming works with all models that support it

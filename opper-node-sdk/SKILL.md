@@ -122,7 +122,7 @@ const result = await opper.call({
 Stream responses token-by-token using `opper.stream()`:
 
 ```typescript
-const stream = await opper.stream({
+const outer = await opper.stream({
   name: "write_story",
   instructions: "Write a short story about the given topic",
   input: "a robot learning to paint",
@@ -135,6 +135,9 @@ const stream = await opper.stream({
     required: ["title", "story"],
   },
 });
+
+// Access the result stream directly
+const stream = outer.result;
 
 for await (const event of stream) {
   const delta = event.data?.delta;
