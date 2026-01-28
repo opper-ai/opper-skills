@@ -43,9 +43,48 @@ mkdir -p .claude/skills
 ln -s /path/to/opper-skills/opper-python-sdk .claude/skills/opper-python-sdk
 ```
 
-### Other agents
+### GitHub Copilot
 
-Any agent that supports the [Agent Skills](https://agentskills.io) standard can use these skills. The skill folders just need to be in the agent's configured skills directory.
+Copilot supports skills in `.github/skills/` (project) or `~/.copilot/skills/` (global). It also reads `.claude/skills/` for compatibility.
+
+```bash
+# Global installation
+git clone https://github.com/opper-ai/opper-skills.git
+ln -s $(pwd)/opper-skills/opper-python-sdk ~/.copilot/skills/opper-python-sdk
+
+# Project installation
+mkdir -p .github/skills
+ln -s /path/to/opper-skills/opper-python-sdk .github/skills/opper-python-sdk
+```
+
+### OpenAI Codex
+
+Codex loads skills from `.codex/skills/` (project) or `~/.codex/skills/` (global).
+
+```bash
+# Global installation
+git clone https://github.com/opper-ai/opper-skills.git
+ln -s $(pwd)/opper-skills/opper-python-sdk ~/.codex/skills/opper-python-sdk
+
+# Project installation
+mkdir -p .codex/skills
+ln -s /path/to/opper-skills/opper-python-sdk .codex/skills/opper-python-sdk
+```
+
+### Windsurf
+
+Windsurf uses `.windsurf/rules/` for workspace rules or `AGENTS.md` files for directory-scoped instructions.
+
+```bash
+mkdir -p .windsurf/rules
+cp /path/to/opper-skills/opper-python-sdk/SKILL.md .windsurf/rules/opper-python-sdk.md
+```
+
+### Other Agents
+
+Any agent supporting the [Agent Skills](https://agentskills.io) standard can use these skills. Place the skill folders in the agent's configured skills directory.
+
+Browse compatible agents at [skills.sh](https://skills.sh).
 
 ## Available Skills
 
