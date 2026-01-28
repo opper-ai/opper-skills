@@ -2,6 +2,15 @@
 
 Agent Skills for building AI applications with [Opper](https://opper.ai). Compatible with 25+ AI coding agents via the [Agent Skills](https://agentskills.io) standard.
 
+## Contents
+
+- [Installation](#installation)
+- [Available Skills](#available-skills)
+- [Updating Skills](#updating-skills)
+- [How Skills Work](#how-skills-work)
+- [What is Opper?](#what-is-opper)
+- [Links](#links)
+
 ## Installation
 
 ### Claude Code
@@ -96,6 +105,18 @@ Browse compatible agents at [skills.sh](https://skills.sh).
 | [opper-python-agents](./opper-python-agents/) | Build AI agents with tools, memory, and multi-agent composition in Python | Python |
 | [opper-node-agents](./opper-node-agents/) | Build AI agents with tools, streaming, and multi-agent composition in TypeScript | TypeScript |
 | [opper-cli](./opper-cli/) | Call functions, manage indexes, track usage, and configure models from the terminal | Bash |
+
+## Updating Skills
+
+Skills don't auto-update. To get the latest versions:
+
+```bash
+# If installed via npx skills
+npx skills update
+
+# If cloned/symlinked manually
+cd opper-skills && git pull
+```
 
 ## How Skills Work
 
