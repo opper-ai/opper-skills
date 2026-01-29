@@ -8,7 +8,6 @@ Memory gives agents persistent state across iterations and multiple `process()` 
 - [Memory Operations](#memory-operations)
 - [Example: Remembering User Preferences](#example-remembering-user-preferences)
 - [Memory Across Multiple Calls](#memory-across-multiple-calls)
-- [Custom Memory Backends](#custom-memory-backends)
 - [Memory vs. Context](#memory-vs-context)
 - [Best Practices](#best-practices)
 
@@ -77,66 +76,6 @@ await agent.process("What's on my task list?")
 # Agent reads from memory: ["buy groceries", "call dentist"]
 ```
 
-## Custom Memory Backends
-
-Implement a custom backend for production use (e.g., Redis, database):
-
-```python
-from typing import Optional, List
-
-class MemoryBackend:
-    """Interface for custom memory backends."""
-
-    async def list_keys(self) -> List[str]:
-        """List all memory keys."""
-        ...
-
-    async def read(self, key: str) -> Optional[str]:
-        """Read a memory value by key."""
-        ...
-
-    async def write(self, key: str, value: str) -> None:
-        """Write a value to memory."""
-        ...
-
-    async def delete(self, key: str) -> None:
-        """Delete a memory entry."""
-        ...
-```
-
-### Redis Implementation
-
-```python
-import redis.asyncio as redis
-import json
-
-class RedisMemory(MemoryBackend):
-    def __init__(self, redis_url: str, prefix: str = "agent_memory"):
-        self.client = redis.from_url(redis_url)
-        self.prefix = prefix
-
-    def _key(self, key: str) -> str:
-        return f"{self.prefix}:{key}"
-
-    async def list_keys(self) -> List[str]:
-        keys = await self.client.keys(f"{self.prefix}:*")
-        return [k.decode().removeprefix(f"{self.prefix}:") for k in keys]
-
-    async def read(self, key: str) -> Optional[str]:
-        value = await self.client.get(self._key(key))
-        return value.decode() if value else None
-
-    async def write(self, key: str, value: str) -> None:
-        await self.client.set(self._key(key), value)
-
-    async def delete(self, key: str) -> None:
-        await self.client.delete(self._key(key))
-
-# Usage — custom backends require manual integration
-# The agent uses an in-memory backend by default when enable_memory=True
-memory = RedisMemory("redis://localhost:6379")
-```
-
 ## Memory vs. Context
 
 | Feature | Memory | Context (instructions) |
@@ -151,7 +90,7 @@ memory = RedisMemory("redis://localhost:6379")
 - **Clear instructions**: Tell the agent what to remember and when
 - **Key naming**: Use descriptive keys like `"user_preferences"` not `"data1"`
 - **Memory limits**: Monitor memory size — too many entries can fill the context window
-- **Custom backends**: Use Redis or a database for production; default in-memory is ephemeral
+- **In-memory storage**: Memory uses an in-memory store and persists only within a single agent instance; it does not persist across process restarts
 - **Privacy**: Don't store sensitive information in memory without encryption
 - **Cleanup**: Periodically review and prune stale memories
 - **Testing**: Test memory behavior across multiple `process()` calls
