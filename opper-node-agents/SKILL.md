@@ -230,14 +230,20 @@ agent.registerHook(HookEvents.AgentStart, ({ context }) => {
   console.log(`Starting with goal: ${context.goal}`);
 });
 
-agent.registerHook(HookEvents.AfterTool, ({ tool, result }) => {
-  console.log(`Tool ${tool.name} returned: ${JSON.stringify(result)}`);
+agent.registerHook(HookEvents.BeforeTool, ({ tool, input, toolCallId }) => {
+  console.log(`[${toolCallId}] Calling ${tool.name}`);
+});
+
+agent.registerHook(HookEvents.AfterTool, ({ tool, result, record }) => {
+  console.log(`[${record.id}] ${tool.name} returned: ${result.success}`);
 });
 
 agent.registerHook(HookEvents.AgentEnd, ({ context }) => {
   console.log(`Done. Tokens used: ${context.usage.totalTokens}`);
 });
 ```
+
+Tool hooks include a `toolCallId` to correlate `tool:before` with `tool:after`/`tool:error` events. See [references/HOOKS.md](references/HOOKS.md) for all events and payloads.
 
 ## Common Mistakes
 
@@ -249,6 +255,7 @@ agent.registerHook(HookEvents.AgentEnd, ({ context }) => {
 
 ## Additional Resources
 
+- For hook events and payloads, see [references/HOOKS.md](references/HOOKS.md)
 - For advanced tool patterns, see [references/TOOLS.md](references/TOOLS.md)
 - For MCP server configuration, see [references/MCP.md](references/MCP.md)
 - For multi-agent composition patterns, see [references/COMPOSITION.md](references/COMPOSITION.md)
