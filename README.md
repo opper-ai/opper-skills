@@ -144,6 +144,22 @@ Opper is a task completion platform for building reliable AI integrations. It pr
 - [Platform](https://platform.opper.ai)
 - [GitHub](https://github.com/opper-ai)
 
+## Development
+
+### Pre-push hook
+
+Enable the shared pre-push hook to validate `SKILL.md` files before pushing:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+You can also run the validation manually:
+
+```bash
+bash scripts/validate-skills.sh
+```
+
 ## License
 
 MIT

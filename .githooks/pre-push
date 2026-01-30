@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Pre-push hook: validate SKILL.md files against Agent Skills spec.
+# Enable with: git config core.hooksPath .githooks
+
+exec "$(dirname "$0")/../scripts/validate-skills.sh"
