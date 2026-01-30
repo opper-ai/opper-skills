@@ -61,13 +61,12 @@ echo "what is 2+2?" | opper call myfunction "respond in kind"
 | Command | Description |
 |---------|-------------|
 | `call` | Execute a function with instructions and input |
-| `functions` | List, inspect, and chat with functions |
-| `indexes` | Manage knowledge base indexes |
-| `models` | Register, list, test, and delete custom models |
+| `functions` | List, get, chat with, and run evaluations on functions |
+| `indexes` | Manage knowledge base indexes (list, get, create, delete, add, query, upload) |
+| `models` | Register, list, get, test, delete custom models, and list builtins |
 | `traces` | Inspect execution traces |
 | `usage` | Track usage analytics, tokens, and costs by tags |
 | `config` | Manage API key configurations |
-| `completion` | Generate shell autocompletion scripts |
 | `version` | Display CLI version |
 
 ## Function Chat
@@ -90,6 +89,12 @@ opper models create my-gpt4 azure/my-gpt4-deployment my-api-key '{"api_base": "h
 # List registered models
 opper models list
 
+# List built-in models
+opper models builtin
+
+# Get details of a model
+opper models get my-gpt4
+
 # Test a model interactively
 opper models test my-gpt4
 
@@ -103,7 +108,7 @@ Query usage analytics with filtering and grouping:
 
 ```bash
 # Usage for a date range grouped by tag
-opper usage list --from-date=2025-05-15 --to-date=2025-05-16 --fields=total_tokens --group-by=customer_id
+opper usage list --from-date=2025-05-15 --to-date=2025-05-16 --fields=total_tokens --group-by=model
 
 # Time-precise query (RFC3339 format)
 opper usage list --from-date=2025-05-15T14:00:00Z --to-date=2025-05-15T16:00:00Z --granularity=minute
@@ -121,19 +126,6 @@ Note: `cost` and `count` are always included automatically. Valid `--fields` val
 | `--debug` | Enable diagnostic output |
 | `--key <name>` | API key configuration to use (default: "default") |
 | `-h, --help` | Show help for any command |
-
-## Shell Completion
-
-```bash
-# Zsh (add to ~/.zshrc)
-source <(opper completion zsh)
-
-# Bash (add to ~/.bashrc)
-source <(opper completion bash)
-
-# Fish
-opper completion fish > ~/.config/fish/completions/opper.fish
-```
 
 ## Common Mistakes
 

@@ -87,7 +87,7 @@ Custom tags passed during calls are also available:
 # Group by model
 opper usage list --group-by=model
 
-# Group by custom tag
+# Group by custom tag (set via --tags during calls)
 opper usage list --group-by=customer_id
 
 # Multiple group-by fields
@@ -123,8 +123,8 @@ opper usage list --group-by=model --graph
 ## Examples
 
 ```bash
-# Token usage for a date range grouped by customer tag
-opper usage list --from-date=2025-05-15 --to-date=2025-05-16 --fields=total_tokens --group-by=customer_id
+# Token usage for a date range grouped by model
+opper usage list --from-date=2025-05-15 --to-date=2025-05-16 --fields=total_tokens --group-by=model
 
 # Hourly cost breakdown for today
 opper usage list --granularity=hour
@@ -136,7 +136,7 @@ opper usage list --from-date=2025-05-15T09:00:00Z --to-date=2025-05-15T11:00:00Z
 opper usage list --fields=total_tokens,prompt_tokens,completion_tokens --group-by=model
 
 # Export monthly report
-opper usage list --from-date=2025-05-01 --to-date=2025-05-31 --fields=total_tokens --group-by=customer_id --out=csv > may_usage.csv
+opper usage list --from-date=2025-05-01 --to-date=2025-05-31 --fields=total_tokens --group-by=model --out=csv > may_usage.csv
 ```
 
 ## Response Format
