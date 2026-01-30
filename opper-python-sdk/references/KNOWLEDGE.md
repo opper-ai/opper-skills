@@ -19,9 +19,10 @@ Knowledge bases provide semantic search over your documents using vector embeddi
 ## Creating a Knowledge Base
 
 ```python
+import os
 from opperai import Opper
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 # Create a new knowledge base
 kb = opper.knowledge.create(name="support_docs")
@@ -32,7 +33,7 @@ kb = opper.knowledge.create(name="support_docs")
 ```python
 # Add a single document
 opper.knowledge.add(
-    index_id=kb.id,
+    knowledge_base_id=kb.id,
     content="To reset your password, click 'Forgot Password' on the login page.",
     metadata={"category": "auth", "source": "helpdesk"},
 )
@@ -50,7 +51,7 @@ documents = [
 ]
 for doc in documents:
     opper.knowledge.add(
-        index_id=kb.id,
+        knowledge_base_id=kb.id,
         content=doc["content"],
         metadata=doc["metadata"],
     )
@@ -61,9 +62,9 @@ for doc in documents:
 ```python
 # Basic query - returns most relevant documents
 results = opper.knowledge.query(
-    index_id=kb.id,
+    knowledge_base_id=kb.id,
     query="How do I change my password?",
-    k=3,
+    top_k=3,
 )
 
 for result in results:
@@ -78,10 +79,10 @@ for result in results:
 ```python
 # Filter results by metadata
 results = opper.knowledge.query(
-    index_id=kb.id,
+    knowledge_base_id=kb.id,
     query="billing question",
-    k=5,
-    filters={"category": "billing"},
+    top_k=5,
+    filters=[{"field": "category", "operation": "=", "value": "billing"}],
 )
 ```
 
@@ -90,16 +91,17 @@ results = opper.knowledge.query(
 Combine knowledge base retrieval with task completion:
 
 ```python
+import os
 from opperai import Opper
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 def answer_with_context(question: str, kb_id: str) -> dict:
     # 1. Retrieve relevant context
     results = opper.knowledge.query(
-        index_id=kb_id,
+        knowledge_base_id=kb_id,
         query=question,
-        k=3,
+        top_k=3,
     )
 
     # 2. Build context string
@@ -128,35 +130,35 @@ def answer_with_context(question: str, kb_id: str) -> dict:
 ## Listing Knowledge Bases
 
 ```python
-indexes = opper.knowledge.list()
-for idx in indexes:
-    print(f"{idx.name}: {idx.id}")
+result = opper.knowledge.list()
+for kb in result.data:
+    print(f"{kb.name}: {kb.id}")
 ```
 
 ## Getting a Knowledge Base
 
 ```python
 # By name
-kb = opper.knowledge.get_by_name("support_docs")
+kb = opper.knowledge.get_by_name(knowledge_base_name="support_docs")
 
 # By ID
-kb = opper.knowledge.get(index_id="idx_123")
+kb = opper.knowledge.get(knowledge_base_id="idx_123")
 ```
 
 ## Deleting Documents
 
 ```python
 # Delete a specific document by key
-opper.knowledge.delete_document(
-    index_id=kb.id,
-    key="doc_001",
+opper.knowledge.delete_documents(
+    knowledge_base_id=kb.id,
+    filters=[{"field": "key", "operation": "=", "value": "doc_001"}],
 )
 ```
 
 ## Deleting a Knowledge Base
 
 ```python
-opper.knowledge.delete(index_id="idx_123")
+opper.knowledge.delete(knowledge_base_id="idx_123")
 ```
 
 ## File Upload
@@ -166,7 +168,7 @@ Upload files (PDF, DOCX, etc.) for automatic processing:
 ```python
 # Get upload URL
 upload_info = opper.knowledge.get_upload_url(
-    index_id=kb.id,
+    knowledge_base_id=kb.id,
     filename="manual.pdf",
 )
 
@@ -177,9 +179,10 @@ with open("manual.pdf", "rb") as f:
 
 # Register the upload
 opper.knowledge.register_file_upload(
-    index_id=kb.id,
-    upload_id=upload_info.upload_id,
+    knowledge_base_id=kb.id,
+    file_id=upload_info.id,
     filename="manual.pdf",
+    content_type="application/pdf",
 )
 ```
 
@@ -195,6 +198,6 @@ Each document has:
 - Use meaningful `key` values for document management
 - Keep documents focused — one topic per document works better than large multi-topic docs
 - Add relevant `metadata` for filtering (category, source, date, etc.)
-- Use `k=3` to `k=5` for most queries — more results can add noise
+- Use `top_k=3` to `top_k=5` for most queries — more results can add noise
 - Use `parent_span_id` for tracing RAG pipelines
 - Update documents by re-adding with the same `key`

@@ -14,9 +14,10 @@ Stream responses token-by-token for real-time output in user-facing applications
 Use `opper.stream()` (not `opper.call()`) to get a streaming response:
 
 ```python
+import os
 from opperai import Opper
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 # Stream a response using opper.stream()
 outer = opper.stream(
@@ -68,12 +69,13 @@ for event in stream:
 Stream responses to HTTP clients:
 
 ```python
+import os
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from opperai import Opper
 
 app = FastAPI()
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 @app.get("/generate")
 async def generate(topic: str):
@@ -101,9 +103,10 @@ async def generate(topic: str):
 Streaming works with the tracing system using `parent_span_id`:
 
 ```python
+import os
 from opperai import Opper
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 # Create a span for the streaming operation
 span = opper.spans.create(name="streaming_qa")

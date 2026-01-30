@@ -20,10 +20,11 @@ Tracing provides full observability into your AI operations with hierarchical sp
 Create spans manually to group related operations:
 
 ```python
+import os
 from opperai import Opper
 from datetime import datetime, timezone
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 # Create a parent span for a pipeline
 span = opper.spans.create(name="my_pipeline")
@@ -56,10 +57,11 @@ opper.spans.update(
 Create parent-child relationships between spans:
 
 ```python
+import os
 from opperai import Opper
 from datetime import datetime, timezone
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 # Create a top-level span for the pipeline
 pipeline_span = opper.spans.create(name="document_pipeline")

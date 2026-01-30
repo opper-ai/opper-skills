@@ -17,7 +17,7 @@ pip install opperai
 Set your API key:
 
 ```bash
-export OPPER_API_KEY="your-api-key"
+export OPPER_HTTP_BEARER="your-api-key"
 ```
 
 Get your API key from [platform.opper.ai](https://platform.opper.ai).
@@ -31,9 +31,10 @@ The `opper.call()` method is the primary interface. Describe a task declarativel
 - **With `output_schema`** → read `response.json_payload` (returns `dict` or `list`)
 
 ```python
+import os
 from opperai import Opper
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 # WITHOUT output_schema → use response.message (str)
 response = opper.call(
@@ -143,9 +144,10 @@ response = opper.call(
 Track AI operations with spans and metrics:
 
 ```python
+import os
 from opperai import Opper
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 # Create a span to group operations
 span = opper.spans.create(name="qa_pipeline")
@@ -174,25 +176,26 @@ traces = opper.traces.list()
 Create and query semantic search indexes:
 
 ```python
+import os
 from opperai import Opper
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 # Create a knowledge base
 kb = opper.knowledge.create(name="support_docs")
 
 # Add a document
 opper.knowledge.add(
-    index_id=kb.id,
+    knowledge_base_id=kb.id,
     content="To reset your password, click Forgot Password on the login page.",
     metadata={"category": "auth"},
 )
 
 # Query with semantic search
 results = opper.knowledge.query(
-    index_id=kb.id,
+    knowledge_base_id=kb.id,
     query="How do I change my password?",
-    k=3,
+    top_k=3,
 )
 for result in results:
     print(result.content, result.score)
@@ -209,6 +212,14 @@ response = opper.call(
     input="Hello world",
     tags={"project": "website", "user_id": "usr_123"},
 )
+```
+
+## Authentication Note
+
+The `OPPER_HTTP_BEARER` environment variable is your Opper API key. You can get it from [platform.opper.ai](https://platform.opper.ai) under your project settings. The SDK requires it to be passed explicitly:
+
+```python
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 ```
 
 ## Common Mistakes

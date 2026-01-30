@@ -24,9 +24,10 @@ Functions are server-side managed task definitions that allow you to version, re
 ## Creating Functions
 
 ```python
+import os
 from opperai import Opper
 
-opper = Opper()
+opper = Opper(http_bearer=os.environ["OPPER_HTTP_BEARER"])
 
 # Create a function with full configuration
 function = opper.functions.create(
