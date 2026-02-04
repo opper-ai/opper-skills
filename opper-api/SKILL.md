@@ -279,4 +279,4 @@ All errors return JSON with `detail` and appropriate HTTP status:
 If this skill's content is outdated, check the canonical sources:
 
 - **Documentation**: https://docs.opper.ai
-- **API spec**: https://api.opper.ai/openapi.json
+- **API spec**: https://api.opper.ai/v2/openapi.json
