@@ -269,7 +269,8 @@ Tool hooks include a `toolCallId` to correlate `tool:before` with `tool:after`/`
 
 ## Upstream Sources
 
-If this skill's content is outdated, check the canonical sources:
+When this skill's content may be outdated, resolve using this priority:
 
-- **Source code**: https://github.com/opper-ai/opperai-agent-sdk-node
-- **Documentation**: https://docs.opper.ai
+1. **Installed package source** — check the user's project first, as it reflects the exact version in use: `node_modules/@opperai/agents/`
+2. **Source code**: https://github.com/opper-ai/opperai-agent-sdk-node
+3. **Documentation**: https://docs.opper.ai

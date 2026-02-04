@@ -149,6 +149,7 @@ Note: `cost` and `count` are always included automatically. Valid `--fields` val
 
 ## Upstream Sources
 
-If this skill's content is outdated, check the canonical sources:
+When this skill's content may be outdated, resolve using this priority:
 
-- **Source code**: https://github.com/opper-ai/oppercli
+1. **Installed CLI** — run `opper --help` and subcommand help to check current commands and options
+2. **Source code**: https://github.com/opper-ai/oppercli

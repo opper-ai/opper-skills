@@ -282,7 +282,8 @@ data = response.json_payload  # Returns dict: {"entities": [...]}
 
 ## Upstream Sources
 
-If this skill's content is outdated, check the canonical sources:
+When this skill's content may be outdated, resolve using this priority:
 
-- **Source code**: https://github.com/opper-ai/opper-python
-- **Documentation**: https://docs.opper.ai
+1. **Installed package source** — check the user's project first, as it reflects the exact version in use: `.venv/**/site-packages/opperai/` or `**/site-packages/opperai/`
+2. **Source code**: https://github.com/opper-ai/opper-python
+3. **Documentation**: https://docs.opper.ai

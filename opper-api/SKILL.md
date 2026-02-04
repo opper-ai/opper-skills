@@ -276,7 +276,7 @@ All errors return JSON with `detail` and appropriate HTTP status:
 
 ## Upstream Sources
 
-If this skill's content is outdated, check the canonical sources:
+When this skill's content may be outdated, resolve using this priority:
 
-- **Documentation**: https://docs.opper.ai
-- **API spec**: https://api.opper.ai/v2/openapi.json
+1. **API spec** — fetch the live OpenAPI spec at https://api.opper.ai/v2/openapi.json for the current endpoint definitions
+2. **Documentation**: https://docs.opper.ai
