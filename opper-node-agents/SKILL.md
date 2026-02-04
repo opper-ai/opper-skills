@@ -260,6 +260,7 @@ Tool hooks include a `toolCallId` to correlate `tool:before` with `tool:after`/`
 - For MCP server configuration, see [references/MCP.md](references/MCP.md)
 - For multi-agent composition patterns, see [references/COMPOSITION.md](references/COMPOSITION.md)
 - For streaming events and patterns, see [references/STREAMING.md](references/STREAMING.md)
+- For migrating from OpenRouter, see [references/MIGRATION.md](references/MIGRATION.md)
 
 ## Related Skills
 

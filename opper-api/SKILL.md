@@ -264,6 +264,7 @@ All errors return JSON with `detail` and appropriate HTTP status:
 - For the complete endpoint catalog, see [references/ENDPOINTS.md](references/ENDPOINTS.md)
 - For knowledge base operations, see [references/KNOWLEDGE.md](references/KNOWLEDGE.md)
 - For tracing and spans, see [references/TRACING.md](references/TRACING.md)
+- For migrating from OpenRouter, see [references/MIGRATION.md](references/MIGRATION.md)
 
 ## Related Skills
 

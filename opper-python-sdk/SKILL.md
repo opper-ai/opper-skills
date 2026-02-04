@@ -273,6 +273,7 @@ data = response.json_payload  # Returns dict: {"entities": [...]}
 - For knowledge base operations and RAG patterns, see [references/KNOWLEDGE.md](references/KNOWLEDGE.md)
 - For tracing, spans, and metrics, see [references/TRACING.md](references/TRACING.md)
 - For streaming responses, see [references/STREAMING.md](references/STREAMING.md)
+- For migrating from OpenRouter, see [references/MIGRATION.md](references/MIGRATION.md)
 
 ## Related Skills
 

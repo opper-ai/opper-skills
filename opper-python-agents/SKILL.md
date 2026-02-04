@@ -224,6 +224,7 @@ print(f"Total tokens: {agent.context.usage.total_tokens}")
 - For multi-agent composition patterns, see [references/COMPOSITION.md](references/COMPOSITION.md)
 - For lifecycle hooks reference, see [references/HOOKS.md](references/HOOKS.md)
 - For persistent memory, see [references/MEMORY.md](references/MEMORY.md)
+- For migrating from OpenRouter, see [references/MIGRATION.md](references/MIGRATION.md)
 
 ## Related Skills
 

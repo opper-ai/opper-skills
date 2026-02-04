@@ -66,6 +66,16 @@ mkdir -p .github/skills
 ln -s /path/to/opper-skills/opper-python-sdk .github/skills/opper-python-sdk
 ```
 
+### Cline
+
+Enable the experimental Skills feature in Cline settings. Skills are loaded from `.cline/skills/` (project) or `~/.cline/skills/` (global).
+
+```bash
+# Global installation
+git clone https://github.com/opper-ai/opper-skills.git
+ln -s $(pwd)/opper-skills/opper-python-sdk ~/.cline/skills/opper-python-sdk
+```
+
 ### OpenAI Codex
 
 Codex loads skills from `.codex/skills/` (project) or `~/.codex/skills/` (global).

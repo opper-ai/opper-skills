@@ -213,6 +213,7 @@ try {
 - For knowledge base operations and RAG, see [references/KNOWLEDGE.md](references/KNOWLEDGE.md)
 - For tracing and span operations, see [references/TRACING.md](references/TRACING.md)
 - For advanced streaming patterns, see [references/STREAMING.md](references/STREAMING.md)
+- For migrating from OpenRouter, see [references/MIGRATION.md](references/MIGRATION.md)
 
 ## Related Skills
 
