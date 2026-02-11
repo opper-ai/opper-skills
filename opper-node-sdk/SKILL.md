@@ -205,7 +205,6 @@ try {
 - **Missing `httpBearer`**: The SDK won't authenticate without it. Use environment variable `OPPER_HTTP_BEARER`.
 - **Forgetting `required` in schemas**: JSON Schema fields are optional by default. Always specify `required`.
 - **Not awaiting calls**: All SDK methods are async. Always `await` them.
-- **Using Zod v4**: The SDK currently supports Zod v3.x only (`zod@^3.23.8`).
 
 ## Additional Resources
 
