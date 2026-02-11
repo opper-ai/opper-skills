@@ -249,7 +249,6 @@ Tool hooks include a `toolCallId` to correlate `tool:before` with `tool:after`/`
 
 - **Forgetting `await`**: `agent.run()` and `agent.process()` are async. Always use `await`.
 - **Missing tool descriptions**: Tools need clear names and Zod schemas so the LLM knows when/how to use them.
-- **Zod v4 incompatibility**: Use `zod@^3.23.8`. The SDK does not support Zod v4 yet.
 - **No `outputSchema`**: Without it, the agent returns unstructured strings. Use Zod schemas for reliable typed output.
 - **Too many tools**: Keep tools focused (5-10 per agent). Use composition for more capabilities.
 
