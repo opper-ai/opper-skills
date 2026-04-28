@@ -16,20 +16,28 @@ description: >
 
 # Opper API
 
-Opper is a **gateway** in front of LLM providers plus a **control plane** for the things you build on top: functions, tracing, evaluations, custom models. The HTTP API at `https://api.opper.ai` is the foundation — every SDK and the CLI talk to it. The v3 surface self-identifies as **"Task API"** (v3.0.0). Knowledge bases live on the older v2 surface.
+Opper is a **gateway** in front of LLM providers plus a **control plane** for the things you build on top. The gateway is one connection to 200+ models across all major providers (OpenAI, Anthropic, Google, Mistral, …). The control plane covers five capabilities:
+
+- **Route** — call any supported model through one key, no provider-specific SDKs or credentials.
+- **Observe** — every call yields a trace with input, output, latency, cost, and model used; attach metrics and evaluations to track quality over time.
+- **Steer** — improve quality through feedback loops; save good outputs as examples and build evaluation datasets.
+- **Guard** — guardrails at the infrastructure level (PII removal, content filtering, budget limits) before data reaches the model.
+- **Comply** — follows European data protection directives and security standards, including GDPR.
+
+The HTTP API at `https://api.opper.ai` is the foundation — every SDK and the CLI talk to it. The v3 surface self-identifies as **"Task API"** (v3.0.0).
 
 Concepts: [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about). Getting started: [docs.opper.ai/overview/getting-started](https://docs.opper.ai/overview/getting-started).
 
-## Fetch the live spec — first, always
+## Fetch the live v3 spec — first, always
 
-For any question about endpoint shapes, payloads, or fields, fetch the spec. They are unauthenticated and definitive:
+For any question about endpoint shapes, payloads, or fields, fetch the spec. Both formats are unauthenticated and definitive:
 
 ```bash
-curl -s https://api.opper.ai/v3/openapi.yaml   # v3 Task API (call, models, spans, traces, functions, web tools, compat/*)
-curl -s https://api.opper.ai/v2/openapi.json   # v2 (knowledge bases — no YAML version exposed)
+curl -s https://api.opper.ai/v3/openapi.yaml   # YAML
+curl -s https://api.opper.ai/v3/openapi.json   # JSON
 ```
 
-The spec is the **definitive** answer; this skill, the docs, and the SDKs all derive from it. When in doubt, fetch it and grep for the operation.
+The spec is the **definitive** answer; this skill, the docs, and the SDKs all derive from it. When in doubt, fetch it and grep for the operation. (Knowledge bases live on a separate v2 surface — see "Knowledge bases" below.)
 
 ## Authenticate
 
@@ -120,9 +128,8 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 
 | For | Look at |
 |---|---|
-| Live, definitive endpoint shapes (v3) | `https://api.opper.ai/v3/openapi.yaml` |
-| Live spec (v2 — knowledge bases) | `https://api.opper.ai/v2/openapi.json` |
-| Conceptual overview of Opper | [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about) |
+| Live, definitive endpoint shapes | `https://api.opper.ai/v3/openapi.yaml` |
+| Conceptual overview of Opper (gateway + 5-pillar control plane) | [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about) |
 | Getting started end-to-end | [docs.opper.ai/overview/getting-started](https://docs.opper.ai/overview/getting-started) |
 | Capability docs (models, knowledge, evals, …) | [docs.opper.ai/capabilities](https://docs.opper.ai/capabilities) |
 | Worked recipes in many languages | [github.com/opper-ai/opper-cookbook](https://github.com/opper-ai/opper-cookbook) |
