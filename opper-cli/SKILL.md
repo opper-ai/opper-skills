@@ -1,155 +1,75 @@
 ---
 name: opper-cli
 description: >
-  Use the Opper CLI (oppercli) for terminal-based AI task completion, function management, knowledge base operations, model configuration, trace inspection, and usage analytics. Activate when users want to call Opper functions from the command line, manage indexes, inspect traces, track costs, or configure models via terminal.
+  Use the Opper CLI (`opper` command) for terminal-based work with Opper:
+  calling functions, managing knowledge bases (indexes), inspecting traces,
+  configuring custom models, tracking usage and costs, and shell completion.
+  Use this skill whenever the user mentions the `opper` command, the Opper
+  CLI, opper-ai/cli, or wants to do anything Opper-related from a terminal —
+  even if they don't explicitly say "CLI". For exact arguments, always run
+  `opper <subcommand> --help`; the help output is the authoritative reference.
 ---
 
 # Opper CLI
 
-Command-line interface for the Opper platform. Call functions, manage knowledge bases, configure models, inspect traces, and track usage from your terminal.
+Single-binary CLI for the Opper platform. Source and install instructions live at [github.com/opper-ai/cli](https://github.com/opper-ai/cli).
 
-## Installation
+## Install
 
-**Homebrew (macOS):**
+The repo README is authoritative — install methods (Homebrew tap, binary download, source build) change there first. Verify the install with `opper version`.
+
+## Authenticate
+
+The CLI reads, in order:
+
+1. **`OPPER_API_KEY`** environment variable (and optionally `OPPER_BASE_URL` for non-default hosts) — wins unconditionally if set.
+2. **Config file** at `~/.oppercli`, profile selected by `--key <profile>` (default `default`):
+   ```bash
+   opper config add default <your-api-key>
+   opper config add staging  <staging-key> --base-url https://...
+   ```
+3. **Interactive prompt** if neither is found.
+
+Get a key from [platform.opper.ai](https://platform.opper.ai).
+
+## Always use `--help` — it is the source of truth
+
+Subcommand surface area changes faster than this skill. Before guessing flags or argument order:
 
 ```bash
-brew tap opper-ai/oppercli git@github.com:opper-ai/oppercli
-brew install opper
+opper --help              # top-level command list
+opper <command> --help    # subcommands and flags
 ```
 
-**Binary download (macOS ARM64):**
+Common top-level commands: `call`, `functions`, `indexes`, `models`, `traces`, `usage`, `config`, `completion`, `version`. Don't memorise their flags — ask `--help`.
+
+## Canonical example
 
 ```bash
-sudo curl -o /usr/local/bin/opper https://github.com/opper-ai/oppercli/releases/latest/download/opper-darwin-arm64
-sudo chmod 755 /usr/local/bin/opper
-```
-
-Other platforms: download from [GitHub Releases](https://github.com/opper-ai/oppercli/releases/latest) (`opper-linux-amd64`, `opper-darwin-amd64`, etc.).
-
-## Configuration
-
-Set up your API key:
-
-```bash
-opper config add default <your-api-key>
-```
-
-Use multiple configurations with the `--key` flag:
-
-```bash
-opper config add staging <staging-api-key>
-opper call --key staging myfunction "instructions" "input"
-```
-
-## Core Command: `call`
-
-Execute an Opper function from the terminal:
-
-```bash
-# Basic call
 opper call myfunction "respond in kind" "what is 2+2?"
 
-# With a specific model
-opper call --model anthropic/claude-4-sonnet myfunction "summarize this" "long text..."
-
-# Pipe input from stdin
+# Pipe stdin as the input
 echo "what is 2+2?" | opper call myfunction "respond in kind"
+
+# Pin a specific model (use a real identifier from `curl -s https://api.opper.ai/v3/models`)
+opper call --model anthropic/claude-haiku-4-5 myfunction "summarise this" "long text..."
 ```
 
-## Commands Overview
+Argument order is `opper call <function> <instructions> <input>`. The third arg is optional — if omitted, the CLI reads stdin.
 
-| Command | Description |
-|---------|-------------|
-| `call` | Execute a function with instructions and input |
-| `functions` | List, get, chat with, and run evaluations on functions |
-| `indexes` | Manage knowledge base indexes (list, get, create, delete, add, query, upload) |
-| `models` | Register, list, get, test, delete custom models, and list builtins |
-| `traces` | Inspect execution traces |
-| `usage` | Track usage analytics, tokens, and costs by tags |
-| `config` | Manage API key configurations |
-| `version` | Display CLI version |
+## Non-obvious gotchas
 
-## Function Chat
+- **`OPPER_API_KEY` env var beats `--key`.** When the env var is set, the `--key <profile>` flag is silently ignored. To use a config profile, unset the env var (or run via a wrapper that does).
+- **`opper call` argument order is `<function> <instructions> <input>`** — easy to flip.
+- **Model identifiers use `provider/model` form** (`anthropic/claude-haiku-4-5`, `openai/gpt-4o`, `azure/<deployment>`); custom models registered with `opper models create` are LiteLLM-backed. List the live set with `curl -s https://api.opper.ai/v3/models`.
+- **`indexes` is the CLI name for knowledge bases** — same concept, different word in `opper`.
 
-Interactive chat with a function:
+## Where to look next
 
-```bash
-opper functions chat myfunction "Hello there!"
-echo "Hello there!" | opper functions chat myfunction
-```
-
-## Model Management
-
-Register custom models (uses LiteLLM identifiers):
-
-```bash
-# Register an Azure-deployed model
-opper models create my-gpt4 azure/my-gpt4-deployment my-api-key '{"api_base": "https://my.openai.azure.com", "api_version": "2024-02-01"}'
-
-# List registered models
-opper models list
-
-# List built-in models
-opper models builtin
-
-# Get details of a model
-opper models get my-gpt4
-
-# Test a model interactively
-opper models test my-gpt4
-
-# Delete a model
-opper models delete my-gpt4
-```
-
-## Usage Tracking
-
-Query usage analytics with filtering and grouping:
-
-```bash
-# Usage for a date range grouped by tag
-opper usage list --from-date=2025-05-15 --to-date=2025-05-16 --fields=total_tokens --group-by=model
-
-# Time-precise query (RFC3339 format)
-opper usage list --from-date=2025-05-15T14:00:00Z --to-date=2025-05-15T16:00:00Z --granularity=minute
-
-# Export as CSV
-opper usage list --out=csv
-```
-
-Note: `cost` and `count` are always included automatically. Valid `--fields` values: `total_tokens`, `prompt_tokens`, `completion_tokens`. Do NOT pass `count` as a field.
-
-## Global Flags
-
-| Flag | Description |
-|------|-------------|
-| `--debug` | Enable diagnostic output |
-| `--key <name>` | API key configuration to use (default: "default") |
-| `-h, --help` | Show help for any command |
-
-## Common Mistakes
-
-- **Missing config**: Run `opper config add default <key>` before using any commands.
-- **Wrong argument order for `call`**: It's `opper call <function> <instructions> <input>`, not `opper call <instructions> <function> <input>`.
-- **Model identifiers**: Use LiteLLM format (`azure/deployment-name`, `anthropic/claude-4-sonnet`), not raw model names.
-- **Piping with chat**: When piping, the function name still comes first: `echo "hi" | opper functions chat myfunction`.
-
-## Additional Resources
-
-- For function management details, see [references/FUNCTIONS.md](references/FUNCTIONS.md)
-- For index/knowledge base operations, see [references/INDEXES.md](references/INDEXES.md)
-- For usage analytics and cost tracking, see [references/USAGE.md](references/USAGE.md)
-- For API key configuration, see [references/CONFIG.md](references/CONFIG.md)
-
-## Related Skills
-
-- **opper-api**: Use when you need the full REST API reference for HTTP-based integrations.
-- **opper-python-sdk**: Use when building Python applications with the Opper SDK.
-- **opper-node-sdk**: Use when building TypeScript applications with the Opper SDK.
-
-## Upstream Sources
-
-When this skill's content may be outdated, resolve using this priority:
-
-1. **Installed CLI** — run `opper --help` and subcommand help to check current commands and options
-2. **Source code**: https://github.com/opper-ai/oppercli
+| For | Look at |
+|---|---|
+| Install, releases, license | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) |
+| Live argument and flag reference | `opper <command> --help` |
+| Worked example using the CLI | `examples/osh` in the source repo |
+| The platform behind the CLI | the `opper-api` skill, or [docs.opper.ai](https://docs.opper.ai) |
+| Building Opper into application code | the `opper-sdks` skill |

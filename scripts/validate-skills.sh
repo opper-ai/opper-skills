@@ -48,6 +48,18 @@ for skill_file in "$REPO_ROOT"/*/SKILL.md; do
     fi
   fi
 
+  # --- Check 3a: name max 64 chars ---
+  if [ -n "$name" ] && [ "${#name}" -gt 64 ]; then
+    echo "ERROR: $dir_name/SKILL.md name is ${#name} chars (max 64)"
+    errors=$((errors + 1))
+  fi
+
+  # --- Check 3b: name does not contain reserved words (anthropic, claude) ---
+  if [ -n "$name" ] && echo "$name" | grep -qiE '(^|-)(anthropic|claude)(-|$)'; then
+    echo "ERROR: $dir_name/SKILL.md name '$name' contains a reserved word (anthropic, claude)"
+    errors=$((errors + 1))
+  fi
+
   # --- Check 4: description under 1024 chars ---
   # Collect the full description value, handling multi-line YAML scalars (> or |)
   description="$(echo "$frontmatter" | awk '
@@ -70,6 +82,12 @@ for skill_file in "$REPO_ROOT"/*/SKILL.md; do
   desc_len="${#description}"
   if [ "$desc_len" -gt 1024 ]; then
     echo "ERROR: $dir_name/SKILL.md description is $desc_len chars (max 1024)"
+    errors=$((errors + 1))
+  fi
+
+  # --- Check 5: description is non-empty ---
+  if [ "$desc_len" -eq 0 ]; then
+    echo "ERROR: $dir_name/SKILL.md missing or empty 'description' field in frontmatter"
     errors=$((errors + 1))
   fi
 done
