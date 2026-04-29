@@ -1,282 +1,139 @@
 ---
 name: opper-api
 description: >
-  Use the Opper REST API directly via HTTP for AI task completion, structured output with JSON Schema, streaming via SSE, knowledge base semantic search, function management, and tracing. Activate when calling the Opper API with curl, fetch, or any HTTP client without using the Python or Node SDKs.
+  Use the Opper REST API directly (HTTP / curl / fetch) and as the source of
+  truth for Opper platform concepts: the gateway, the control plane,
+  available models, task completion (/v3/call), streaming via SSE, tracing,
+  OpenAI / Anthropic / OpenResponses-compatible endpoints under /v3/compat,
+  and migration from other LLM gateways. Use this skill whenever the user
+  asks about Opper concepts, what models Opper supports, API endpoints or
+  signatures, raw HTTP integration, gateway behaviour, integrating Opper
+  with a coding assistant, or compatibility / migration from OpenAI /
+  OpenRouter / Anthropic — even if they only say "Opper" without "API". For
+  any endpoint signature or payload question always recommend fetching the
+  live OpenAPI spec at https://api.opper.ai/v3/openapi.yaml first.
 ---
 
-# Opper REST API
+# Opper API
 
-Call the Opper platform directly via HTTP for task completion, knowledge bases, streaming, and observability.
+Opper is a **gateway** in front of LLM providers plus a **control plane** for the things you build on top. The gateway is one connection to 200+ models across all major providers (OpenAI, Anthropic, Google, Mistral, …). The control plane covers five capabilities:
 
-## Authentication
+- **Route** — call any supported model through one key, no provider-specific SDKs or credentials.
+- **Observe** — every call yields a trace with input, output, latency, cost, and model used; attach metrics and evaluations to track quality over time.
+- **Steer** — improve quality through feedback loops; save good outputs as examples and build evaluation datasets.
+- **Guard** — guardrails at the infrastructure level (PII removal, content filtering, budget limits) before data reaches the model.
+- **Comply** — follows European data protection directives and security standards, including GDPR.
 
-All requests require a Bearer token:
+The HTTP API at `https://api.opper.ai` is the foundation — every SDK and the CLI talk to it. The v3 surface self-identifies as **"Task API"** (v3.0.0).
+
+Concepts: [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about). Getting started: [docs.opper.ai/overview/getting-started](https://docs.opper.ai/overview/getting-started).
+
+## Fetch the live v3 spec — first, always
+
+For any question about endpoint shapes, payloads, or fields, fetch the spec. Both formats are unauthenticated and definitive:
 
 ```bash
+curl -s https://api.opper.ai/v3/openapi.yaml   # YAML
+curl -s https://api.opper.ai/v3/openapi.json   # JSON
+```
+
+The spec is the **definitive** answer; this skill, the docs, and the SDKs all derive from it. When in doubt, fetch it and grep for the operation. (Knowledge bases live on a separate v2 surface — see "Knowledge bases" below.)
+
+## Authenticate
+
+```http
 Authorization: Bearer $OPPER_API_KEY
 ```
 
-Get your API key from [platform.opper.ai](https://platform.opper.ai).
+Server URL: `https://api.opper.ai` (the `/v3` or `/v2` prefix is part of each path). Bearer is the **only** auth scheme — there is no `x-api-key`. Get a key at [platform.opper.ai](https://platform.opper.ai).
 
-## Base URL
+A few endpoints have `security: []` and don't require a key: `/health`, `/v3/openapi.yaml`, `/v3/openapi.json`, `/v3/models`.
 
-```
-https://api.opper.ai
-```
+## Canonical example — task completion
 
-## Core Endpoint: Task Completion
-
-**POST /v2/call** — The primary endpoint. Describe a task and get structured results.
+`POST /v3/call` is the primary v3 endpoint. Both `name` and `input` are required.
 
 ```bash
-curl -X POST https://api.opper.ai/v2/call \
+curl -s -X POST https://api.opper.ai/v3/call \
   -H "Authorization: Bearer $OPPER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "extract_entities",
-    "instructions": "Extract named entities from the text",
-    "input": "Tim Cook announced Apple'\''s new office in Austin, Texas.",
-    "output_schema": {
-      "type": "object",
-      "properties": {
-        "people": {"type": "array", "items": {"type": "string"}},
-        "locations": {"type": "array", "items": {"type": "string"}},
-        "organizations": {"type": "array", "items": {"type": "string"}}
-      },
-      "required": ["people", "locations", "organizations"]
-    }
+    "input": {"text": "Tim Cook announced Apple’s new office in Austin."},
+    "instructions": "Extract named entities.",
+    "output_schema": { "type": "object", "properties": {
+      "people": {"type": "array", "items": {"type": "string"}},
+      "locations": {"type": "array", "items": {"type": "string"}}
+    }}
   }'
 ```
 
-**Response:**
+Response is shaped `{ "data": <result>, "meta": { ... } }` — the result is **always** in `data`, regardless of `output_schema`. `meta` carries `cost` (a number), `usage`, `trace_uuid`, `function_name`, `script_cached`, etc.; for the full `RunResponse` shape, fetch the spec. The endpoint may also return `202 Accepted` with a `PendingResponse` — poll the URL in `meta.pending_operations[*].status_url`.
 
-```json
-{
-  "span_id": "550e8400-e29b-41d4-a716-446655440000",
-  "json_payload": {
-    "people": ["Tim Cook"],
-    "locations": ["Austin", "Texas"],
-    "organizations": ["Apple"]
-  },
-  "cached": false,
-  "usage": {
-    "input_tokens": 45,
-    "output_tokens": 28,
-    "total_tokens": 73
-  },
-  "cost": {
-    "total": 0.00012,
-    "generation": 0.0001,
-    "platform": 0.00002
-  }
-}
-```
+Streaming: `POST /v3/call/stream` with `Accept: text/event-stream`. Each event is JSON prefixed with `data: ` and the stream ends with `[DONE]`.
 
-## Request Fields
+## Models — `GET /v3/models` (no auth required)
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | Yes | Unique task identifier (used for tracking and auto-creating functions) |
-| `instructions` | No | What the model should do |
-| `input` | No | The input data (string, object, or any JSON) |
-| `input_schema` | No | JSON Schema validating the input |
-| `output_schema` | No | JSON Schema for structured output |
-| `model` | No | Model name or array of fallbacks (e.g., `"anthropic/claude-4-sonnet"`) |
-| `examples` | No | Few-shot examples: `[{"input": ..., "output": ..., "comment": ...}]` |
-| `parent_span_id` | No | UUID to link this call to a parent trace span |
-| `tags` | No | Key-value metadata for filtering and cost attribution |
-
-## Streaming
-
-**POST /v2/call/stream** — Server-Sent Events for real-time token output.
+One of the most common reasons to use this skill. **Always query the live endpoint**, don't hardcode model names:
 
 ```bash
-curl -X POST https://api.opper.ai/v2/call/stream \
-  -H "Authorization: Bearer $OPPER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" \
-  -d '{
-    "name": "write_story",
-    "instructions": "Write a short story",
-    "input": "a robot learning to paint"
-  }'
+curl -s https://api.opper.ai/v3/models
 ```
 
-**SSE Response:**
+References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabilities/models) · [list-models](https://docs.opper.ai/v3-api-reference/models/list-models). On any call, pin or fall back via `"model": "anthropic/claude-sonnet-4.6"` or `"model": ["anthropic/claude-sonnet-4.6", "openai/gpt-4o"]`. Identifiers follow the `provider/model` convention.
 
-```
-data: {"delta": "Once", "chunk_type": "text"}
+## Provider-compatible endpoints — under `/v3/compat/...`
 
-data: {"delta": " upon", "chunk_type": "text"}
+Drop-in replacements for several LLM APIs. The simplest migration: **set the SDK base URL to `https://api.opper.ai/v3/compat`**, swap the API key, keep your code. Fully compliant with each upstream provider — fetch their spec for unfamiliar payloads.
 
-data: {"delta": " a time", "chunk_type": "text"}
+| Endpoint | Compatible with | Opper docs |
+|---|---|---|
+| `POST /v3/compat/chat/completions` | OpenAI Chat Completions | [docs](https://docs.opper.ai/v3-api-reference/compatibility/chat-completions) |
+| `POST /v3/compat/responses` | OpenAI Responses | [docs](https://docs.opper.ai/v3-api-reference/compatibility/create-response) |
+| `POST /v3/compat/openresponses` | OpenResponses | [docs](https://docs.opper.ai/v3-api-reference/compatibility/openresponses) |
+| `POST /v3/compat/v1/messages` | Anthropic Messages | [docs](https://docs.opper.ai/v3-api-reference/compatibility/create-message) |
+| `POST /v3/compat/v1beta/interactions` | Google Interactions | [docs](https://docs.opper.ai/v3-api-reference/compatibility/create-interaction) |
+| `POST /v3/compat/embeddings` | OpenAI Embeddings | (see spec) |
 
-data: {"delta": "", "span_id": "...", "chunk_type": "text"}
-```
+Curl seeds and SDK-rebasing tips: [references/compatibility.md](references/compatibility.md).
 
-## Model Selection
+## Other v3 surfaces
 
-Specify any supported model:
+The v3 spec also covers tracing (`/v3/spans`, `/v3/traces`), function management (`/v3/functions/...`), generations, built-in web tools, realtime, roundtable, and async artifacts. Fetch the spec for shapes; this skill won't enumerate them — they change.
 
-```json
-{
-  "name": "task",
-  "instructions": "...",
-  "input": "...",
-  "model": "anthropic/claude-4-sonnet"
-}
-```
+## Knowledge bases — on the v2 surface
 
-With fallback chain:
+Knowledge bases (indexes) live at `/v2/knowledge/...`, served from the same host with the same Bearer auth. They are **not** in `/v3/openapi.yaml`. For raw HTTP, fetch `https://api.opper.ai/v2/openapi.json`. For application code, the SDKs and CLI abstract this: `opper.knowledge.*` (Python / TS) and `opper indexes ...`. Canonical SDK reference: `python/src/opperai/clients/knowledge.py` and `typescript/src/clients/knowledge.ts` in [opper-sdks](https://github.com/opper-ai/opper-sdks) — both note "proxied to v2 API".
 
-```json
-{
-  "model": ["anthropic/claude-4-sonnet", "openai/gpt-4o"]
-}
-```
+## Migration from another LLM gateway
 
-Common models: `openai/gpt-4o`, `openai/gpt-4o-mini`, `anthropic/claude-4-sonnet`, `anthropic/claude-4-opus`, `google/gemini-2.5-pro`.
+Moving from OpenRouter, OpenAI, Anthropic, or similar: see [references/migration.md](references/migration.md). Rule of thumb: base URL → `https://api.opper.ai/v3/compat`, key → your Opper key.
 
-## Few-Shot Examples
+## Coding assistant integrations
 
-Guide model behavior with examples:
+For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-to-date list at [docs.opper.ai/overview/integrations](https://docs.opper.ai/overview/integrations).
 
-```json
-{
-  "name": "classify",
-  "instructions": "Classify the support ticket",
-  "input": "My payment failed",
-  "examples": [
-    {"input": "Can't log in", "output": "auth", "comment": "Login issues"},
-    {"input": "Wrong charge", "output": "billing"}
-  ]
-}
-```
+## Non-obvious gotchas
 
-## Structured Output with JSON Schema
+- **Knowledge is v2, not v3.** Don't reach for `/v3/knowledge/...` — it does not exist.
+- **Compat endpoints live under `/v3/compat/...`**, not at `/v3/...`. SDK migrations should point base URL at `https://api.opper.ai/v3/compat`.
+- **Auth is `Authorization: Bearer ...` only.** Anthropic SDKs send `x-api-key` by default — override the default headers on migration.
+- **`/v3/call` requires both `name` and `input`** in the body.
+- **Result is always in `data`.** There is no `json_payload` field, and `output_schema` does not switch the response shape.
+- **`cost` is a number**, not an object with `total / generation / platform` subfields.
+- **`/v3/call` may return `202 Accepted`** with a `PendingResponse` for async work; check `meta.pending_operations`.
+- **Spec first, docs second, this skill last.** This file rots; the spec doesn't.
 
-The `output_schema` field accepts standard JSON Schema:
+## Where to look next
 
-```json
-{
-  "output_schema": {
-    "type": "object",
-    "properties": {
-      "sentiment": {
-        "type": "string",
-        "enum": ["positive", "negative", "neutral"]
-      },
-      "confidence": {
-        "type": "number",
-        "minimum": 0,
-        "maximum": 1
-      },
-      "keywords": {
-        "type": "array",
-        "items": {"type": "string"},
-        "maxItems": 5
-      }
-    },
-    "required": ["sentiment", "confidence"]
-  }
-}
-```
-
-When `output_schema` is provided, the response uses `json_payload`. Without it, the response uses `message` (plain string).
-
-## Tracing
-
-Create spans to group related operations:
-
-```bash
-# Create a parent span
-curl -X POST https://api.opper.ai/v2/spans \
-  -H "Authorization: Bearer $OPPER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "my_pipeline"}'
-
-# Use the span_id as parent for subsequent calls
-curl -X POST https://api.opper.ai/v2/call \
-  -H "Authorization: Bearer $OPPER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "step_one",
-    "instructions": "...",
-    "input": "...",
-    "parent_span_id": "SPAN_ID_FROM_ABOVE"
-  }'
-```
-
-## Knowledge Bases
-
-Create and query semantic search indexes:
-
-```bash
-# Create a knowledge base
-curl -X POST https://api.opper.ai/v2/knowledge \
-  -H "Authorization: Bearer $OPPER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "support_docs"}'
-
-# Add a document
-curl -X POST https://api.opper.ai/v2/knowledge/{id}/add \
-  -H "Authorization: Bearer $OPPER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "key": "doc1",
-    "content": "To reset your password, click Forgot Password.",
-    "metadata": {"category": "auth"}
-  }'
-
-# Query
-curl -X POST https://api.opper.ai/v2/knowledge/{id}/query \
-  -H "Authorization: Bearer $OPPER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "How to reset password?", "top_k": 3}'
-```
-
-## Error Handling
-
-All errors return JSON with `detail` and appropriate HTTP status:
-
-| Status | Meaning |
-|--------|---------|
-| 400 | Bad request / invalid input |
-| 401 | Missing or invalid API key |
-| 404 | Resource not found |
-| 422 | Validation error |
-| 502 | Upstream LLM provider error |
-
-```json
-{"detail": "Invalid output_schema: ..."}
-```
-
-## Common Mistakes
-
-- **Missing `name` field**: Every call requires a unique `name` for tracking.
-- **Wrong auth header**: Use `Authorization: Bearer <key>`, not `X-API-Key` or similar.
-- **No `output_schema` but expecting JSON**: Without a schema, you get a plain string in `message`.
-- **Forgetting `required` in schemas**: JSON Schema fields are optional by default.
-- **Not checking `json_payload` vs `message`**: Structured calls use `json_payload`; unstructured use `message`.
-
-## Additional Resources
-
-- For the complete endpoint catalog, see [references/ENDPOINTS.md](references/ENDPOINTS.md)
-- For knowledge base operations, see [references/KNOWLEDGE.md](references/KNOWLEDGE.md)
-- For tracing and spans, see [references/TRACING.md](references/TRACING.md)
-- For migrating from OpenRouter, see [references/MIGRATION.md](references/MIGRATION.md)
-
-## Related Skills
-
-- **opper-python-sdk**: Use when building in Python — provides a higher-level client wrapping this API.
-- **opper-node-sdk**: Use when building in TypeScript — provides a typed client wrapping this API.
-- **opper-python-agents**: Use when you need autonomous agents, not just single API calls.
-- **opper-node-agents**: Use when you need autonomous agents in TypeScript.
-- **opper-cli**: Use when calling Opper functions from the terminal.
-
-## Upstream Sources
-
-When this skill's content may be outdated, resolve using this priority:
-
-1. **API spec** — fetch the live OpenAPI spec at https://api.opper.ai/v2/openapi.json for the current endpoint definitions
-2. **Documentation**: https://docs.opper.ai
+| For | Look at |
+|---|---|
+| Live, definitive endpoint shapes | `https://api.opper.ai/v3/openapi.yaml` |
+| Conceptual overview of Opper (gateway + 5-pillar control plane) | [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about) |
+| Getting started end-to-end | [docs.opper.ai/overview/getting-started](https://docs.opper.ai/overview/getting-started) |
+| Capability docs (models, knowledge, evals, …) | [docs.opper.ai/capabilities](https://docs.opper.ai/capabilities) |
+| Worked recipes in many languages | [github.com/opper-ai/opper-cookbook](https://github.com/opper-ai/opper-cookbook) |
+| Provider-compatible endpoints, deeper | [references/compatibility.md](references/compatibility.md) |
+| Migrating from OpenRouter / OpenAI / Anthropic | [references/migration.md](references/migration.md) |
+| Calling the API from Python or TypeScript | the `opper-sdks` skill |
+| Calling the API from a terminal | the `opper-cli` skill |
