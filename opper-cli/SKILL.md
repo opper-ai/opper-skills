@@ -17,7 +17,7 @@ description: >
 
 The official Opper CLI, distributed as the npm package **`@opperai/cli`**. Source: [github.com/opper-ai/cli](https://github.com/opper-ai/cli). Requires Node.js ≥ 20.12.
 
-The CLI is more than a thin wrapper over `/v3/call`. It also **launches coding agents** (Claude Code, OpenCode, Codex, Hermes, Pi) with their model traffic transparently routed through Opper, **installs bundled skills**, and **wires AI code editors** to Opper.
+The CLI is more than a thin wrapper over `/v3/call`. It also **launches coding agents** (Claude Code, OpenCode, Codex, Hermes, Pi) with their model traffic routed through Opper, **installs bundled skills**, and **wires AI code editors** to Opper.
 
 ## Install
 
@@ -83,9 +83,9 @@ opper agents list             # NAME / DISPLAY / KIND / STATE / CONFIG / COMMAND
 opper launch claude           # Claude Code (via ANTHROPIC_BASE_URL / ANTHROPIC_AUTH_TOKEN)
 opper launch opencode         # OpenCode
 opper launch codex            # OpenAI Codex
-opper launch hermes           # Hermes (isolated HERMES_HOME so your real ~/.hermes/ is untouched)
+opper launch hermes           # Hermes (isolated HERMES_HOME, leaving your existing ~/.hermes/ unchanged)
 opper launch pi               # Pi (pi.dev)
-opper launch <agent> --install  # install the upstream agent if missing
+opper launch <agent> --install  # also installs the upstream agent when it is not already present
 ```
 
 Under the hood these all route to `/v3/compat/...` (see the `opper-api` skill).
@@ -103,12 +103,12 @@ Under the hood these all route to `/v3/compat/...` (see the `opper-api` skill).
 
 ## Non-obvious gotchas
 
-- **`OPPER_API_KEY` env var beats `--key`.** When the env var is set, the `--key <slot>` flag is silently ignored. Unset it to use a slot.
+- **`OPPER_API_KEY` env var beats `--key`.** When the env var is set, the `--key <slot>` flag has no effect. Unset it to use a slot.
 - **`opper call` argument order is `<function> <instructions> <input>`** — easy to flip.
 - **Model identifiers use `provider/<id-with-dashes>`** (e.g. `anthropic/claude-sonnet-4-6`, `anthropic/claude-opus-4-7`, `openai/gpt-4o`) — **dashes, not dots**, even for versions. Custom models registered with `opper models create` are LiteLLM-backed. List the live set with `opper models list` or `curl -s https://api.opper.ai/v3/models`.
 - **`indexes` is the CLI name for knowledge bases.** `opper indexes add <name> <content>` takes content as a positional arg (use `-` to read from stdin), not a `--content` flag.
 - **`opper usage list` `--fields` does not accept `count`.** `cost` and `count` are always included automatically; valid `--fields` are `total_tokens`, `prompt_tokens`, `completion_tokens`.
-- **Skills installer writes to two trees**: `~/.claude/skills/` and `~/.codex/skills/`. The Codex install also wires each skill into a managed `[[skills.config]]` sentinel block in `~/.codex/config.toml`.
+- **Skills are installed under** `~/.claude/skills/` and `~/.codex/skills/`. The Codex install also registers each skill in a managed `[[skills.config]]` block in `~/.codex/config.toml`.
 
 ## Where to look next
 

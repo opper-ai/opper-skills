@@ -37,9 +37,9 @@ Most calls land on one of three shapes. Pick by what you're building:
 - **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): don't roll your own loop on top of `/v3/call`. Switch to the **`opper-sdks` skill** and use the Agent SDK — `Agent`, `tool`, `Conversation` ship in the unified `opperai` package for both Python and TypeScript.
 - **Knowledge bases / RAG**: see "Knowledge bases" below — they live on `/v2/knowledge/...`.
 
-## Fetch the live v3 spec — first, always
+## The live v3 spec is the source of truth
 
-For any question about endpoint shapes, payloads, or fields, fetch the spec. Both formats are unauthenticated and definitive:
+For any question about endpoint shapes, payloads, or fields, the live spec is authoritative. Both formats are unauthenticated and definitive:
 
 ```bash
 curl -s https://api.opper.ai/v3/openapi.yaml   # YAML
@@ -83,17 +83,17 @@ Streaming: `POST /v3/call/stream` with `Accept: text/event-stream`. Each event i
 
 ## Models — `GET /v3/models` (no auth required)
 
-One of the most common reasons to use this skill. **Always query the live endpoint**, don't hardcode model names:
+One of the most common reasons to use this skill. **The live endpoint is the most up-to-date list** — prefer it over hardcoded model names:
 
 ```bash
 curl -s https://api.opper.ai/v3/models
 ```
 
-References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabilities/models) · [list-models](https://docs.opper.ai/v3-api-reference/models/list-models). On any call, pin or fall back via `"model": "anthropic/claude-sonnet-4.6"` or `"model": ["anthropic/claude-sonnet-4.6", "openai/gpt-4o"]`. Identifiers follow the `provider/model` convention.
+References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabilities/models) · [list-models](https://docs.opper.ai/v3-api-reference/models/list-models). On any call, pin or fall back with `"model": "anthropic/claude-sonnet-4.6"` or `"model": ["anthropic/claude-sonnet-4.6", "openai/gpt-4o"]`. Identifiers follow the `provider/model` convention.
 
 ## Provider-compatible endpoints — under `/v3/compat/...`
 
-Drop-in replacements for several LLM APIs. The simplest migration: **set the SDK base URL to `https://api.opper.ai/v3/compat`**, swap the API key, keep your code. Fully compliant with each upstream provider — fetch their spec for unfamiliar payloads.
+Drop-in replacements for several LLM APIs. The simplest migration: **point the SDK base URL at `https://api.opper.ai/v3/compat`**, use your Opper API key, and your existing code keeps working. Fully compliant with each upstream provider — see their spec for unfamiliar payloads.
 
 | Endpoint | Compatible with | Opper docs |
 |---|---|---|
@@ -116,7 +116,7 @@ Knowledge bases (indexes) live at `/v2/knowledge/...`, served from the same host
 
 ## Migration from another LLM gateway
 
-Moving from OpenRouter, OpenAI, Anthropic, or similar: see [references/migration.md](references/migration.md). Rule of thumb: base URL → `https://api.opper.ai/v3/compat`, key → your Opper key.
+Moving from OpenRouter, OpenAI, Anthropic, or similar: see [references/migration.md](references/migration.md). Recap: point the base URL at `https://api.opper.ai/v3/compat` and use your Opper API key.
 
 ## Coding assistant integrations
 
@@ -126,12 +126,12 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 
 - **Knowledge is v2, not v3.** Don't reach for `/v3/knowledge/...` — it does not exist.
 - **Compat endpoints live under `/v3/compat/...`**, not at `/v3/...`. SDK migrations should point base URL at `https://api.opper.ai/v3/compat`.
-- **Auth is `Authorization: Bearer ...` only.** Anthropic SDKs send `x-api-key` by default — override the default headers on migration.
+- **Auth is `Authorization: Bearer ...` only.** Anthropic SDKs send `x-api-key` by default — set the `Authorization` header explicitly when migrating.
 - **`/v3/call` requires both `name` and `input`** in the body.
 - **Result is always in `data`.** There is no `json_payload` field, and `output_schema` does not switch the response shape.
 - **`cost` is a number**, not an object with `total / generation / platform` subfields.
 - **`/v3/call` may return `202 Accepted`** with a `PendingResponse` for async work; check `meta.pending_operations`.
-- **Spec first, docs second, this skill last.** This file rots; the spec doesn't.
+- **The spec is the most up-to-date reference; the docs and this skill follow it.** This file rots; the spec doesn't.
 
 ## Where to look next
 
