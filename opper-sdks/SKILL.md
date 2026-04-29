@@ -17,6 +17,17 @@ The Python and TypeScript SDKs for Opper live in a single monorepo: [github.com/
 
 The upstream READMEs (`python/README.md`, `typescript/README.md`) and the numbered example files are the source of truth. This skill points at them; it does not duplicate them.
 
+## Pick your primitive
+
+The unified `opperai` package exposes a few different shapes. Pick by what you're building:
+
+- **One-shot structured task** (input → typed output, including image / audio / video generation): **`opper.call(...)`** is recommended. Pass `output_schema=` (Python) or `outputSchema:` (TS) — Pydantic / Zod / dataclasses / TypedDict / raw JSON Schema all work.
+- **Streaming any of the above**: **`opper.stream(...)`** — same shape, async-iterable of typed chunks.
+- **Multi-turn chat or message-thread style**: **`Conversation`** (re-exported from `opperai`) — keeps history across `opper.call(...)` invocations.
+- **Tool-using agent, multi-step reasoning, multi-agent, MCP**: the **Agent SDK** (`Agent`, `tool`, `Conversation`, `Hooks`, `mcp`) is recommended for any "model decides what to do next" flow. Use **`agent.run(...)`** for a single shot or **`agent.stream(...)`** for live progress.
+- **Drop-in compatibility with OpenAI / Anthropic / Google SDKs**: not exposed through the `opperai` SDK. Recommended: call the compat endpoints directly through the provider's own SDK (point its `baseURL` / `base_url` at `https://api.opper.ai/v3/compat`), or see the **`opper-api` skill** for raw HTTP.
+- **Knowledge bases / RAG**: **`opper.knowledge.*`** — `create`, `query`, `add`, etc.
+
 ## Pick a path
 
 | You are… | Read |

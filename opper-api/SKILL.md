@@ -28,6 +28,15 @@ The HTTP API at `https://api.opper.ai` is the foundation — every SDK and the C
 
 Concepts: [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about). Getting started: [docs.opper.ai/overview/getting-started](https://docs.opper.ai/overview/getting-started).
 
+## Pick your endpoint
+
+Most calls land on one of three shapes. Pick by what you're building:
+
+- **Structured tasks** (input → typed output, including image / audio / video generation): **`POST /v3/call`** is recommended. Output schemas are first-class, so multimodal generation is just a structured task with a different output type. You also get traces, cost, and eval surfaces for free.
+- **Migrating from OpenAI / Anthropic / OpenResponses / Google, or want drop-in turn-based chat**: **`/v3/compat/...`** is recommended. No code changes — swap the base URL and key. See [references/compatibility.md](references/compatibility.md) and [references/migration.md](references/migration.md).
+- **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): don't roll your own loop on top of `/v3/call`. Switch to the **`opper-sdks` skill** and use the Agent SDK — `Agent`, `tool`, `Conversation` ship in the unified `opperai` package for both Python and TypeScript.
+- **Knowledge bases / RAG**: see "Knowledge bases" below — they live on `/v2/knowledge/...`.
+
 ## Fetch the live v3 spec — first, always
 
 For any question about endpoint shapes, payloads, or fields, fetch the spec. Both formats are unauthenticated and definitive:
