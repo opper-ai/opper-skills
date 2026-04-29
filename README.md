@@ -14,6 +14,29 @@ Three skills, one philosophy: **point at the live source of truth, don't duplica
 
 > **Coming from older skills?** The previous `opper-python-sdk`, `opper-node-sdk`, `opper-python-agents`, and `opper-node-agents` skills have been folded into `opper-sdks` — agents are now part of the unified SDK package, not a separate one.
 
+## Example prompts
+
+Once a skill is installed, your agent will activate it automatically when you say things like:
+
+**`opper-cli`**
+- "Sign me in to Opper from the terminal."
+- "Launch Claude Code through Opper so my traces show up."
+- "Install all the bundled Opper skills into Claude Code."
+- "Show my Opper spend this month grouped by model."
+- "Create an Opper index and add this markdown file to it."
+
+**`opper-sdks`**
+- "Add an Opper `call` to this Python script that returns structured output."
+- "Wire up streaming with the TypeScript SDK."
+- "Build an Opper agent with a `get_weather` tool."
+- "Wrap this pipeline in an Opper trace so I can see the steps."
+
+**`opper-api`**
+- "What models does Opper support?"
+- "Migrate this OpenRouter code to Opper."
+- "Show me the raw HTTP for an Opper task call with an output schema."
+- "What's the difference between `/v3/call` and the `/v3/compat` endpoints?"
+
 ## Install
 
 ### Claude Code
