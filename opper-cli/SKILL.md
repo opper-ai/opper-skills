@@ -33,15 +33,9 @@ opper login    # OAuth device flow — recommended
 opper whoami   # confirm the active slot
 ```
 
-State lives in `~/.opper/config.json` as a list of **slots**, each holding `api_key`, `base_url`, and the user metadata returned by the device flow. Pick a slot with `--key <slot>` on any command (default: `default`).
+State lives in `~/.opper/config.json` as a list of **slots**, each holding `base_url`, the resolved credential, and the user metadata returned by the device flow. Pick a slot with `--key <slot>` on any command (default: `default`).
 
-Manual key entry (no browser):
-
-```bash
-opper config add default <your-api-key>
-opper config add staging <staging-key> --base-url https://...
-opper config list
-```
+For non-browser environments, `opper config add` / `list` / `get` / `remove` manage slots — run `opper config --help` for exact arguments. The user should run these themselves rather than have the agent type credentials on their behalf.
 
 Resolution at request time: **`OPPER_API_KEY` env var > slot named by `--key` (or `default`)**.
 
