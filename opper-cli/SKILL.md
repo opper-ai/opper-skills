@@ -33,9 +33,9 @@ opper login    # OAuth device flow — recommended
 opper whoami   # confirm the active slot
 ```
 
-State lives in `~/.opper/config.json` as a list of **slots**, each holding `base_url`, the resolved credential, and the user metadata returned by the device flow. Pick a slot with `--key <slot>` on any command (default: `default`).
+State lives in `~/.opper/config.json` as a list of **slots** populated by the device flow. Pick a slot with `--key <slot>` on any command (default: `default`); inspect or remove slots with `opper config list/get/remove`.
 
-For non-browser environments, `opper config add` / `list` / `get` / `remove` manage slots — run `opper config --help` for exact arguments. The user should run these themselves rather than have the agent type credentials on their behalf.
+`opper login` handles authentication interactively in the browser, so no key needs to be typed or pasted into a command. For non-browser paths, see `opper config --help`.
 
 Resolution at request time: **`OPPER_API_KEY` env var > slot named by `--key` (or `default`)**.
 
@@ -55,7 +55,7 @@ Run `opper` with no args for an interactive menu (Account · Agents · Skills ·
 | Group | What it does |
 |---|---|
 | `login` / `logout` / `whoami` | OAuth device flow + slot inspection. |
-| `config add/list/get/remove` | Manual slot management. |
+| `config list/get/remove` | Inspect or remove auth slots (slots are created by `opper login`). |
 | `call <name> <instructions> [input]` | Run an Opper function. Stdin if `input` omitted; `--model`, `--stream`. |
 | `functions list/get/delete` | Manage saved functions. |
 | `indexes list/get/create/delete/add/query` | Knowledge bases (a.k.a. indexes). |
