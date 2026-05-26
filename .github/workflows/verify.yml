@@ -1,0 +1,26 @@
+name: Verify
+
+# Runs on every pull request, including from forks.
+# This workflow MUST stay read-only and MUST NOT use pull_request_target
+# or have access to repository secrets, OIDC, or write permissions.
+# Anything fetched/built here may be controlled by the PR author.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Dry build
+        run: bash scripts/build-site.sh --dry-run

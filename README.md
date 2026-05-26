@@ -2,17 +2,38 @@
 
 Agent Skills for working with [Opper](https://opper.ai). Compatible with any agent that follows the [Agent Skills](https://agentskills.io) standard (Claude Code, Copilot CLI, Codex, Cline, Windsurf, …).
 
-Three skills, one philosophy: **point at the live source of truth, don't duplicate it.** Each skill ships only what an agent can't infer from upstream — a tiny canonical example, the non-obvious gotchas, and a pointer table to the real docs.
+One philosophy: **point at the live source of truth, don't duplicate it.** Each skill ships only what an agent can't infer from upstream — a tiny canonical example, the non-obvious gotchas, and a pointer table to the real docs.
 
 ## The skills
 
 | Skill | What it covers | Source of truth |
 |---|---|---|
+| [`opper`](./opper/) | **Entry point.** Discovers user intent, then routes to the right sub-skill. Owns setup, testing, and follow-up. | This repo |
 | [`opper-cli`](./opper-cli/) | The `opper` command-line tool: calling functions, indexes, traces, models, usage, config | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) and `opper --help` |
 | [`opper-sdks`](./opper-sdks/) | The unified `opperai` packages for Python and TypeScript, including agents | [github.com/opper-ai/opper-sdks](https://github.com/opper-ai/opper-sdks) |
 | [`opper-api`](./opper-api/) | The Opper REST API, gateway and platform concepts, models, compat endpoints, migration | [docs.opper.ai](https://docs.opper.ai) and `https://api.opper.ai/v3/openapi.yaml` |
 
+Start with `opper`. It figures out what you're trying to do, then loads the right sub-skill — by fetching it live from `https://skills.opper.ai/` if it isn't already installed locally.
+
 > **Coming from older skills?** The previous `opper-python-sdk`, `opper-node-sdk`, `opper-python-agents`, and `opper-node-agents` skills have been folded into `opper-sdks` — agents are now part of the unified SDK package, not a separate one.
+
+## Agent-assisted setup (no install)
+
+Point any AI coding assistant (Claude Code, Cursor, Codex, Copilot, …) at the live index — it will walk through discovery → setup → test → follow-up:
+
+```
+Use curl to download, read and follow: https://skills.opper.ai/
+```
+
+Or fetch a specific skill directly:
+
+```bash
+curl -sL https://skills.opper.ai/opper-cli/SKILL.md
+curl -sL https://skills.opper.ai/opper-sdks/SKILL.md
+curl -sL https://skills.opper.ai/opper-api/SKILL.md
+```
+
+Skills are served as plain markdown so agents read the full content (not a summary). The site is a mirror of this repo, deployed on every push to `main`.
 
 ## Example prompts
 
@@ -42,10 +63,11 @@ Once a skill is installed, your agent will activate it automatically when you sa
 ### Claude Code
 
 ```bash
-# All three skills
+# All four skills (recommended — installs the opper router + sub-skills)
 npx skills add opper-ai/opper-skills
 
 # Or pick what you need
+npx skills add opper-ai/opper-skills/opper
 npx skills add opper-ai/opper-skills/opper-cli
 npx skills add opper-ai/opper-skills/opper-sdks
 npx skills add opper-ai/opper-skills/opper-api
@@ -119,6 +141,17 @@ Run it manually any time:
 ```bash
 bash scripts/validate-skills.sh
 ```
+
+### Build the static site locally
+
+`scripts/build-site.sh` assembles the `_site/` directory exactly as it gets deployed to `https://skills.opper.ai`:
+
+```bash
+bash scripts/build-site.sh --dry-run   # validate frontmatter, don't write
+bash scripts/build-site.sh             # assemble _site/
+```
+
+Every push to `main` runs this and deploys the output to S3 via CloudFront (see `.github/workflows/deploy.yml`).
 
 ## License
 

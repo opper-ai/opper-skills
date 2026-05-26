@@ -1,0 +1,67 @@
+name: Deploy
+
+# Publishes the skill index to https://skills.opper.ai.
+#
+# Safety design (this repo is PUBLIC):
+#   - Triggers only on push to main (post-merge). Never pull_request,
+#     never pull_request_target.
+#   - Uses OIDC to assume the dedicated OpperSkillsDeploy role whose trust
+#     policy pins token.actions.githubusercontent.com:sub to
+#     repo:opper-ai/opper-skills:ref:refs/heads/main — so this is the only
+#     ref that can assume it.
+#   - The role's policy is scoped to the skills.opper.ai bucket and to
+#     CloudFront invalidation only. It cannot touch any other AWS resource.
+#   - Top-level permissions are minimal: id-token: write (for OIDC) and
+#     contents: read. Nothing else.
+#   - The build script (scripts/build-site.sh) does not exec anything from
+#     the repo; it only cp/find/grep over markdown files.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-skills
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-north-1
+  S3_BUCKET: skills.opper.ai
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build site
+        run: bash scripts/build-site.sh
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.OPPER_SKILLS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload .md files (text/plain, no cache)
+        run: |
+          aws s3 sync _site/ s3://${S3_BUCKET}/ \
+            --delete \
+            --exclude "*" --include "*.md" \
+            --content-type "text/plain; charset=utf-8" \
+            --cache-control "public, max-age=0, must-revalidate"
+
+      - name: Upload non-md assets (5 min cache)
+        run: |
+          aws s3 sync _site/ s3://${S3_BUCKET}/ \
+            --exclude "*.md" \
+            --cache-control "public, max-age=300"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.OPPER_SKILLS_CLOUDFRONT_ID }}" \
+            --paths "/*"
