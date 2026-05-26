@@ -102,17 +102,6 @@ Two URLs, two audiences:
 
 References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabilities/models) · [list-models](https://docs.opper.ai/v3-api-reference/models/list-models). On any call, pin or fall back with `"model": "anthropic/claude-sonnet-4.6"` or `"model": ["anthropic/claude-sonnet-4.6", "openai/gpt-4o"]`. Identifiers follow the `provider/model` convention.
 
-### Preference-based routing — let Opper pick
-
-Instead of naming a model, pass **`prefer`** with `cheap`, `fast`, `quality`, or `balanced`. Opper picks the best allowed model for the preference. This is the recommended starting point for new integrations — switch to explicit `model` or a Control Plane **Route** rule later when you want to pin.
-
-```bash
-curl -s -X POST https://api.opper.ai/v3/call \
-  -H "Authorization: Bearer $OPPER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"summarise","input":{"text":"..."},"prefer":"balanced"}'
-```
-
 ## Provider-compatible endpoints — under `/v3/compat/...`
 
 Drop-in replacements for several LLM APIs. The simplest migration: **point the SDK base URL at `https://api.opper.ai/v3/compat`**, use your Opper API key, and your existing code keeps working. Fully compliant with each upstream provider — see their spec for unfamiliar payloads.
@@ -161,7 +150,7 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 |---|---|
 | Live, definitive endpoint shapes | `https://api.opper.ai/v3/openapi.yaml` |
 | Concepts (Organization, Project, Call, Trace, Gateway, Control Plane) | [docs.opper.ai/overview/concepts](https://docs.opper.ai/overview/concepts) |
-| Gateway behaviour (routing, `prefer`, compat) | [docs.opper.ai/overview/gateway](https://docs.opper.ai/overview/gateway) |
+| Gateway behaviour (routing, compat) | [docs.opper.ai/overview/gateway](https://docs.opper.ai/overview/gateway) |
 | Control Plane (Route / Observe / Steer / Guard / Comply) | [docs.opper.ai/control-plane/overview](https://docs.opper.ai/control-plane/overview) |
 | Realtime quickstart | [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart) |
 | Capability docs (models, knowledge, evals, …) | [docs.opper.ai/capabilities](https://docs.opper.ai/capabilities) |
