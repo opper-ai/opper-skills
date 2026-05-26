@@ -159,7 +159,7 @@ MIT
 
 ## Links
 
-- [Skills index (live)](https://skills.opper.ai)
+- [Skills index (live)](https://skills.opper.ai) — fetch any skill as plain markdown
 - [Documentation](https://docs.opper.ai)
 - [Platform](https://platform.opper.ai)
 - [Cookbook](https://github.com/opper-ai/opper-cookbook)
