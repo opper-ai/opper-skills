@@ -12,11 +12,16 @@ description: >
   OpenRouter / Anthropic — even if they only say "Opper" without "API". For
   any endpoint signature or payload question always recommend fetching the
   live OpenAPI spec at https://api.opper.ai/v3/openapi.yaml first.
+category: sub-skill
+parent: opper
 ---
+
+> Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
+> Source: https://github.com/opper-ai/opper-skills/blob/main/opper-api/SKILL.md
 
 # Opper API
 
-Opper is a **gateway** in front of LLM providers plus a **control plane** for the things you build on top. The gateway is one connection to 200+ models across all major providers (OpenAI, Anthropic, Google, Mistral, …). The control plane covers five capabilities:
+Opper is a **gateway** in front of LLM providers plus a **control plane** for the things you build on top. The gateway is one connection to 300+ models across all major providers (OpenAI, Anthropic, Google, Mistral, …), EU-hosted and GDPR-compliant. The control plane covers five capabilities:
 
 - **Route** — call any supported model through one key, no provider-specific SDKs or credentials.
 - **Observe** — every call yields a trace with input, output, latency, cost, and model used; attach metrics and evaluations to track quality over time.
@@ -30,10 +35,11 @@ Concepts: [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about). 
 
 ## Pick your endpoint
 
-Most calls land on one of three shapes. Pick by what you're building:
+Most calls land on one of these shapes. Pick by what you're building:
 
 - **Structured tasks** (input → typed output, including image / audio / video generation): **`POST /v3/call`** is recommended. Output schemas are first-class, so multimodal generation is just a structured task with a different output type. You also get traces, cost, and eval surfaces for free.
 - **Migrating from OpenAI / Anthropic / OpenResponses / Google, or want drop-in turn-based chat**: **`/v3/compat/...`** is recommended. No code changes — swap the base URL and key. See [references/compatibility.md](references/compatibility.md) and [references/migration.md](references/migration.md).
+- **Realtime voice / audio over WebSocket**: **`wss://api.opper.ai/v3/realtime`** — see the [realtime quickstart](https://docs.opper.ai/build/realtime/quickstart). Sessions are auth'd via Bearer for server-side connections, or a minted ticket from `/v3/realtime-sessions` for browser clients.
 - **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): don't roll your own loop on top of `/v3/call`. Switch to the **`opper-sdks` skill** and use the Agent SDK — `Agent`, `tool`, `Conversation` ship in the unified `opperai` package for both Python and TypeScript.
 - **Knowledge bases / RAG**: see "Knowledge bases" below — they live on `/v2/knowledge/...`.
 
@@ -83,13 +89,29 @@ Streaming: `POST /v3/call/stream` with `Accept: text/event-stream`. Each event i
 
 ## Models — `GET /v3/models` (no auth required)
 
-One of the most common reasons to use this skill. **The live endpoint is the most up-to-date list** — prefer it over hardcoded model names:
+One of the most common reasons to use this skill. **The live endpoint is the most up-to-date list** — never hardcode model names:
 
 ```bash
 curl -s https://api.opper.ai/v3/models
 ```
 
+Two URLs, two audiences:
+
+- **In code**: `https://api.opper.ai/v3/models` — programmatic discovery, returns JSON.
+- **When talking to the user**: [opper.ai/models](https://opper.ai/models) — the browsable human catalog. Link this when recommending or discussing a model.
+
 References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabilities/models) · [list-models](https://docs.opper.ai/v3-api-reference/models/list-models). On any call, pin or fall back with `"model": "anthropic/claude-sonnet-4.6"` or `"model": ["anthropic/claude-sonnet-4.6", "openai/gpt-4o"]`. Identifiers follow the `provider/model` convention.
+
+### Preference-based routing — let Opper pick
+
+Instead of naming a model, pass **`prefer`** with `cheap`, `fast`, `quality`, or `balanced`. Opper picks the best allowed model for the preference. This is the recommended starting point for new integrations — switch to explicit `model` or a Control Plane **Route** rule later when you want to pin.
+
+```bash
+curl -s -X POST https://api.opper.ai/v3/call \
+  -H "Authorization: Bearer $OPPER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"summarise","input":{"text":"..."},"prefer":"balanced"}'
+```
 
 ## Provider-compatible endpoints — under `/v3/compat/...`
 
@@ -108,7 +130,7 @@ Curl seeds and SDK-rebasing tips: [references/compatibility.md](references/compa
 
 ## Other v3 surfaces
 
-The v3 spec also covers tracing (`/v3/spans`, `/v3/traces`), function management (`/v3/functions/...`), generations, built-in web tools, realtime, roundtable, and async artifacts. Fetch the spec for shapes; this skill won't enumerate them — they change.
+The v3 spec also covers tracing (`/v3/spans`, `/v3/traces`), function management (`/v3/functions/...`), generations, built-in web tools, roundtable, and async artifacts. Realtime has its own row in "Pick your endpoint" above. Fetch the spec for shapes; this skill won't enumerate them — they change.
 
 ## Knowledge bases — on the v2 surface
 
@@ -138,9 +160,12 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 | For | Look at |
 |---|---|
 | Live, definitive endpoint shapes | `https://api.opper.ai/v3/openapi.yaml` |
-| Conceptual overview of Opper (gateway + 5-pillar control plane) | [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about) |
-| Getting started end-to-end | [docs.opper.ai/overview/getting-started](https://docs.opper.ai/overview/getting-started) |
+| Concepts (Organization, Project, Call, Trace, Gateway, Control Plane) | [docs.opper.ai/overview/concepts](https://docs.opper.ai/overview/concepts) |
+| Gateway behaviour (routing, `prefer`, compat) | [docs.opper.ai/overview/gateway](https://docs.opper.ai/overview/gateway) |
+| Control Plane (Route / Observe / Steer / Guard / Comply) | [docs.opper.ai/control-plane/overview](https://docs.opper.ai/control-plane/overview) |
+| Realtime quickstart | [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart) |
 | Capability docs (models, knowledge, evals, …) | [docs.opper.ai/capabilities](https://docs.opper.ai/capabilities) |
+| Browsable model catalog (for user-facing recommendations) | [opper.ai/models](https://opper.ai/models) |
 | Worked recipes in many languages | [github.com/opper-ai/opper-cookbook](https://github.com/opper-ai/opper-cookbook) |
 | Provider-compatible endpoints, deeper | [references/compatibility.md](references/compatibility.md) |
 | Migrating from OpenRouter / OpenAI / Anthropic | [references/migration.md](references/migration.md) |

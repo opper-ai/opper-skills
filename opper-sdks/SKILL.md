@@ -9,7 +9,12 @@ description: >
   Opper agent, or asks how to do anything Opper-related in code — even if they
   don't explicitly name the SDK. Both languages live in one repo with parallel
   numbered examples; agents are part of the SDK, not a separate package.
+category: sub-skill
+parent: opper
 ---
+
+> Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
+> Source: https://github.com/opper-ai/opper-skills/blob/main/opper-sdks/SKILL.md
 
 # Opper SDKs
 
@@ -57,6 +62,7 @@ result = opper.call(
     "summarise",
     instructions="Summarise the article in two sentences.",
     input={"text": "..."},
+    prefer="balanced",  # Opper picks the model; switch to model="provider/name" to pin
 )
 print(result.data)
 ```
@@ -71,9 +77,17 @@ const opper = new Opper(); // uses OPPER_API_KEY
 const result = await opper.call("summarise", {
   instructions: "Summarise the article in two sentences.",
   input: { text: "..." },
+  prefer: "balanced", // Opper picks the model; switch to model: "provider/name" to pin
 });
 console.log(result.data);
 ```
+
+### Picking a model
+
+For new integrations, lead with **`prefer`** (`cheap` / `fast` / `quality` / `balanced`) — Opper picks an allowed model automatically. Pin a specific `model: "provider/name"` only when you know which one you want; better still, pin via a Control Plane **Route** rule at [platform.opper.ai](https://platform.opper.ai) so changes don't need code edits.
+
+- **Browse models for the user**: link them at [opper.ai/models](https://opper.ai/models) — the human catalog.
+- **Discover models in code**: `GET https://api.opper.ai/v3/models` (no auth required). **Never hardcode model lists** — they change.
 
 ## The numbered examples are the highest-bandwidth reference
 
@@ -119,5 +133,7 @@ Type definitions: `python/src/opperai/types.py` and `typescript/src/types.ts`.
 | Live API spec | `https://api.opper.ai/v3/openapi.yaml` |
 | Migrating from older SDK versions | `python/MIGRATION.md`, `typescript/MIGRATION.md` |
 | Repo-level workflows (OpenAPI sync, beta endpoints) | `CLAUDE.md` in the opper-sdks repo |
-| Models available, gateway concepts, raw HTTP | the `opper-api` skill |
+| Models available, gateway concepts, raw HTTP, Realtime | the `opper-api` skill |
+| Browsable model catalog (for user-facing recommendations) | [opper.ai/models](https://opper.ai/models) |
+| Control Plane (Route / Observe / Steer / Guard / Comply) | [docs.opper.ai/control-plane/overview](https://docs.opper.ai/control-plane/overview) |
 | Calling Opper from a terminal | the `opper-cli` skill |

@@ -11,7 +11,12 @@ description: >
   wants to do anything Opper-related from a terminal — even if they don't
   explicitly say "CLI". For exact arguments, always run `opper <subcommand>
   --help`; the help output is the authoritative reference.
+category: sub-skill
+parent: opper
 ---
+
+> Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
+> Source: https://github.com/opper-ai/opper-skills/blob/main/opper-cli/SKILL.md
 
 # Opper CLI
 

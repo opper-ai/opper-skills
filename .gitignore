@@ -1,0 +1,5 @@
+# Build output from scripts/build-site.sh
+_site/
+
+# macOS
+.DS_Store
