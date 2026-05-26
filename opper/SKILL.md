@@ -84,27 +84,20 @@ Lead with one sentence: what you found + what you'd do next. Never an open-ended
 
 | Lane | Proposal |
 |---|---|
-| New / starter | *"You're starting fresh. I'd suggest: (1) `npm i -g @opperai/cli`, (2) `opper login`, (3) a first call with `prefer: 'balanced'` so Opper picks the model. Sound good?"* |
-| New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) install the `opperai` SDK, (2) make a `call(...)` with `prefer: 'balanced'` against your simplest task, (3) inspect the trace at platform.opper.ai. Sound good?"* |
+| New / starter | *"You're starting fresh. I'd suggest: (1) `npm i -g @opperai/cli`, (2) `opper login`, (3) `opper call` to make your first call. The CLI handles auth, picks a model, and shows the trace — everything in one place. Sound good?"* |
+| New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) install the `opperai` SDK, (2) make an `opper.chat(...)` call against your simplest task, (3) inspect the trace at platform.opper.ai. Sound good?"* |
 | Existing Opper integration | Skip the proposal — read the existing code and answer the user's actual question. |
 | Migration | *"You're using [OpenAI/Anthropic/Google]. Opper exposes a drop-in compat endpoint — point your existing SDK at `https://api.opper.ai/v3/compat` and your code keeps working. Want me to do that swap first, then we can explore native features?"* |
 | Realtime | *"For voice/realtime, Opper exposes `wss://api.opper.ai/v3/realtime`. I'd suggest following [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart). Sound good?"* |
 | CLI / route a coding agent | *"I'd suggest `opper login` followed by `opper launch <agent>` to route your coding agent's inference through Opper. Want to set that up?"* |
 
-### Easy mode: `prefer: 'balanced'`
+### The CLI is the easiest starting point
 
-When the user has no model preference, **anchor on `prefer`** instead of naming a specific model. Opper picks from the project's allowed models automatically based on the preference:
+When the user has no strong preference, **lead with the CLI**: `opper login` + `opper call` gives them an authenticated session, structured output, and a trace URL in one flow. They can move to the SDK once the call shape is clear. The CLI also organises everything else — usage (`opper usage`), traces (`opper traces`), models (`opper models`), launching coding agents (`opper launch`).
 
-| `prefer` value | Picks for |
-|---|---|
-| `cheap` | Lowest cost |
-| `fast` | Lowest latency |
-| `quality` | Highest capability |
-| `balanced` | Sensible default mix |
+### Picking a model
 
-They can pin a specific model later via the Control Plane's **Route** rules — no code changes needed.
-
-For the browsable model catalog when *talking to the user* about model choices, point them at [opper.ai/models](https://opper.ai/models). For programmatic discovery in code, use `https://api.opper.ai/v3/models`. **Never hardcode model lists** — they change.
+Include an explicit `model` (e.g. `anthropic/claude-sonnet-4.6`, `openai/gpt-5`) — `provider/model` format. **Never hardcode lists in code** — fetch the live list from `https://api.opper.ai/v3/models`. When *talking to the user* about model choices, link [opper.ai/models](https://opper.ai/models) — the browsable catalog. To swap models across an integration without code edits, set a Control Plane **Route** rule at [platform.opper.ai](https://platform.opper.ai).
 
 ---
 
@@ -148,7 +141,7 @@ A setup isn't done until the user has seen it work. Run the **minimal** example 
 **If it doesn't work, read the actual error** — don't guess. Common causes:
 
 - Wrong API key slot — CLI uses `~/.opper/config.json` slots; SDKs read `OPPER_API_KEY` first.
-- Model name not allowed by the project's **Route** rules in the Control Plane — check at [platform.opper.ai](https://platform.opper.ai), or use `prefer:` so Opper picks an allowed one.
+- Model name not allowed by the project's **Route** rules in the Control Plane — check the project's allowed models at [platform.opper.ai](https://platform.opper.ai) and pick one from there.
 - Schema mismatch — the model returned data that doesn't validate against the requested output shape (use a looser schema or inspect the trace to see the raw payload).
 
 ---
@@ -164,9 +157,10 @@ Once something works, suggest **one** natural next step — don't dump the whole
 | Heading to production | **Comply** — set budget caps, retention policy, allowed providers | [control-plane/overview](https://docs.opper.ai/control-plane/overview) |
 | User-input-heavy app | **Guard** — PII redaction + content filters before requests hit the model | [control-plane/overview](https://docs.opper.ai/control-plane/overview) |
 | Quality regressions | **Steer** — use Observe scores to build eval sets and tune prompts | [control-plane/overview](https://docs.opper.ai/control-plane/overview) |
-| CLI setup (`opper login`) | `opper launch claude-code` (or `codex` / `opencode`) to route their coding agent through Opper | — |
+| Any working integration, CLI not installed | Install the CLI for unified usage + traces from the terminal: `npm i -g @opperai/cli && opper login` then `opper usage` (spend) / `opper traces list` (recent calls) | — |
+| Any working integration | Inspect traces in the UI at [platform.opper.ai](https://platform.opper.ai) | — |
+| CLI installed | `opper launch claude-code` (or `codex` / `opencode`) to route their coding agent through Opper | — |
 | Migrated from OpenAI/Anthropic | Replace the provider SDK with `opperai` to unlock structured output, knowledge bases, and native tracing | — |
-| Any working integration | Inspect traces at [platform.opper.ai](https://platform.opper.ai); track spend with `opper usage` | — |
 
 ---
 
@@ -190,15 +184,35 @@ npx skills add opper-ai/opper-skills
 
 Use these terms exactly — they're proper nouns in Opper's universe. All defined at [docs.opper.ai/overview/concepts](https://docs.opper.ai/overview/concepts).
 
+**Core:**
+
 | Term | Means |
 |---|---|
 | **Organization** | Top-level account |
 | **Project** | Isolated environment with its own API key — multiple projects per org |
 | **Call** | One request-response cycle through the gateway |
 | **Trace** | The full tree behind one call: the model call, any tool calls, every rule that fired |
-| **Gateway** | The request path. Handles Chat / JSON / Realtime. Enforces Control Plane rules on every call |
-| **Control Plane** | Five governance tools: **Route**, **Observe**, **Steer**, **Guard**, **Comply** — attach at org or project scope |
-| **`prefer`** | Routing preference (`cheap` / `fast` / `quality` / `balanced`) — Opper picks the model |
+| **Gateway** | The request path. Enforces Control Plane rules on every call |
+
+**API surfaces** — pick by what you're building:
+
+| Surface | Use when | Endpoint |
+|---|---|---|
+| **Chat API** ⭐ | Back-and-forth conversation, message threads, multi-turn — **the recommended starting point for most apps** | `/v3/compat/chat/completions` or `opper.chat(...)` |
+| **JSON API** | One structured task per request: typed output, schema-validated, batch / background work | `/v3/call` or `opper.call(...)` |
+| **Realtime API** | Voice / audio over WebSocket | `wss://api.opper.ai/v3/realtime` |
+
+You can mix surfaces in one app — a common pattern is Chat API for the user-facing conversation, JSON API for background parsing or summarisation.
+
+**Control Plane** — five governance tools, attach at org or project scope (org rules cascade, project rules narrow):
+
+| Tool | Does |
+|---|---|
+| **Route** | Pin a default model per org / project. Callers can still override |
+| **Observe** | Score every response against criteria you write. Choose frequency + strictness |
+| **Steer** | Use Observe scores and feedback to pick better examples and tune prompts |
+| **Guard** | Block or redact content before it hits the model and before responses go back |
+| **Comply** | Limit which models can run, retention duration, and spend |
 
 ---
 

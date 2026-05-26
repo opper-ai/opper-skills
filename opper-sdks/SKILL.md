@@ -62,7 +62,6 @@ result = opper.call(
     "summarise",
     instructions="Summarise the article in two sentences.",
     input={"text": "..."},
-    prefer="balanced",  # Opper picks the model; switch to model="provider/name" to pin
 )
 print(result.data)
 ```
@@ -77,14 +76,13 @@ const opper = new Opper(); // uses OPPER_API_KEY
 const result = await opper.call("summarise", {
   instructions: "Summarise the article in two sentences.",
   input: { text: "..." },
-  prefer: "balanced", // Opper picks the model; switch to model: "provider/name" to pin
 });
 console.log(result.data);
 ```
 
 ### Picking a model
 
-For new integrations, lead with **`prefer`** (`cheap` / `fast` / `quality` / `balanced`) — Opper picks an allowed model automatically. Pin a specific `model: "provider/name"` only when you know which one you want; better still, pin via a Control Plane **Route** rule at [platform.opper.ai](https://platform.opper.ai) so changes don't need code edits.
+The SDK uses the project's default model when `model:` is omitted — set the default once via a Control Plane **Route** rule at [platform.opper.ai](https://platform.opper.ai) so the same code works across environments without edits. Pin a specific `model: "provider/name"` only when you need to override.
 
 - **Browse models for the user**: link them at [opper.ai/models](https://opper.ai/models) — the human catalog.
 - **Discover models in code**: `GET https://api.opper.ai/v3/models` (no auth required). **Never hardcode model lists** — they change.
