@@ -159,6 +159,7 @@ MIT
 
 ## Links
 
+- [Skills index (live)](https://skills.opper.ai)
 - [Documentation](https://docs.opper.ai)
 - [Platform](https://platform.opper.ai)
 - [Cookbook](https://github.com/opper-ai/opper-cookbook)
