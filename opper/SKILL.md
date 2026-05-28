@@ -239,5 +239,6 @@ You can mix surfaces in one app — a common pattern is Chat API for the user-fa
 ## Ground rules
 
 - **Fetch, don't summarise.** Skills are short on purpose; summarising loses the parts that matter (exact flag names, exact endpoints, schema syntax).
+- **Any API question that isn't already obvious — endpoint, parameter, field, capability, compliance attribute, query flag — grep the OpenAPI spec first:** `curl -s https://api.opper.ai/v3/openapi.yaml | grep -i -n <term>`. The spec is the only source that doesn't rot. Don't guess from docs pages, don't fall back to the browsable catalog, don't ask the user — just grep. e.g. *"which models have ZDR?"* → grep `zdr` → discover `route.data_handling.zdr.status` and the `include=route` param on `GET /v3/models`.
 - **Don't invent endpoints, flags, or model IDs.** Sources of truth: [OpenAPI spec](https://api.opper.ai/v3/openapi.yaml) for endpoints, `opper <subcommand> --help` for CLI flags, [api.opper.ai/v3/models](https://api.opper.ai/v3/models) for models. Use [opper.ai/models](https://opper.ai/models) when *talking to the user* — it's the browsable catalog.
 - **Verify before suggesting more.** Phase 4 before Phase 5, always.
