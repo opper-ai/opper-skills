@@ -45,14 +45,28 @@ Most calls land on one of these shapes. Pick by what you're building:
 
 ## The live v3 spec is the source of truth
 
-For any question about endpoint shapes, payloads, or fields, the live spec is authoritative. Both formats are unauthenticated and definitive:
+**Default workflow for any API question — endpoint, parameter, field, capability, compliance attribute, query flag — that isn't immediately answered by this skill: grep the spec.** Don't guess, don't infer from docs pages, don't fall back to the browsable catalog. Both formats are unauthenticated and definitive:
 
 ```bash
-curl -s https://api.opper.ai/v3/openapi.yaml   # YAML
+curl -s https://api.opper.ai/v3/openapi.yaml   # YAML, easier to grep
 curl -s https://api.opper.ai/v3/openapi.json   # JSON
 ```
 
-The spec is the **definitive** answer; this skill, the docs, and the SDKs all derive from it. When in doubt, fetch it and grep for the operation. (Knowledge bases live on a separate v2 surface — see "Knowledge bases" below.)
+Worked example — *"which Opper models have ZDR?"*:
+
+```bash
+# 1. Grep the spec for the term.
+curl -s https://api.opper.ai/v3/openapi.yaml | grep -i -n -E 'zdr|retention'
+# → reveals route.data_handling.zdr.status on model records
+# → and the include=route query param on GET /v3/models that surfaces it
+
+# 2. Call the endpoint with the right include.
+curl -s -H "Authorization: Bearer $OPPER_API_KEY" \
+  "https://api.opper.ai/v3/models?include=route" \
+  | jq '.models[] | {id, zdr: .route.data_handling.zdr.status}'
+```
+
+Same pattern answers any "where is X" question — grep the spec, follow the schema to the endpoint, call it. Skip this step and you'll spend time in docs pages that don't have the answer. (Knowledge bases live on a separate v2 surface — see "Knowledge bases" below.)
 
 ## Authenticate
 
@@ -99,6 +113,16 @@ Two URLs, two audiences:
 
 - **In code**: `https://api.opper.ai/v3/models` — programmatic discovery, returns JSON.
 - **When talking to the user**: [opper.ai/models](https://opper.ai/models) — the browsable human catalog. Link this when recommending or discussing a model.
+
+The default response is light. For compliance / data-handling / benchmark questions, add `?include=`:
+
+| `include=` | Adds | What lives there |
+|---|---|---|
+| `route` (requires API key) | `route` object per model | `data_handling.zdr.status` (`always` / `enterprise`), `data_handling.training.default`, `data_handling.logging.retention_days`, `data_handling.third_party_access`, `gdpr.residency`, `gdpr.dpa_available`, `gdpr.transfer_mechanism`, plus `country` and `underlying_maker` |
+| `maker` (public) | `maker` | Original weights creator (e.g. `meta` for Llama, `mistral` for Mistral) |
+| `benchmarks` (public) | `benchmarks` | Public scores from artificialanalysis.ai |
+
+Combine with commas, e.g. `?include=route,benchmarks`. Reach for `include=route` whenever the question is about ZDR, residency, retention, training opt-out, third-party access, or GDPR posture — **none of these fields appear in the default response.**
 
 References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabilities/models) · [list-models](https://docs.opper.ai/v3-api-reference/models/list-models). On any call, pin or fall back with `"model": "anthropic/claude-sonnet-4.6"` or `"model": ["anthropic/claude-sonnet-4.6", "openai/gpt-4o"]`. Identifiers follow the `provider/model` convention.
 
