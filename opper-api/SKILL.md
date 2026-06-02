@@ -141,6 +141,16 @@ Drop-in replacements for several LLM APIs. The simplest migration: **point the S
 
 Curl seeds and SDK-rebasing tips: [references/compatibility.md](references/compatibility.md).
 
+## Server-side web search
+
+Run web search server-side (billed per search under `usage.opper.cost.tools`):
+
+- **Portable** — add `{"type": "opper:web_search"}` to `tools[]` on any compat chat endpoint above. One entry that works on every model and returns that endpoint's native citation artifacts, so client code doesn't branch per provider. The `engine` field controls routing: `auto` (default; the model's native provider search where supported, else Opper's engine), `native` (require native, 400 otherwise), `opper` (always Opper's engine), or pin a backend with `jina` / `exa`. Other knobs: `max_results`, `max_uses`, `search_context_size` (`very_low` → `full`), `allowed_domains` / `excluded_domains`, `country`, `freshness`. Beta.
+- **Native** — a provider's own shape (`web_search_20250305`, `{type:"web_search"}`, `{googleSearch:{}}`) forwards verbatim to the routed provider.
+- **Standalone** — `POST /v3/tools/web/search` runs one search directly, no model and no agentic loop.
+
+Authoritative field reference: the `CanonicalWebSearchTool` schema in the spec (`curl -s https://api.opper.ai/v3/openapi.yaml | grep -i -n CanonicalWebSearchTool`). Guide: [docs.opper.ai/build/chat/web-search](https://docs.opper.ai/build/chat/web-search).
+
 ## Other v3 surfaces
 
 The v3 spec also covers tracing (`/v3/spans`, `/v3/traces`), function management (`/v3/functions/...`), generations, built-in web tools, roundtable, and async artifacts. Realtime has its own row in "Pick your endpoint" above. Fetch the spec for shapes; this skill won't enumerate them — they change.
