@@ -26,7 +26,7 @@ That's it. Verify the model identifier with `curl -s https://api.opper.ai/v3/mod
 
 Same code change as OpenRouter — point `base_url` at `https://api.opper.ai/v3/compat`. The OpenAI SDK appends `/chat/completions`, `/responses`, `/embeddings`, all of which exist on the compat tree. Use Opper's `provider/model` identifier form.
 
-For schema-constrained output, named functions with version history, or multi-model fall-back in a single call, prefer the native `POST /v3/call` (see the `opper-api` SKILL.md).
+For schema-constrained output, add `response_format: {type: "json_schema"}` to the compat call — no separate endpoint. For multi-model fall-back, define a Route alias in the platform that maps one name to an ordered backup chain.
 
 ## From Anthropic
 
@@ -51,8 +51,8 @@ Same pattern: base URL → `https://api.opper.ai/v3/compat`, key → Opper key. 
 ## Why migrate at all
 
 - One bill, one key, one trace surface across providers.
-- Multi-model fall-back in a single request (native `/v3/call`).
-- Functions and evaluations as platform primitives.
+- Multi-model fall-back via a Route alias (one name → an ordered backup chain).
+- Multimodality (images, audio, video) and realtime voice behind the same key.
 - Knowledge bases (on the v2 surface — `/v2/knowledge/...`) and tracing in the same control plane.
 
 ## Validation checklist
@@ -68,5 +68,5 @@ Same pattern: base URL → `https://api.opper.ai/v3/compat`, key → Opper key. 
 |---|---|
 | Compat endpoints, deeper | [compatibility.md](compatibility.md) |
 | Live spec (v3) | `https://api.opper.ai/v3/openapi.yaml` |
-| Native `/v3/call` surface | the `opper-api` SKILL.md |
+| Media, realtime, roundtable endpoints | the `opper-api` SKILL.md |
 | Coding assistant integrations | [docs.opper.ai/overview/integrations](https://docs.opper.ai/overview/integrations) |

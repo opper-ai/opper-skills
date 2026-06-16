@@ -9,7 +9,7 @@ For exact request and response shapes, fetch:
 
 ## Quick rule
 
-If the user already has working OpenAI / Anthropic / etc. code, **do not rewrite it for `/v3/call`**. Rebase the SDK onto `https://api.opper.ai/v3/compat` and swap the API key. Two lines.
+If the user already has working OpenAI / Anthropic / etc. code, **don't rewrite it**. Rebase the SDK onto `https://api.opper.ai/v3/compat` and swap the API key. Two lines.
 
 ## The endpoints
 
@@ -64,13 +64,16 @@ Compat endpoints accept several `X-Opper-*` request headers (function name for t
 
 Compat endpoints use Opper's `provider/model` form: `openai/gpt-4o`, `anthropic/claude-sonnet-4.6`, etc. List the live set with `curl -s https://api.opper.ai/v3/models` (no auth required).
 
-## When to prefer `/v3/call` over a compat endpoint
+## Structured output, media, and more
 
-- **Schema-constrained output** — `/v3/call` has `output_schema` as a first-class field.
-- **Named functions** with version history, evaluations, and the platform UI.
-- **Multi-model fall-backs** in a single request: `"model": ["a", "b", "c"]`.
+Everything is on the gateway, not a separate API:
 
-Compat endpoints stay closer to the upstream provider's behaviour and are best when migrating existing code.
+- **Structured output** — add `response_format: {type: "json_schema", json_schema: {...}}` to a compat chat call; the model returns schema-validated JSON.
+- **Vision / PDF input** — send `image_url` / `file` content parts to a model whose capabilities include `vision` / `pdf`.
+- **Media generation** — dedicated endpoints: `POST /v3/images`, `POST /v3/audio/speech`, `POST /v3/audio/transcriptions`, `POST /v3/videos`.
+- **Multi-model fall-back** — define a Route alias in the platform that maps one name to an ordered backup chain.
+
+See the `opper-api` SKILL.md for the full endpoint map.
 
 ## Where to look next
 
@@ -78,4 +81,4 @@ Compat endpoints stay closer to the upstream provider's behaviour and are best w
 |---|---|
 | Exact request and response shapes | upstream provider's spec, plus `https://api.opper.ai/v3/openapi.yaml` |
 | Migrating from a specific gateway | [migration.md](migration.md) |
-| The native `/v3/call` surface | the `opper-api` SKILL.md |
+| The full endpoint map (media, realtime, roundtable) | the `opper-api` SKILL.md |

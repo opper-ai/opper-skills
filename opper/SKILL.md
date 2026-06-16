@@ -7,7 +7,7 @@ description: >
   surface: "set up Opper", "try Opper", "build with Opper", "migrate to
   Opper", "help me with Opper". This skill scans the user's context to detect
   state (new user / existing integration / migration candidate) and API
-  surface (Chat / JSON / Realtime / CLI / compat), proposes a concrete plan,
+  surface (compat / multimodal / realtime / CLI), proposes a concrete plan,
   then routes to the right sub-skill: `opper-cli` for terminal work,
   `opper-sdks` for Python/TypeScript code, or `opper-api` for raw HTTP and
   platform concepts. It owns the full lifecycle — explore, propose, guide,
@@ -61,14 +61,15 @@ Cross-reference findings against this decision table:
 
 | Finding | User-state lane | Likely API surface |
 |---|---|---|
-| `opper` not installed, empty dir or no project files | **New / starter** | Chat or JSON (start small) |
-| `opper` not installed, project files exist, no LLM imports | **New integration in existing app** | JSON (one-shot tasks) or Chat (user-facing) |
+| `opper` not installed, empty dir or no project files | **New / starter** | Compat chat (start small) |
+| `opper` not installed, project files exist, no LLM imports | **New integration in existing app** | Compat chat; structured output via `response_format` |
 | `opperai` already in deps | **Existing Opper integration** — likely debug or extend | Already chosen; deepen current surface |
 | OpenAI / Anthropic / Google / OpenRouter imports, no Opper | **Migration candidate** | `/v3/compat` — drop-in, zero code change |
-| User mentions voice / audio / streaming audio | (any lane) | **Realtime API** (`wss://api.opper.ai/v3/realtime`) |
+| User mentions image / audio / video generation | (any lane) | **Multimodal endpoints** (`/v3/images`, `/v3/audio/*`, `/v3/videos`) |
+| User mentions voice / two-way audio | (any lane) | **Realtime API** (`wss://api.opper.ai/v3/realtime`) |
 | User wants terminal-first or to route their coding agent through Opper | (any lane) | **CLI** (`opper login`, `opper launch`) |
 
-If two lanes are genuinely plausible, ask **one** question — never a menu of four. Example: *"Are you building a back-and-forth conversation, or a one-shot task per request?"*
+If two lanes are genuinely plausible, ask **one** question — never a menu of four. Example: *"Are you building a text/chat feature, or generating media (image / audio / video)?"*
 
 ---
 
@@ -85,7 +86,7 @@ Lead with one sentence: what you found + what you'd do next. Never an open-ended
 | Lane | Proposal |
 |---|---|
 | New / starter | *"You're starting fresh. I'd suggest: (1) `npm i -g @opperai/cli`, (2) `opper login`, (3) `opper call` to make your first call. The CLI handles auth, picks a model, and shows the trace — everything in one place. Sound good?"* |
-| New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) install the `opperai` SDK, (2) make an `opper.chat(...)` call against your simplest task, (3) inspect the trace at platform.opper.ai. Sound good?"* |
+| New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) point your OpenAI/Anthropic SDK at `https://api.opper.ai/v3/compat` (or install the `opperai` SDK), (2) make one call against your simplest task, (3) inspect the trace at platform.opper.ai. Sound good?"* |
 | Existing Opper integration | Skip the proposal — read the existing code and answer the user's actual question. |
 | Migration | *"You're using [OpenAI/Anthropic/Google]. Opper exposes a drop-in compat endpoint — point your existing SDK at `https://api.opper.ai/v3/compat` and your code keeps working. Want me to do that swap first, then we can explore native features?"* |
 | Realtime | *"For voice/realtime, Opper exposes `wss://api.opper.ai/v3/realtime`. I'd suggest following [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart). Sound good?"* |
@@ -132,11 +133,11 @@ A setup isn't done until the user has seen it work. Run the **minimal** example 
 | Lane | What "working" looks like |
 |---|---|
 | CLI | `opper whoami` returns an active slot; `opper call ...` prints structured output and a `trace_id` |
-| Chat (Python/TS) | `opper.chat(...)` returns a message; the call appears as a trace at [platform.opper.ai](https://platform.opper.ai) |
-| JSON (Python/TS) | `opper.call(...).json_payload` returns a typed value matching your schema; trace visible |
+| Compat (any SDK) | The user's OpenAI/Anthropic/Google SDK call returns 200 from `api.opper.ai/v3/compat`; the call appears as a trace at [platform.opper.ai](https://platform.opper.ai) |
+| SDK (Python/TS) | `opper.call(...).data` returns a value (typed when an output schema is passed); trace visible |
+| Media | `POST /v3/images` returns an image inline; `POST /v3/videos` returns `202` + a `status_url` that resolves to a download URL |
 | Agent (Python/TS) | `agent.run(...)` returns; reasoning steps and tool calls appear in the trace |
 | Realtime | WebSocket connects; first server message is `{"type": "session.started", "session_id": ...}` |
-| /v3/compat migration | The user's existing OpenAI/Anthropic SDK call returns 200 from `api.opper.ai/v3/compat` with no other code changes |
 
 **If it doesn't work, read the actual error** — don't guess. Common causes:
 
@@ -194,15 +195,16 @@ Use these terms exactly — they're proper nouns in Opper's universe. All define
 | **Trace** | The full tree behind one call: the model call, any tool calls, every rule that fired |
 | **Gateway** | The request path. Enforces Control Plane rules on every call |
 
-**API surfaces** — pick by what you're building:
+**API surfaces** — one gateway, pick the endpoint by what you're building:
 
 | Surface | Use when | Endpoint |
 |---|---|---|
-| **Chat API** ⭐ | Back-and-forth conversation, message threads, multi-turn — **the recommended starting point for most apps** | `/v3/compat/chat/completions` or `opper.chat(...)` |
-| **JSON API** | One structured task per request: typed output, schema-validated, batch / background work | `/v3/call` or `opper.call(...)` |
-| **Realtime API** | Voice / audio over WebSocket | `wss://api.opper.ai/v3/realtime` |
+| **Compat endpoints** ⭐ | Text generation, chat, multi-turn, tools, structured output — **the recommended starting point**; drop-in for OpenAI / Anthropic / Google SDKs | `/v3/compat/...` |
+| **Multimodality** | Generate or edit images, speech, transcripts, and video | `/v3/images`, `/v3/audio/*`, `/v3/videos` |
+| **Realtime** | Two-way voice / audio over WebSocket | `wss://api.opper.ai/v3/realtime` |
+| **Roundtable** | One prompt to several models, consolidated or compared | `/v3/roundtable` |
 
-You can mix surfaces in one app — a common pattern is Chat API for the user-facing conversation, JSON API for background parsing or summarisation.
+Structured output is a parameter (`response_format`), not a separate surface. The `opperai` SDK and `opper` CLI wrap the gateway with `opper.call(...)` / `opper call` — see the `opper-sdks` and `opper-cli` skills. You can mix surfaces in one app — e.g. compat chat for the conversation, a media endpoint for an image, realtime for voice.
 
 **Control Plane** — five governance tools, attach at org or project scope (org rules cascade, project rules narrow):
 

@@ -55,8 +55,8 @@ Once a skill is installed, your agent will activate it automatically when you sa
 **`opper-api`**
 - "What models does Opper support?"
 - "Migrate this OpenRouter code to Opper."
-- "Show me the raw HTTP for an Opper task call with an output schema."
-- "What's the difference between `/v3/call` and the `/v3/compat` endpoints?"
+- "Show me the raw HTTP for a compat chat call with structured output."
+- "How do I generate an image or transcribe audio with Opper?"
 
 ## Install
 
