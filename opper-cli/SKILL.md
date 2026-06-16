@@ -22,7 +22,7 @@ parent: opper
 
 The official Opper CLI, distributed as the npm package **`@opperai/cli`**. Source: [github.com/opper-ai/cli](https://github.com/opper-ai/cli). Requires Node.js ≥ 20.12.
 
-The CLI is more than a thin wrapper over `/v3/call`. It also **launches coding agents** (Claude Code, OpenCode, Codex, Hermes, Pi) with their model traffic routed through Opper, **installs bundled skills**, and **wires AI code editors** to Opper.
+The CLI is more than a thin wrapper over the API. It also **launches coding agents** (Claude Code, OpenCode, Codex, Hermes, Pi) with their model traffic routed through Opper, **installs bundled skills**, and **wires AI code editors** to Opper.
 
 ## Install
 
