@@ -50,7 +50,7 @@ One key, one gateway. Pick the endpoint by what you're producing:
 | **Speech / TTS** | `POST /v3/audio/speech` | sync | `GET /v3/audio/models?type=tts` | [audio](https://docs.opper.ai/build/multimodal/audio) |
 | **Transcription / STT** | `POST /v3/audio/transcriptions` | sync | `GET /v3/audio/models?type=stt` | [audio](https://docs.opper.ai/build/multimodal/audio) |
 | **Video** (generate) | `POST /v3/videos` | **async** — poll `status_url` | `GET /v3/videos/models` | [video](https://docs.opper.ai/build/multimodal/video) |
-| **OCR** (PDF / image → markdown) | `POST /v3/ocr` | sync | `GET /v3/ocr/models` | [docs.opper.ai/build/multimodal](https://docs.opper.ai/build/multimodal/overview) |
+| **OCR** (PDF / image → markdown) | `POST /v3/ocr` | sync | `GET /v3/ocr/models` | [ocr](https://docs.opper.ai/build/multimodal/ocr) |
 | **Files** (store / reuse media) | `/v3/files` | sync | — | [files](https://docs.opper.ai/build/multimodal/files) |
 | **Vision / PDF input** | compat chat (`image_url` / `file` parts) | sync | `GET /v3/models?capability=vision` / `?capability=pdf` | [vision-pdfs](https://docs.opper.ai/build/multimodal/vision-pdfs) |
 | **Realtime voice** | `wss://api.opper.ai/v3/realtime` | streaming | `GET /v3/models?type=realtime` | [realtime quickstart](https://docs.opper.ai/build/realtime/quickstart) |
@@ -125,7 +125,7 @@ curl -s -X POST https://api.opper.ai/v3/ocr \
 # → { "pages": [{ "index": 0, "markdown": "...", "elements": [...] }], "usage": {"pages_processed": N} }
 ```
 
-`document` accepts a URL, base64 (PDF or image), or a `file_id`. `GET /v3/ocr/models` lists OCR models and each one's `price_per_page`.
+`document` accepts a URL, base64 (PDF or image), or a `file_id`. `GET /v3/ocr/models` lists OCR models and each one's `price_per_page`. Guide: [docs.opper.ai/build/multimodal/ocr](https://docs.opper.ai/build/multimodal/ocr).
 
 ## Files — `/v3/files`
 
