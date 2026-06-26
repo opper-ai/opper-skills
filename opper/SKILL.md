@@ -9,8 +9,10 @@ description: >
   state (new user / existing integration / migration candidate) and API
   surface (compat / multimodal / realtime / CLI), proposes a concrete plan,
   then routes to the right sub-skill: `opper-cli` for terminal work,
-  `opper-sdks` for Python/TypeScript code, or `opper-api` for raw HTTP and
-  platform concepts. It owns the full lifecycle — explore, propose, guide,
+  `opper-sdks` for Python/TypeScript code, `opper-api` for raw HTTP and
+  platform concepts, or `opper-multimodal` for media generation (images,
+  audio, video, OCR), files, and realtime voice. It owns the full lifecycle
+  — explore, propose, guide,
   test, and follow-up tied to Opper's Control Plane (Route, Observe, Steer,
   Guard, Comply).
 category: router
@@ -65,8 +67,8 @@ Cross-reference findings against this decision table:
 | `opper` not installed, project files exist, no LLM imports | **New integration in existing app** | Compat chat; structured output via `response_format` |
 | `opperai` already in deps | **Existing Opper integration** — likely debug or extend | Already chosen; deepen current surface |
 | OpenAI / Anthropic / Google / OpenRouter imports, no Opper | **Migration candidate** | `/v3/compat` — drop-in, zero code change |
-| User mentions image / audio / video generation | (any lane) | **Multimodal endpoints** (`/v3/images`, `/v3/audio/*`, `/v3/videos`) |
-| User mentions voice / two-way audio | (any lane) | **Realtime API** (`wss://api.opper.ai/v3/realtime`) |
+| User mentions image / audio / video / OCR generation, or files | (any lane) | **Multimodal endpoints** → load `opper-multimodal` (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files`) |
+| User mentions voice / two-way audio | (any lane) | **Realtime** → load `opper-multimodal` (`wss://api.opper.ai/v3/realtime`) |
 | User wants terminal-first or to route their coding agent through Opper | (any lane) | **CLI** (`opper login`, `opper launch`) |
 
 If two lanes are genuinely plausible, ask **one** question — never a menu of four. Example: *"Are you building a text/chat feature, or generating media (image / audio / video)?"*
@@ -89,7 +91,8 @@ Lead with one sentence: what you found + what you'd do next. Never an open-ended
 | New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) point your OpenAI/Anthropic SDK at `https://api.opper.ai/v3/compat` (or install the `opperai` SDK), (2) make one call against your simplest task, (3) inspect the trace at platform.opper.ai. Sound good?"* |
 | Existing Opper integration | Skip the proposal — read the existing code and answer the user's actual question. |
 | Migration | *"You're using [OpenAI/Anthropic/Google]. Opper exposes a drop-in compat endpoint — point your existing SDK at `https://api.opper.ai/v3/compat` and your code keeps working. Want me to do that swap first, then we can explore native features?"* |
-| Realtime | *"For voice/realtime, Opper exposes `wss://api.opper.ai/v3/realtime`. I'd suggest following [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart). Sound good?"* |
+| Media (image / audio / video / OCR) | *"For generating [images/audio/video] you'd use Opper's dedicated media endpoints (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`). I'll load the `opper-multimodal` skill and we'll make one call, then inspect the result + trace. Sound good?"* |
+| Realtime | *"For voice/realtime, Opper exposes `wss://api.opper.ai/v3/realtime` (covered by the `opper-multimodal` skill). I'd suggest following [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart). Sound good?"* |
 | CLI / route a coding agent | *"I'd suggest `opper login` followed by `opper launch <agent>` to route your coding agent's inference through Opper. Want to set that up?"* |
 
 ### The CLI is the easiest starting point
@@ -113,11 +116,13 @@ Fetch the chosen sub-skill verbatim and follow it. Never paraphrase — sub-skil
 curl -sL https://skills.opper.ai/opper-cli/SKILL.md
 curl -sL https://skills.opper.ai/opper-sdks/SKILL.md
 curl -sL https://skills.opper.ai/opper-api/SKILL.md
+curl -sL https://skills.opper.ai/opper-multimodal/SKILL.md
 
 # Fallback if skills.opper.ai is unreachable
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-sdks/SKILL.md
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md
+curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md
 ```
 
 If the skill is already installed locally (under `.claude/skills/`, `~/.claude/skills/`, `.cursor/rules/`, etc.), load it through your agent's normal mechanism instead of fetching.
@@ -135,9 +140,9 @@ A setup isn't done until the user has seen it work. Run the **minimal** example 
 | CLI | `opper whoami` returns an active slot; `opper call ...` prints structured output and a `trace_id` |
 | Compat (any SDK) | The user's OpenAI/Anthropic/Google SDK call returns 200 from `api.opper.ai/v3/compat`; the call appears as a trace at [platform.opper.ai](https://platform.opper.ai) |
 | SDK (Python/TS) | `opper.call(...).data` returns a value (typed when an output schema is passed); trace visible |
-| Media | `POST /v3/images` returns an image inline; `POST /v3/videos` returns `202` + a `status_url` that resolves to a download URL |
+| Media (`opper-multimodal`) | `POST /v3/images` returns an image inline; `POST /v3/videos` returns `202` + a `status_url` that resolves to a download URL |
 | Agent (Python/TS) | `agent.run(...)` returns; reasoning steps and tool calls appear in the trace |
-| Realtime | WebSocket connects; first server message is `{"type": "session.started", "session_id": ...}` |
+| Realtime (`opper-multimodal`) | WebSocket connects; first server message is `{"type": "session.started", "session_id": ...}` |
 
 **If it doesn't work, read the actual error** — don't guess. Common causes:
 
@@ -171,7 +176,8 @@ Once something works, suggest **one** natural next step — don't dump the whole
 |---|---|---|---|
 | `opper-cli` | https://skills.opper.ai/opper-cli/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md | Terminal: login, calls, traces, indexes, `opper launch` |
 | `opper-sdks` | https://skills.opper.ai/opper-sdks/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-sdks/SKILL.md | Python/TS code using `opperai` — calls, agents, streaming, knowledge |
-| `opper-api` | https://skills.opper.ai/opper-api/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md | Raw HTTP, gateway concepts, `/v3/compat`, Realtime, migration |
+| `opper-api` | https://skills.opper.ai/opper-api/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md | Raw HTTP, gateway concepts, `/v3/compat`, structured output, server-side tools, migration |
+| `opper-multimodal` | https://skills.opper.ai/opper-multimodal/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md | Media generation (images, audio, video, OCR), files, vision/PDF input, realtime voice |
 
 Install everything locally:
 
@@ -200,8 +206,8 @@ Use these terms exactly — they're proper nouns in Opper's universe. All define
 | Surface | Use when | Endpoint |
 |---|---|---|
 | **Compat endpoints** ⭐ | Text generation, chat, multi-turn, tools, structured output — **the recommended starting point**; drop-in for OpenAI / Anthropic / Google SDKs | `/v3/compat/...` |
-| **Multimodality** | Generate or edit images, speech, transcripts, and video | `/v3/images`, `/v3/audio/*`, `/v3/videos` |
-| **Realtime** | Two-way voice / audio over WebSocket | `wss://api.opper.ai/v3/realtime` |
+| **Multimodality** *(`opper-multimodal`)* | Generate or edit images, speech, transcripts, video; OCR; store/reuse files | `/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files` |
+| **Realtime** *(`opper-multimodal`)* | Two-way voice / audio over WebSocket | `wss://api.opper.ai/v3/realtime` |
 | **Roundtable** | One prompt to several models, consolidated or compared | `/v3/roundtable` |
 
 Structured output is a parameter (`response_format`), not a separate surface. The `opperai` SDK and `opper` CLI wrap the gateway with `opper.call(...)` / `opper call` — see the `opper-sdks` and `opper-cli` skills. You can mix surfaces in one app — e.g. compat chat for the conversation, a media endpoint for an image, realtime for voice.

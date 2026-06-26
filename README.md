@@ -11,7 +11,8 @@ One philosophy: **point at the live source of truth, don't duplicate it.** Each 
 | [`opper`](./opper/) | **Entry point.** Discovers user intent, then routes to the right sub-skill. Owns setup, testing, and follow-up. | This repo |
 | [`opper-cli`](./opper-cli/) | The `opper` command-line tool: calling functions, indexes, traces, models, usage, config | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) and `opper --help` |
 | [`opper-sdks`](./opper-sdks/) | The unified `opperai` packages for Python and TypeScript, including agents | [github.com/opper-ai/opper-sdks](https://github.com/opper-ai/opper-sdks) |
-| [`opper-api`](./opper-api/) | The Opper REST API, gateway and platform concepts, models, compat endpoints, migration | [docs.opper.ai](https://docs.opper.ai) and `https://api.opper.ai/v3/openapi.yaml` |
+| [`opper-api`](./opper-api/) | The Opper REST API, gateway and platform concepts, models, compat endpoints, server-side tools, migration | [docs.opper.ai](https://docs.opper.ai) and `https://api.opper.ai/v3/openapi.yaml` |
+| [`opper-multimodal`](./opper-multimodal/) | Media generation (images, audio, video, OCR), the `/v3/files` storage API, vision/PDF input, and realtime voice | [docs.opper.ai/build/multimodal](https://docs.opper.ai/build/multimodal/overview) and `https://api.opper.ai/v3/openapi.yaml` |
 
 Start with `opper`. It figures out what you're trying to do, then loads the right sub-skill — by fetching it live from `https://skills.opper.ai/` if it isn't already installed locally.
 
@@ -31,6 +32,7 @@ Or fetch a specific skill directly:
 curl -sL https://skills.opper.ai/opper-cli/SKILL.md
 curl -sL https://skills.opper.ai/opper-sdks/SKILL.md
 curl -sL https://skills.opper.ai/opper-api/SKILL.md
+curl -sL https://skills.opper.ai/opper-multimodal/SKILL.md
 ```
 
 Skills are served as plain markdown so agents read the full content (not a summary). The site is a mirror of this repo, deployed on every push to `main`.
@@ -56,14 +58,21 @@ Once a skill is installed, your agent will activate it automatically when you sa
 - "What models does Opper support?"
 - "Migrate this OpenRouter code to Opper."
 - "Show me the raw HTTP for a compat chat call with structured output."
-- "How do I generate an image or transcribe audio with Opper?"
+- "Add a server-side web search to my Opper chat call."
+
+**`opper-multimodal`**
+- "Generate an image with Opper."
+- "Transcribe this audio file with Opper."
+- "Make a short video from this prompt."
+- "Run OCR on this PDF and give me markdown."
+- "Set up a realtime voice session in the browser."
 
 ## Install
 
 ### Claude Code
 
 ```bash
-# All four skills (recommended — installs the opper router + sub-skills)
+# All five skills (recommended — installs the opper router + sub-skills)
 npx skills add opper-ai/opper-skills
 
 # Or pick what you need
@@ -71,6 +80,7 @@ npx skills add opper-ai/opper-skills/opper
 npx skills add opper-ai/opper-skills/opper-cli
 npx skills add opper-ai/opper-skills/opper-sdks
 npx skills add opper-ai/opper-skills/opper-api
+npx skills add opper-ai/opper-skills/opper-multimodal
 ```
 
 ### Manual install

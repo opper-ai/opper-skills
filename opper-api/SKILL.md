@@ -4,15 +4,16 @@ description: >
   Use the Opper REST API directly (HTTP / curl / fetch) and as the source of
   truth for Opper platform concepts: the gateway, the control plane, available
   models, the OpenAI / Anthropic / Google / OpenResponses-compatible endpoints
-  under /v3/compat, multimodal generation (images, audio, video), realtime
-  voice, roundtable, streaming via SSE, tracing, and migration from other LLM
+  under /v3/compat, structured output, server-side tools (web search),
+  roundtable, streaming via SSE, tracing, and migration from other LLM
   gateways. Use this skill whenever the user asks about Opper concepts, what
   models Opper supports, API endpoints or signatures, raw HTTP integration,
   gateway behaviour, integrating Opper with a coding assistant, or
   compatibility / migration from OpenAI / OpenRouter / Anthropic — even if they
-  only say "Opper" without "API". For any endpoint signature or payload
-  question always recommend fetching the live OpenAPI spec at
-  https://api.opper.ai/v3/openapi.yaml first.
+  only say "Opper" without "API". For media generation (images, audio, video,
+  OCR), files, and realtime voice, use the `opper-multimodal` skill instead.
+  For any endpoint signature or payload question always recommend fetching the
+  live OpenAPI spec at https://api.opper.ai/v3/openapi.yaml first.
 category: sub-skill
 parent: opper
 ---
@@ -40,10 +41,7 @@ One gateway, one key. Pick the endpoint by what you're building — the routing,
 
 - **Text generation / chat / migrating from OpenAI, Anthropic, Google, or OpenResponses**: the compat endpoints under **`/v3/compat/...`**. Point your SDK's base URL there, keep your code, swap the key. This is the main path. See [references/compatibility.md](references/compatibility.md) and [references/migration.md](references/migration.md).
 - **Structured output** (typed JSON out of a model): the standard **`response_format: {type: "json_schema"}`** on any compat chat endpoint — no separate endpoint.
-- **Images** (generate / edit): **`POST /v3/images`** (synchronous).
-- **Audio**: **`POST /v3/audio/speech`** (text-to-speech) and **`POST /v3/audio/transcriptions`** (speech-to-text).
-- **Video** (generate): **`POST /v3/videos`** (asynchronous — returns an id + status URL to poll).
-- **Realtime voice / audio over WebSocket**: **`wss://api.opper.ai/v3/realtime`** — see the [realtime quickstart](https://docs.opper.ai/build/realtime/quickstart). Bearer auth for server-side connections, or a minted ticket from `/v3/realtime-sessions` for browser clients.
+- **Media generation** (images, audio / TTS / STT, video, OCR), **files**, and **realtime voice**: a separate surface — switch to the **`opper-multimodal` skill**. Quick map: images `POST /v3/images`, audio `POST /v3/audio/{speech,transcriptions}`, video `POST /v3/videos` (async), OCR `POST /v3/ocr`, files `/v3/files`, realtime `wss://api.opper.ai/v3/realtime`.
 - **Roundtable** (fan one prompt out to several models, then consolidate or compare): **`POST /v3/roundtable`** (beta).
 - **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): switch to the **`opper-sdks` skill** and use the Agent SDK — `Agent`, `tool`, `Conversation` ship in the unified `opperai` package for both Python and TypeScript.
 - **Knowledge bases / RAG**: see "Knowledge bases" below — they live on `/v2/knowledge/...`.
@@ -162,33 +160,15 @@ Drop-in replacements for several LLM APIs. The simplest migration: **point the S
 | `POST /v3/compat/v1beta/interactions` | Google Interactions | [docs](https://docs.opper.ai/v3-api-reference/compatibility/create-interaction) |
 | `POST /v3/compat/embeddings` | OpenAI Embeddings | (see spec) |
 
-Curl seeds and SDK-rebasing tips: [references/compatibility.md](references/compatibility.md). Vision and PDF input ride on these endpoints too — send `image_url` / `file` content parts to a model whose capabilities include `vision` / `pdf`. See [docs.opper.ai/build/multimodal/vision-pdfs](https://docs.opper.ai/build/multimodal/vision-pdfs).
+Curl seeds and SDK-rebasing tips: [references/compatibility.md](references/compatibility.md). Vision and PDF input ride on these endpoints too — send `image_url` / `file` content parts to a model whose capabilities include `vision` / `pdf` (see the `opper-multimodal` skill, and [docs.opper.ai/build/multimodal/vision-pdfs](https://docs.opper.ai/build/multimodal/vision-pdfs)).
 
-## Multimodal generation
+## Media generation, files & realtime → the `opper-multimodal` skill
 
-Dedicated endpoints for producing media. `model` and the prompt/input are owned by Opper; a small set of high-level params is normalized; everything in `parameters` is forwarded verbatim to the provider. Generated output is saved to [Files](https://docs.opper.ai/build/multimodal/files) by default (`store: true`) and returned with a reusable `file_id` you can feed into later calls. Each has a scoped model-discovery list.
+Producing media (images, audio TTS/STT, video, OCR), the `/v3/files` storage API, sending images/PDFs **into** a model, and realtime two-way voice are a separate surface with their own dedicated endpoints. They share this gateway's key, governance, and tracing, but the request/response contracts differ — so they live in their own skill: **`opper-multimodal`** ([SKILL.md](https://skills.opper.ai/opper-multimodal/SKILL.md)).
 
-| Endpoint | Does | Discovery | Guide |
-|---|---|---|---|
-| `POST /v3/images` | Generate / edit images (sync) | `GET /v3/images/models` | [images](https://docs.opper.ai/build/multimodal/images) |
-| `POST /v3/audio/speech` | Text-to-speech (sync) | `GET /v3/audio/models?type=tts` | [audio](https://docs.opper.ai/build/multimodal/audio) |
-| `POST /v3/audio/transcriptions` | Speech-to-text (sync) | `GET /v3/audio/models?type=stt` | [audio](https://docs.opper.ai/build/multimodal/audio) |
-| `POST /v3/videos` | Generate video (**async** — poll `status_url`) | `GET /v3/videos/models` | [video](https://docs.opper.ai/build/multimodal/video) |
+Quick map (fetch the spec or that skill for shapes): images `POST /v3/images` (sync, opt-in async), audio `POST /v3/audio/speech` (TTS) + `POST /v3/audio/transcriptions` (STT), video `POST /v3/videos` (**async** — poll `GET /v3/artifacts/{id}/status`), OCR `POST /v3/ocr`, files `/v3/files`, realtime `wss://api.opper.ai/v3/realtime` (browser tickets via `POST /v3/realtime-sessions`). Each media surface has a scoped discovery list (`GET /v3/images/models`, `/v3/videos/models`, `/v3/audio/models`, `/v3/ocr/models`).
 
-```bash
-# Image generation
-curl -s -X POST https://api.opper.ai/v3/images \
-  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
-  -d '{"model": "openai/gpt-image-1", "prompt": "a hot air balloon over green hills", "size": "1024x1024"}'
-
-# Video is async: submit → poll
-curl -s -X POST https://api.opper.ai/v3/videos \
-  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
-  -d '{"model": "openai/sora-2", "prompt": "the balloon drifts at dawn"}'
-# → 202 { "id": "...", "status_url": "https://api.opper.ai/v3/artifacts/{id}/status" }
-```
-
-Reuse media without re-uploading by passing a `file_id` (from a previous generation or an upload to `POST /v3/files`) anywhere a media source is accepted — `image`/`mask`/`reference_images` on images, `audio` on transcriptions, `image`/`video` on videos. Files: [docs.opper.ai/build/multimodal/files](https://docs.opper.ai/build/multimodal/files).
+**Server-side tools** (`opper:web_search` and friends) are different — they ride the compat chat endpoints and stay in this skill; see "Server-side web search" below.
 
 ## Roundtable — `POST /v3/roundtable` (beta)
 
@@ -222,12 +202,12 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 
 ## Non-obvious gotchas
 
-- **One gateway, many endpoints.** Text/chat is `/v3/compat/...`; media generation has dedicated endpoints (`/v3/images`, `/v3/audio/*`, `/v3/videos`); realtime is a WebSocket. All share the same key and governance.
+- **One gateway, many endpoints.** Text/chat is `/v3/compat/...`; media generation, files, and realtime are a separate surface (the `opper-multimodal` skill). All share the same key and governance.
 - **Compat endpoints live under `/v3/compat/...`**, not at `/v3/...`. SDK migrations should point base URL at `https://api.opper.ai/v3/compat`.
 - **Auth is `Authorization: Bearer ...` only.** Anthropic SDKs send `x-api-key` by default — set the `Authorization` header explicitly when migrating.
 - **Structured output is a parameter, not an endpoint** — use `response_format: {type: "json_schema"}` on a compat chat call.
-- **Video is asynchronous.** `POST /v3/videos` returns `202` with a `status_url`; poll `GET /v3/artifacts/{id}/status` for the result. Images and audio are synchronous.
-- **Generated media is stored by default** (`store: true`) and returns a reusable `file_id`; pass `store: false` to opt out.
+- **Server-side web search is portable** — one `{"type": "opper:web_search"}` tool entry works on every model; native provider shapes also forward verbatim.
+- **Media / files / realtime are not in this skill** — they're dedicated endpoints documented in `opper-multimodal`. Don't improvise their shapes here.
 - **Knowledge is v2, not v3.** Don't reach for `/v3/knowledge/...` — it does not exist.
 - **The spec is the most up-to-date reference; the docs and this skill follow it.** This file rots; the spec doesn't.
 
@@ -239,8 +219,8 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 | Concepts (Organization, Project, Call, Trace, Gateway, Control Plane) | [docs.opper.ai/overview/concepts](https://docs.opper.ai/overview/concepts) |
 | Gateway behaviour (routing, compat) | [docs.opper.ai/overview/gateway](https://docs.opper.ai/overview/gateway) |
 | Control Plane (Route / Observe / Steer / Guard / Comply) | [docs.opper.ai/control-plane/overview](https://docs.opper.ai/control-plane/overview) |
-| Multimodality (images, audio, video, vision, files) | [docs.opper.ai/build/multimodal/overview](https://docs.opper.ai/build/multimodal/overview) |
-| Realtime quickstart | [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart) |
+| Media generation, files, vision/PDF input, realtime voice | the `opper-multimodal` skill |
+| Multimodality concepts (docs) | [docs.opper.ai/build/multimodal/overview](https://docs.opper.ai/build/multimodal/overview) |
 | Roundtable | [docs.opper.ai/build/roundtable/overview](https://docs.opper.ai/build/roundtable/overview) |
 | Browsable model catalog (for user-facing recommendations) | [opper.ai/models](https://opper.ai/models) |
 | Worked recipes in many languages | [github.com/opper-ai/opper-cookbook](https://github.com/opper-ai/opper-cookbook) |
