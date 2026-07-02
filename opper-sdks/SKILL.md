@@ -32,7 +32,7 @@ The unified `opperai` package exposes a few different shapes. Pick by what you'r
 - **Multi-turn chat or message-thread style**: the compat chat endpoints are message-native — carry the `messages` array forward.
 - **Tool-using agent, multi-step reasoning, multi-agent, MCP**: the **Agent SDK** (`Agent`, `tool`, `Conversation`, `Hooks`, `mcp`) is recommended for any "model decides what to do next" flow. Use **`agent.run(...)`** for a single shot or **`agent.stream(...)`** for live progress.
 - **Knowledge bases / RAG**: **`opper.knowledge.*`** — `create`, `query`, `add`, etc.
-- **`opper.call(...)` / `opper.stream(...)` are legacy.** They ride Opper's `/call` surface, which is **being sunset** — don't start new work on them, and don't use them in examples. Existing code migrates to compat + `response_format`; the field-by-field mapping (`name` → `X-Opper-Name` header, `output_schema` → `response_format`, `result.data` → parsed message content) is in the `opper-api` skill's `references/migration.md`.
+- **`opper.call(...)` / `opper.stream(...)` are legacy.** They ride Opper's `/call` surface, which is **being sunset** — don't start new work on them, and don't use them in examples. The `opperai` SDK itself is being reworked to no longer use `/call`; a future release drops it. Existing code migrates to compat + `response_format`; the field-by-field mapping (`name` → `X-Opper-Name` header, `output_schema` → `response_format`, `result.data` → parsed message content) is in the `opper-api` skill's `references/migration.md`.
 
 ## Pick a path
 
@@ -137,7 +137,7 @@ Type definitions: `python/src/opperai/types.py` and `typescript/src/types.ts`.
 
 ## Non-obvious gotchas
 
-- **`opper.call` rides the legacy `/call` surface, which is being sunset.** Recommend it to no one; migrate existing `opper.call` code to a compat endpoint with `response_format` (mapping in the `opper-api` skill's `references/migration.md`).
+- **`opper.call` rides the legacy `/call` surface, which is being sunset — and the SDK is being reworked to drop it.** Recommend it to no one; migrate existing `opper.call` code to a compat endpoint with `response_format` (mapping in the `opper-api` skill's `references/migration.md`).
 - **No required schema library.** Both SDKs accept plain JSON Schema dicts and don't need any third-party schema package. Pydantic (Python) and Zod (TS) are bundled integrations for convenience — most users will reach for them, but they are optional.
 - **If you use Zod with the TS SDK, it must be v4.** `npm install zod@4`. The `zod@3.25.x` dual-mode package is *not* supported. (Zod is an *optional peer dependency*.)
 - **Python depends on `httpx`** (not zero-dep at runtime); TypeScript is zero-dep at runtime.
