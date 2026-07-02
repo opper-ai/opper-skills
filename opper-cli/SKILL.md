@@ -61,7 +61,7 @@ Run `opper` with no args for an interactive menu (Account · Agents · Skills ·
 |---|---|
 | `login` / `logout` / `whoami` | OAuth device flow + slot inspection. |
 | `config list/get/remove` | Inspect or remove auth slots (slots are created by `opper login`). |
-| `call <name> <instructions> [input]` | Run an Opper function. Stdin if `input` omitted; `--model`, `--stream`. |
+| `call <name> <instructions> [input]` | Run an Opper function. Stdin if `input` omitted; `--model`, `--stream`. **Legacy** — rides the `/v3/call` surface being sunset; don't build on it (see gotchas). |
 | `functions list/get/delete` | Manage saved functions. |
 | `indexes list/get/create/delete/add/query` | Knowledge bases (a.k.a. indexes). |
 | `models list/create/get/delete` | Built-in + custom (LiteLLM-backed) models. |
@@ -103,6 +103,7 @@ Under the hood these all route to `/v3/compat/...` (see the `opper-api` skill).
 ## Non-obvious gotchas
 
 - **`OPPER_API_KEY` env var beats `--key`.** When the env var is set, the `--key <slot>` flag has no effect. Unset it to use a slot.
+- **`opper call` rides the legacy `/v3/call` surface, which is being sunset.** Fine for a quick ad-hoc poke, but never the pattern to build on or copy into application code — that's a compat chat endpoint with `response_format` (see the `opper-api` skill and its `references/migration.md`).
 - **`opper call` argument order is `<function> <instructions> <input>`** — easy to flip.
 - **Model identifiers use `provider/<id-with-dashes>`** (e.g. `anthropic/claude-sonnet-4-6`, `anthropic/claude-opus-4-7`, `openai/gpt-4o`) — **dashes, not dots**, even for versions. Custom models registered with `opper models create` are LiteLLM-backed. List the live set with `opper models list` or `curl -s https://api.opper.ai/v3/models`.
 - **`indexes` is the CLI name for knowledge bases.** `opper indexes add <name> <content>` takes content as a positional arg (use `-` to read from stdin), not a `--content` flag.
