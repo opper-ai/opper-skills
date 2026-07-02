@@ -6,8 +6,9 @@ description: >
   Pydantic / Zod / JSON Schema, knowledge base semantic search, streaming,
   tracing, tool use, and multi-agent composition. Use this skill whenever the
   user is writing Python or TypeScript code that imports `opperai`, builds an
-  Opper agent, or asks how to do anything Opper-related in code — even if they
-  don't explicitly name the SDK. Both languages live in one repo with parallel
+  Opper agent, needs to migrate code off the legacy `opper.call`, or asks how
+  to do anything Opper-related in code — even if they don't explicitly name
+  the SDK. Both languages live in one repo with parallel
   numbered examples; agents are part of the SDK, not a separate package.
 category: sub-skill
 parent: opper
@@ -26,12 +27,12 @@ The upstream READMEs (`python/README.md`, `typescript/README.md`) and the number
 
 The unified `opperai` package exposes a few different shapes. Pick by what you're building:
 
-- **One-shot structured task** (input → typed output, including image / audio / video generation): **`opper.call(...)`** is recommended. Pass `output_schema=` (Python) or `outputSchema:` (TS) — Pydantic / Zod / dataclasses / TypedDict / raw JSON Schema all work.
-- **Streaming any of the above**: **`opper.stream(...)`** — same shape, async-iterable of typed chunks.
-- **Multi-turn chat or message-thread style**: **`Conversation`** (re-exported from `opperai`) — keeps history across `opper.call(...)` invocations.
+- **One-shot structured task** (input → typed output): the recommended path is a **compat chat endpoint with `response_format`**, called through the provider SDK you already know — point the OpenAI SDK's `base_url` at `https://api.opper.ai/v3/compat` and pass your Pydantic / Zod model via `chat.completions.parse(...)`. Seeds below; full shape in the **`opper-api` skill**.
+- **Streaming**: `stream: true` on the same compat call — standard OpenAI SSE semantics.
+- **Multi-turn chat or message-thread style**: the compat chat endpoints are message-native — carry the `messages` array forward.
 - **Tool-using agent, multi-step reasoning, multi-agent, MCP**: the **Agent SDK** (`Agent`, `tool`, `Conversation`, `Hooks`, `mcp`) is recommended for any "model decides what to do next" flow. Use **`agent.run(...)`** for a single shot or **`agent.stream(...)`** for live progress.
-- **Drop-in compatibility with OpenAI / Anthropic / Google SDKs**: not exposed through the `opperai` SDK. Recommended: call the compat endpoints directly through the provider's own SDK (point its `baseURL` / `base_url` at `https://api.opper.ai/v3/compat`), or see the **`opper-api` skill** for raw HTTP.
 - **Knowledge bases / RAG**: **`opper.knowledge.*`** — `create`, `query`, `add`, etc.
+- **`opper.call(...)` / `opper.stream(...)` are legacy.** They ride Opper's `/call` surface, which is **being sunset** — don't start new work on them, and don't use them in examples. Existing code migrates to compat + `response_format`; the field-by-field mapping (`name` → `X-Opper-Name` header, `output_schema` → `response_format`, `result.data` → parsed message content) is in the `opper-api` skill's `references/migration.md`.
 
 ## Pick a path
 
@@ -53,32 +54,54 @@ Authentication: both SDKs read `OPPER_API_KEY` from the environment, or accept `
 
 ## Canonical seed — Python
 
+One-shot tasks go through the compat endpoint with the stock OpenAI SDK; `X-Opper-Name` keeps named-function tracing:
+
 ```python
-from opperai import Opper
+import os
+from openai import OpenAI
 
-opper = Opper()  # uses OPPER_API_KEY
-
-result = opper.call(
-    "summarise",
-    instructions="Summarise the article in two sentences.",
-    input={"text": "..."},
+client = OpenAI(
+    base_url="https://api.opper.ai/v3/compat",
+    api_key=os.environ["OPPER_API_KEY"],
+    default_headers={"X-Opper-Name": "summarise"},
 )
-print(result.data)
+
+resp = client.chat.completions.create(
+    model="openai/gpt-5-mini",
+    messages=[
+        {"role": "system", "content": "Summarise the article in two sentences."},
+        {"role": "user", "content": "..."},
+    ],
+)
+print(resp.choices[0].message.content)
 ```
+
+For typed output, use `client.chat.completions.parse(..., response_format=YourPydanticModel)` and read `resp.choices[0].message.parsed`.
 
 ## Canonical seed — TypeScript
 
 ```ts
-import { Opper } from "opperai";
+import OpenAI from "openai";
 
-const opper = new Opper(); // uses OPPER_API_KEY
-
-const result = await opper.call("summarise", {
-  instructions: "Summarise the article in two sentences.",
-  input: { text: "..." },
+const client = new OpenAI({
+  baseURL: "https://api.opper.ai/v3/compat",
+  apiKey: process.env.OPPER_API_KEY,
+  defaultHeaders: { "X-Opper-Name": "summarise" },
 });
-console.log(result.data);
+
+const resp = await client.chat.completions.create({
+  model: "openai/gpt-5-mini",
+  messages: [
+    { role: "system", content: "Summarise the article in two sentences." },
+    { role: "user", content: "..." },
+  ],
+});
+console.log(resp.choices[0].message.content);
 ```
+
+For typed output, pass `response_format: { type: "json_schema", json_schema: { name, schema } }` (generate the schema from Zod v4 with `z.toJSONSchema(...)`) and `JSON.parse` the message content.
+
+For the agent seeds (`Agent`, `tool`, `agent.run(...)`), see [references/agents.md](references/agents.md).
 
 ### Picking a model
 
@@ -89,7 +112,7 @@ The SDK uses the project's default model when `model:` is omitted — set the de
 
 ## The numbered examples are the highest-bandwidth reference
 
-Both `python/examples/` and `typescript/examples/` hold parallel numbered files. Read by topic.
+Both `python/examples/` and `typescript/examples/` hold parallel numbered files. Read by topic. **Caveat:** many of the getting-started examples still demonstrate the legacy `opper.call` surface — treat them as reference for existing code, not as the pattern for new work (that's compat + `response_format`, above).
 
 **Getting started** (`examples/getting-started/`):
 
@@ -114,6 +137,7 @@ Type definitions: `python/src/opperai/types.py` and `typescript/src/types.ts`.
 
 ## Non-obvious gotchas
 
+- **`opper.call` rides the legacy `/call` surface, which is being sunset.** Recommend it to no one; migrate existing `opper.call` code to a compat endpoint with `response_format` (mapping in the `opper-api` skill's `references/migration.md`).
 - **No required schema library.** Both SDKs accept plain JSON Schema dicts and don't need any third-party schema package. Pydantic (Python) and Zod (TS) are bundled integrations for convenience — most users will reach for them, but they are optional.
 - **If you use Zod with the TS SDK, it must be v4.** `npm install zod@4`. The `zod@3.25.x` dual-mode package is *not* supported. (Zod is an *optional peer dependency*.)
 - **Python depends on `httpx`** (not zero-dep at runtime); TypeScript is zero-dep at runtime.

@@ -1,8 +1,104 @@
-# Migrating to Opper from another LLM gateway
+# Migrating to Opper's compat endpoints
 
 Most migrations are a **base URL + API key swap**. The compat tree at `/v3/compat/...` is shaped so that pointing a stock provider SDK at `https://api.opper.ai/v3/compat` works without changing your call sites.
 
-For exact provider-side payload shapes, follow each provider's own spec. This file documents only what differs at the Opper boundary.
+For exact provider-side payload shapes, follow each provider's own spec. This file documents only what differs at the Opper boundary — plus the one migration that isn't a base-URL swap: moving off Opper's own legacy `/call`.
+
+## From Opper's own `/call` — `POST /v3/call` or the legacy v2 Python SDK
+
+`/call` (Opper's task-completion endpoint, also what the legacy v2 Python SDK's `opper.call(...)` hits) is **being sunset**. The replacement is a compat chat endpoint with structured output as a parameter — same models, same tracing and control plane, standard OpenAI shape. Don't point new integrations at `/call`; migrate existing ones.
+
+Before — a typical structured `/v3/call`:
+
+```bash
+curl -s -X POST https://api.opper.ai/v3/call \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -d '{
+    "name": "extract_room_details",
+    "instructions": "Extract details about the room described in the text.",
+    "model": "openai/gpt-5-mini",
+    "input": {"text": "The corner office on floor 3 fits 8 people and has a projector."},
+    "output_schema": {"type": "object", "properties": {
+      "floor": {"type": "integer"},
+      "capacity": {"type": "integer"},
+      "equipment": {"type": "array", "items": {"type": "string"}}
+    }, "required": ["floor", "capacity", "equipment"]}
+  }'
+```
+
+After — the same task on `/v3/compat/chat/completions`:
+
+```bash
+curl -s -X POST https://api.opper.ai/v3/compat/chat/completions \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -H "X-Opper-Name: extract_room_details" \
+  -d '{
+    "model": "openai/gpt-5-mini",
+    "messages": [
+      {"role": "system", "content": "Extract details about the room described in the text."},
+      {"role": "user", "content": "The corner office on floor 3 fits 8 people and has a projector."}
+    ],
+    "response_format": {"type": "json_schema", "json_schema": {
+      "name": "room_details",
+      "schema": {"type": "object", "properties": {
+        "floor": {"type": "integer"},
+        "capacity": {"type": "integer"},
+        "equipment": {"type": "array", "items": {"type": "string"}}
+      }, "required": ["floor", "capacity", "equipment"]}
+    }}
+  }'
+```
+
+Field-by-field:
+
+| `/v3/call` | Compat chat completions |
+|---|---|
+| `name` | `X-Opper-Name` request header — keeps named-function tracing and guardrail function-scope filtering |
+| `instructions` | `system` message |
+| `input` | `user` message — JSON-encode structured input into the message content |
+| `output_schema` | `response_format: {type: "json_schema", json_schema: {name, schema}}` |
+| `model` (string or fallback array) | `model` — same `provider/model` form; for fallback chains, define a Route alias in the platform |
+| response `data` | `choices[0].message.content` — a JSON **string**; parse it |
+| `meta.cost` | `usage.opper.cost.total` in the body, and the `X-Opper-Cost` response header |
+| `meta.trace_uuid` | `meta.trace_uuid` — traces work identically, visible at [platform.opper.ai](https://platform.opper.ai) |
+
+In Python, the legacy SDK call maps onto the stock OpenAI SDK:
+
+```python
+# Before (legacy opper.call)
+result = opper.call(
+    "extract_room_details",
+    instructions="Extract details about the room described in the text.",
+    input={"text": "..."},
+    output_schema=RoomDetails,   # Pydantic model or JSON Schema
+)
+room = result.data
+
+# After (OpenAI SDK against /v3/compat)
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.opper.ai/v3/compat",
+    api_key=os.environ["OPPER_API_KEY"],
+    default_headers={"X-Opper-Name": "extract_room_details"},
+)
+resp = client.chat.completions.parse(   # .parse() takes the Pydantic model directly
+    model="openai/gpt-5-mini",
+    messages=[
+        {"role": "system", "content": "Extract details about the room described in the text."},
+        {"role": "user", "content": "..."},
+    ],
+    response_format=RoomDetails,
+)
+room = resp.choices[0].message.parsed
+```
+
+Notes:
+
+- **`.parse()` vs `.create()`** — the OpenAI SDK's `parse()` accepts a Pydantic model and returns `message.parsed`, the closest ergonomic match to `result.data`. With plain `create()` + a raw `json_schema`, parse `choices[0].message.content` yourself.
+- **`strict: true`** on `json_schema` follows OpenAI's rules: every property must be listed in `required` and objects need `additionalProperties: false`. Leave `strict` off to keep a `/call`-style loose schema.
+- **Any compat surface works** — Anthropic Messages with a forced tool schema, OpenAI Responses with `text.format`, etc. Chat completions is the shortest hop from `/call`.
 
 ## From OpenRouter (OpenAI-compatible)
 

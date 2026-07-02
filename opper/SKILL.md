@@ -87,17 +87,17 @@ Lead with one sentence: what you found + what you'd do next. Never an open-ended
 
 | Lane | Proposal |
 |---|---|
-| New / starter | *"You're starting fresh. I'd suggest: (1) `npm i -g @opperai/cli`, (2) `opper login`, (3) `opper call` to make your first call. The CLI handles auth, picks a model, and shows the trace — everything in one place. Sound good?"* |
-| New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) point your OpenAI/Anthropic SDK at `https://api.opper.ai/v3/compat` (or install the `opperai` SDK), (2) make one call against your simplest task, (3) inspect the trace at platform.opper.ai. Sound good?"* |
+| New / starter | *"You're starting fresh. I'd suggest: (1) `npm i -g @opperai/cli` + `opper login` to get a key, (2) one chat completion against `https://api.opper.ai/v3/compat` (curl or the OpenAI SDK), (3) inspect the trace at platform.opper.ai. Sound good?"* |
+| New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) point your OpenAI/Anthropic SDK at `https://api.opper.ai/v3/compat` (add the `opperai` package only if you're building agents), (2) make one call against your simplest task, (3) inspect the trace at platform.opper.ai. Sound good?"* |
 | Existing Opper integration | Skip the proposal — read the existing code and answer the user's actual question. |
 | Migration | *"You're using [OpenAI/Anthropic/Google]. Opper exposes a drop-in compat endpoint — point your existing SDK at `https://api.opper.ai/v3/compat` and your code keeps working. Want me to do that swap first, then we can explore native features?"* |
 | Media (image / audio / video / OCR) | *"For generating [images/audio/video] you'd use Opper's dedicated media endpoints (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`). I'll load the `opper-multimodal` skill and we'll make one call, then inspect the result + trace. Sound good?"* |
 | Realtime | *"For voice/realtime, Opper exposes `wss://api.opper.ai/v3/realtime` (covered by the `opper-multimodal` skill). I'd suggest following [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart). Sound good?"* |
 | CLI / route a coding agent | *"I'd suggest `opper login` followed by `opper launch <agent>` to route your coding agent's inference through Opper. Want to set that up?"* |
 
-### The CLI is the easiest starting point
+### Compat is the default first call; the CLI is the easiest front door
 
-When the user has no strong preference, **lead with the CLI**: `opper login` + `opper call` gives them an authenticated session, structured output, and a trace URL in one flow. They can move to the SDK once the call shape is clear. The CLI also organises everything else — usage (`opper usage`), traces (`opper traces`), models (`opper models`), launching coding agents (`opper launch`).
+When the user has no strong preference, get them authenticated with the CLI (`opper login`) and make the **first call against a compat endpoint** — a chat completion at `https://api.opper.ai/v3/compat`, via curl or whichever provider SDK they already use. That's the shape they'll keep in production. The CLI organises everything around it — usage (`opper usage`), traces (`opper traces`), models (`opper models`), launching coding agents (`opper launch`). Do **not** steer first calls at `opper call` / `/v3/call` — that surface is legacy and being sunset (see the `opper-api` skill's migration reference).
 
 ### Picking a model
 
@@ -137,9 +137,8 @@ A setup isn't done until the user has seen it work. Run the **minimal** example 
 
 | Lane | What "working" looks like |
 |---|---|
-| CLI | `opper whoami` returns an active slot; `opper call ...` prints structured output and a `trace_id` |
-| Compat (any SDK) | The user's OpenAI/Anthropic/Google SDK call returns 200 from `api.opper.ai/v3/compat`; the call appears as a trace at [platform.opper.ai](https://platform.opper.ai) |
-| SDK (Python/TS) | `opper.call(...).data` returns a value (typed when an output schema is passed); trace visible |
+| CLI | `opper whoami` returns an active slot; `opper models list` prints the live model roster |
+| Compat (curl or any SDK) | A chat completion returns 200 from `api.opper.ai/v3/compat`; structured output validates via `response_format`; the call appears as a trace at [platform.opper.ai](https://platform.opper.ai) |
 | Media (`opper-multimodal`) | `POST /v3/images` returns an image inline; `POST /v3/videos` returns `202` + a `status_url` that resolves to a download URL |
 | Agent (Python/TS) | `agent.run(...)` returns; reasoning steps and tool calls appear in the trace |
 | Realtime (`opper-multimodal`) | WebSocket connects; first server message is `{"type": "session.started", "session_id": ...}` |
@@ -166,7 +165,7 @@ Once something works, suggest **one** natural next step — don't dump the whole
 | Any working integration, CLI not installed | Install the CLI for unified usage + traces from the terminal: `npm i -g @opperai/cli && opper login` then `opper usage` (spend) / `opper traces list` (recent calls) | — |
 | Any working integration | Inspect traces in the UI at [platform.opper.ai](https://platform.opper.ai) | — |
 | CLI installed | `opper launch claude-code` (or `codex` / `opencode`) to route their coding agent through Opper | — |
-| Migrated from OpenAI/Anthropic | Replace the provider SDK with `opperai` to unlock structured output, knowledge bases, and native tracing | — |
+| Migrated from OpenAI/Anthropic | Stay on the provider SDK — add `response_format` for structured output and the `X-Opper-Name` header for named tracing; reach for `opperai` only for agents and knowledge bases | — |
 
 ---
 
@@ -210,7 +209,7 @@ Use these terms exactly — they're proper nouns in Opper's universe. All define
 | **Realtime** *(`opper-multimodal`)* | Two-way voice / audio over WebSocket | `wss://api.opper.ai/v3/realtime` |
 | **Roundtable** | One prompt to several models, consolidated or compared | `/v3/roundtable` |
 
-Structured output is a parameter (`response_format`), not a separate surface. The `opperai` SDK and `opper` CLI wrap the gateway with `opper.call(...)` / `opper call` — see the `opper-sdks` and `opper-cli` skills. You can mix surfaces in one app — e.g. compat chat for the conversation, a media endpoint for an image, realtime for voice.
+Structured output is a parameter (`response_format`), not a separate surface. The `opperai` SDK's `opper.call(...)` and the CLI's `opper call` wrap the **legacy `/call` surface, which is being sunset** — don't point users at them; migrate existing users to compat (mapping in the `opper-api` skill's `references/migration.md`). You can mix surfaces in one app — e.g. compat chat for the conversation, a media endpoint for an image, realtime for voice.
 
 **Control Plane** — five governance tools, attach at org or project scope (org rules cascade, project rules narrow):
 

@@ -49,7 +49,8 @@ Once a skill is installed, your agent will activate it automatically when you sa
 - "Create an Opper index and add this markdown file to it."
 
 **`opper-sdks`**
-- "Add an Opper `call` to this Python script that returns structured output."
+- "Make this Python script return structured output through Opper."
+- "Migrate this `opper.call` code to the compat chat completions endpoint."
 - "Wire up streaming with the TypeScript SDK."
 - "Build an Opper agent with a `get_weather` tool."
 - "Wrap this pipeline in an Opper trace so I can see the steps."
