@@ -48,7 +48,8 @@ One key, one gateway. Pick the endpoint by what you're producing:
 |---|---|---|---|---|
 | **Images** (generate / edit) | `POST /v3/images` | sync (opt-in async) | `GET /v3/images/models` | [images](https://docs.opper.ai/build/multimodal/images) |
 | **Speech / TTS** | `POST /v3/audio/speech` | sync | `GET /v3/audio/models?type=tts` | [audio](https://docs.opper.ai/build/multimodal/audio) |
-| **Transcription / STT** | `POST /v3/audio/transcriptions` | sync | `GET /v3/audio/models?type=stt` | [audio](https://docs.opper.ai/build/multimodal/audio) |
+| **Transcription / STT** | `POST /v3/audio/transcriptions` | sync (opt-in `stream`) | `GET /v3/audio/models?type=stt` | [audio](https://docs.opper.ai/build/multimodal/audio) |
+| **Voice cloning** | `POST /v3/audio/voices` | sync | `GET /v3/audio/voices` (your voices) | [audio](https://docs.opper.ai/build/multimodal/audio) |
 | **Video** (generate) | `POST /v3/videos` | **async** — poll `status_url` | `GET /v3/videos/models` | [video](https://docs.opper.ai/build/multimodal/video) |
 | **OCR** (PDF / image → markdown) | `POST /v3/ocr` | sync | `GET /v3/ocr/models` | [ocr](https://docs.opper.ai/build/multimodal/ocr) |
 | **Files** (store / reuse media) | `/v3/files` | sync | — | [files](https://docs.opper.ai/build/multimodal/files) |
@@ -92,7 +93,26 @@ curl -s -X POST https://api.opper.ai/v3/audio/transcriptions \
 # → { "text": "...", "language": "en", "duration": 12.3, "segments": [...], "usage": {...} }
 ```
 
-`GET /v3/audio/models?type=tts` lists each speech model's `voices`, `default_voice`, and `max_length`; `?type=stt` lists each transcription model's `languages`, `formats`, and whether it supports `diarize` (speaker labels — rejected if the model can't do it).
+`GET /v3/audio/models?type=tts` lists each speech model's `voices`, `default_voice`, and `max_length`; `?type=stt` lists each transcription model's `languages`, `formats`, whether it supports `diarize` (speaker labels — rejected if the model can't do it), and whether it supports `stream`.
+
+**Streaming transcription**: send `"stream": true` to `/v3/audio/transcriptions` to get incremental `transcript.text.delta` events over SSE (final `transcript.text.done` + `[DONE]`) instead of one blocking response. Only some models support it — check `stream` in the `?type=stt` discovery list; unsupported models return a `400`.
+
+**Custom voices (cloning)**: clone a voice from a reference sample, then use its `voice_...` id anywhere a `voice` is accepted (e.g. `/v3/audio/speech`). Voices are scoped to your org/project and provider-agnostic — `model` picks the backing provider.
+
+```bash
+# Clone a voice — audio as file_id, URL, or data-URI (reference sample is transient, never stored)
+curl -s -X POST https://api.opper.ai/v3/audio/voices \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -d '{"model": "mistral/voxtral-mini-2602", "name": "narrator", "audio": "file_abc123"}'
+# → { "id": "voice_...", "object": "voice", "provider": "mistral", "expires_at": ..., ... }
+
+# Use the cloned voice
+curl -s -X POST https://api.opper.ai/v3/audio/speech \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -d '{"model": "mistral/voxtral-mini-2602", "input": "Hello from a cloned voice", "voice": "voice_..."}'
+```
+
+`GET /v3/audio/voices` lists your voices (with `expires_at` — some providers expire clones); `GET`/`DELETE /v3/audio/voices/{id}` fetch or remove one (delete also removes it at the provider).
 
 ### Video — `POST /v3/videos` (asynchronous)
 
