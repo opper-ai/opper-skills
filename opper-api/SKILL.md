@@ -147,27 +147,29 @@ Combine with commas, e.g. `?include=route,benchmarks`. Reach for `include=route`
 
 Filter by capability and type: `?capability=vision` / `?capability=pdf` (which chat models accept images / PDFs), `?type=image|tts|stt|video`. The modality endpoints below also have scoped discovery lists.
 
-References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabilities/models). For backup chains across *different* models, set a Route alias in the platform.
+References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabilities/models).
 
-### Pooled models — bare names vs pinned provider ids
+### The `model` string — pools, pins, aliases and routes
 
-`GET /v3/models` returns one row per **provider**, not per model. Most models are served by several, and Opper groups them into a **pool** you can address either way:
+`GET /v3/models` returns one row per **provider**, not per model. Four things can go in the `model` field, all without special headers or flags:
 
-| Form | Example | Behaviour |
+| Form | Example | What it addresses |
 |---|---|---|
-| **Bare model name** (pooled) | `"model": "kimi-k3"` | Opper picks one of the providers serving it, and the rest become the fallback chain |
-| **Provider-qualified id** (pinned) | `"model": "tensorx/moonshotai/kimi-k3"` | Always that exact provider row, no failover |
+| **Bare model name** — a *pool* | `"kimi-k3"` | Every provider serving that model. Opper picks one; the rest are failover |
+| **Provider-qualified id** — a *pin* | `"tensorx/moonshotai/kimi-k3"` | Exactly that one provider row, no failover |
+| **Org alias** — your own list | `"my-flash"` | An ordered list you defined: primary first, then fallbacks. CRUD at `/v2/models/aliases` |
+| **Route** — a deployed graph | `"dynamic/my-route"` | Classification, branching, per-node fallbacks, versioned. Managed on `/management/v1/dynamic-routes` |
 
-Two fields on each row tie this together: **`model`** is the group key (and the bare name you call), **`pooled`** is whether that row answers to it. Rows with `pooled: false` are fully callable by explicit id — they're just held out of bare-name routing, usually for a smaller context window or a pricier latency-tuned variant.
+**None of these is the default answer — pick per use case.** Pin for determinism (evals, a guaranteed jurisdiction or price, a provider-specific behaviour); pool for redundancy without thinking about it; alias to name your own policy once and reuse it; route when the decision depends on the request.
 
-**Prefer the bare name** unless you need a specific jurisdiction, price, or provider-specific behaviour — you get redundancy and load spreading for free.
+On pools specifically: **`model`** is the group key on each row (and the bare name you call), **`pooled`** is whether that row answers to it. `pooled: false` rows are fully callable by explicit id — they're just held out of bare-name routing, usually for a smaller context window or a pricier latency-tuned variant.
 
 Two things that surprise people:
 
-- **The response `model` field echoes what you sent**, so it never tells you which provider served a pooled call. The trace does — `span.meta.model` carries the resolved `provider/provider_model_id`.
+- **The response `model` field echoes what you sent** — a bare name, an alias, or a `dynamic/` route all come back verbatim, so it never reveals which provider ran. The trace does: `span.meta.model` carries the resolved `provider/provider_model_id`. For routes, the `X-Opper-Route-Model` response header answers it directly.
 - **Identical requests with no `X-Opper-Trace-Id` all land on the same provider.** That's deliberate session affinity (keyed on your API key over a 30-minute window, for prompt-cache locality), not broken round-robin. Send a unique trace id per request to spread them.
 
-Full mechanics — selection order, failover, why rows get excluded, when to pin: [references/pooling.md](references/pooling.md).
+Full mechanics — how the four compose, selection order, failover, alias and route management: [references/model-routing.md](references/model-routing.md).
 
 ## Provider-compatible endpoints — under `/v3/compat/...`
 
@@ -231,7 +233,7 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 - **Compat endpoints live under `/v3/compat/...`**, not at `/v3/...`. SDK migrations should point base URL at `https://api.opper.ai/v3/compat`.
 - **Auth is `Authorization: Bearer ...` only.** Anthropic SDKs send `x-api-key` by default — set the `Authorization` header explicitly when migrating.
 - **Structured output is a parameter, not an endpoint** — use `response_format: {type: "json_schema"}` on a compat chat call.
-- **A bare model name is a pool, not a provider.** `"model": "kimi-k3"` routes to any of the providers serving it; `"model": "tensorx/moonshotai/kimi-k3"` pins one. The response `model` field just echoes what you sent, so only the trace (`span.meta.model`) reveals which one ran — see [references/pooling.md](references/pooling.md).
+- **A bare model name is a pool, not a provider.** `"model": "kimi-k3"` routes to any provider serving it; `"tensorx/moonshotai/kimi-k3"` pins one; `"my-alias"` uses your own ordered list; `"dynamic/my-route"` runs a deployed graph. The response `model` field just echoes what you sent, so only the trace (`span.meta.model`) reveals which one ran — see [references/model-routing.md](references/model-routing.md).
 - **Server-side web search is portable** — one `{"type": "opper:web_search"}` tool entry works on every model; native provider shapes also forward verbatim.
 - **Media / files / realtime are not in this skill** — they're dedicated endpoints documented in `opper-multimodal`. Don't improvise their shapes here.
 - **Knowledge is v2, not v3.** Don't reach for `/v3/knowledge/...` — it does not exist.
@@ -252,6 +254,6 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 | Worked recipes in many languages | [github.com/opper-ai/opper-cookbook](https://github.com/opper-ai/opper-cookbook) |
 | Provider-compatible endpoints, deeper | [references/compatibility.md](references/compatibility.md) |
 | Migrating from OpenRouter / OpenAI / Anthropic / Opper's legacy `/call` | [references/migration.md](references/migration.md) |
-| Pooled models — bare names, pinning, failover, session affinity | [references/pooling.md](references/pooling.md) |
+| Model routing — pools, pins, org aliases, dynamic routes, failover | [references/model-routing.md](references/model-routing.md) |
 | Calling the API from Python or TypeScript | the `opper-sdks` skill |
 | Calling the API from a terminal | the `opper-cli` skill |
