@@ -158,7 +158,7 @@ References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabiliti
 | **Bare model name** — a *pool* | `"kimi-k3"` | Every provider serving that model. Opper picks one; the rest are failover |
 | **Provider-qualified id** — a *pin* | `"tensorx/moonshotai/kimi-k3"` | Exactly that one provider row, no failover |
 | **Org alias** — your own list | `"my-flash"` | An ordered list you defined: primary first, then fallbacks. CRUD at `/v2/models/aliases` |
-| **Route** — a deployed graph | `"dynamic/my-route"` | Classification, branching, per-node fallbacks, versioned. Managed on `/management/v1/dynamic-routes` |
+| **Route** — a deployed graph | `"dynamic/my-route"` | Classification, branching, per-node fallbacks, versioned. Built in the platform UI (or `/management/v1/dynamic-routes` with a Management API Key) — but **calling** one only needs your normal project key |
 
 **None of these is the default answer — pick per use case.** Pin for determinism (evals, a guaranteed jurisdiction or price, a provider-specific behaviour); pool for redundancy without thinking about it; alias to name your own policy once and reuse it; route when the decision depends on the request.
 
