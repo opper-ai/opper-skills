@@ -199,9 +199,27 @@ Responses carry headers telling you exactly what the graph did:
 Every model node in a graph is **required** to declare a fallback edge — to
 another model node or to END — so a route can't be deployed with a dead end.
 
-Management lives on the Management API (needs a Management API Key with
-`dynamic_routes:read` / `dynamic_routes:write` scopes — *not* a project API
-key), or the platform UI:
+### Calling vs managing — two different credentials
+
+**Calling a route needs nothing special.** `"model": "dynamic/my-route"` works
+with your ordinary project API key, exactly like any other model string. This is
+the part your application does, and it is not gated.
+
+**Managing** routes — create, edit the draft, deploy, roll back — is separate,
+and there are two ways in:
+
+| Path | Credential | Who uses it |
+|---|---|---|
+| Platform UI → *Settings → Dynamic Routes* | your normal login session | **the usual way** — a visual graph builder; no key to mint |
+| `/management/v1/dynamic-routes` | a **Management API Key** with `dynamic_routes:read` / `dynamic_routes:write` scopes | programmatic / CI management |
+
+A project API key (`op-...`) is **not** accepted on the management endpoints —
+that's a deliberate privilege split, not an oversight. Management API Keys are
+minted from the platform UI behind a human approval flow, and `/management/v1/*`
+is tier-gated (orgs without the control-plane entitlement get a 403).
+
+So: no, you don't need a management key to *use* routes, and you don't need one
+to *build* them in the UI either. You need one only to manage them over HTTP.
 
 ```
 GET|POST   /management/v1/dynamic-routes
@@ -214,7 +232,8 @@ POST       /management/v1/dynamic-routes/{name}/versions/{n}/rollback
 ```
 
 Aliases are *not* valid targets inside a route graph — model nodes resolve
-canonical model names and pinned ids only.
+canonical model names and pinned ids only. (Aliases themselves have no such
+split: `/v2/models/aliases` takes an ordinary project API key.)
 
 ---
 
