@@ -61,15 +61,18 @@ Worked example — *"which Opper models have ZDR?"*:
 
 ```bash
 # 1. Grep the spec for the term.
-curl -s https://api.opper.ai/v3/openapi.yaml | grep -i -n -E 'zdr|retention'
-# → reveals route.data_handling.zdr.status on model records
-# → and the include=route query param on GET /v3/models that surfaces it
+curl -s https://api.opper.ai/v3/openapi.yaml | grep -i -n zdr
+# → reveals compliance.zdr on every GET /v3/models item — no include, no API key
 
-# 2. Call the endpoint with the right include.
-curl -s -H "Authorization: Bearer $OPPER_API_KEY" \
-  "https://api.opper.ai/v3/models?include=route" \
-  | jq '.models[] | {id, zdr: .route.data_handling.zdr.status}'
+# 2. Call the endpoint and derive the answer from the facts.
+curl -s https://api.opper.ai/v3/models \
+  | jq -r '.models[] | select(.compliance.zdr.logging == false and .compliance.zdr.moderation != true) | .id'
+
+# Or print the facts per model and decide yourself.
+curl -s https://api.opper.ai/v3/models | jq '.models[] | {id, zdr: .compliance.zdr}'
 ```
+
+`compliance.zdr` is an object of five tri-state facts — `logging`, `moderation`, `caching`, `training`, `subprocessors` — each `true` (content is held / reaches that pipeline), `false` (it is not), or `null` (not established). There is no summary string; derive what you need. "ZDR by default" is `logging == false and moderation != true`. The same object sits on the `opper` block of `/v3/compat/models` items and, with a key, on the route object (`?include=route`, `/v3/providers?include=routes`).
 
 Same pattern answers any "where is X" question — grep the spec, follow the schema to the endpoint, call it. (Knowledge bases live on a separate v2 surface — see "Knowledge bases" below.)
 
@@ -135,15 +138,15 @@ Two URLs, two audiences:
 - **In code**: `https://api.opper.ai/v3/models` — programmatic discovery, returns JSON.
 - **When talking to the user**: [opper.ai/models](https://opper.ai/models) — the browsable human catalog. Link this when recommending or discussing a model.
 
-The default response is light. For compliance / data-handling / benchmark questions, add `?include=`:
+The default response is light but every item carries a `compliance` block — `residency`, `country`, `inference_location`, `zdr` (the object above), `training`, `logging`, `moderation`, `caching`, `content_storage`, `dpa_available`, `third_party_access`, `transfer_mechanism`, `route_id`. That answers most ZDR / residency / GDPR questions without a key. For per-route evidence or benchmarks, add `?include=`:
 
 | `include=` | Adds | What lives there |
 |---|---|---|
-| `route` (requires API key) | `route` object per model | `data_handling.zdr.status` (`always` / `enterprise`), `data_handling.training.default`, `data_handling.logging.retention_days`, `data_handling.third_party_access`, `gdpr.residency`, `gdpr.dpa_available`, `gdpr.transfer_mechanism`, plus `country` and `underlying_maker` |
+| `route` (requires API key) | `route` object per model | The full service-route record: `data_handling.{training,logging,moderation,caching}` with `retention_days` / `storage_location` / `human_review`, `data_handling.subprocessors_read_content`, `gdpr.{residency,dpa_available,transfer_mechanism}`, `verification.status`, `sources`, `last_verified_at`, `underlying_maker` — plus the same `zdr` object as `compliance.zdr` |
 | `maker` (public) | `maker` | Original weights creator (e.g. `meta` for Llama, `mistral` for Mistral) |
 | `benchmarks` (public) | `benchmarks` | Public scores from artificialanalysis.ai |
 
-Combine with commas, e.g. `?include=route,benchmarks`. Reach for `include=route` whenever the question is about ZDR, residency, retention, training opt-out, third-party access, or GDPR posture — **none of these fields appear in the default response.**
+Combine with commas, e.g. `?include=route,benchmarks`. Reach for `include=route` when you need retention days, storage location, verification status, or the sources behind a claim — `compliance` is the summary, `route` is the evidence.
 
 Filter by capability and type: `?capability=vision` / `?capability=pdf` (which chat models accept images / PDFs), `?type=image|tts|stt|video`. The modality endpoints below also have scoped discovery lists.
 
