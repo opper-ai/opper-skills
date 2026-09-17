@@ -200,8 +200,8 @@ Use these terms exactly — they're proper nouns in Opper's universe. All define
 | **Trace** | The full tree behind one call: the model call, any tool calls, every rule that fired |
 | **Gateway** | The request path. Enforces Control Plane rules on every call |
 | **Pool** | The set of providers serving one model. A bare model name (`kimi-k3`) routes across the pool with failover; a provider-qualified id (`tensorx/moonshotai/kimi-k3`) pins one member |
-| **Alias** | An org-scoped name you define for your own ordered list of models — primary first, then fallbacks. Managed at `/v2/models/aliases` |
-| **Route** | A deployed routing graph (classify, branch, per-node fallbacks, versioned), called as `dynamic/<name>`. The Route capability of the Control Plane |
+| **Alias** | An org-scoped name for your own ordered list of models — primary first, then fallbacks. Predates routes; still resolves, but new fallback chains are routes |
+| **Route** | A deployed routing graph (pools, fixed fallback order, classify, branch, versioned), called as `dynamic/<name>`. The Route capability of the Control Plane, and the way to build a fallback chain. Manageable from CI over `/management/v1/dynamic-routes` |
 
 **API surfaces** — one gateway, pick the endpoint by what you're building:
 
@@ -222,7 +222,7 @@ Structured output is a parameter (`response_format`), not a separate surface. Th
 | **Observe** | Score every response against criteria you write. Choose frequency + strictness |
 | **Steer** | Use Observe scores and feedback to pick better examples and tune prompts |
 | **Guard** | Block or redact content before it hits the model and before responses go back |
-| **Comply** | Limit which models can run, retention duration, and spend |
+| **Comply** | Limit which models can run (provider, inference and storage location, ZDR), retention duration, and spend. A blocked call is a 403; the dashboard counts it under "blocked by policy" |
 
 ---
 

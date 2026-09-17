@@ -138,13 +138,14 @@ Two URLs, two audiences:
 - **In code**: `https://api.opper.ai/v3/models` — programmatic discovery, returns JSON.
 - **When talking to the user**: [opper.ai/models](https://opper.ai/models) — the browsable human catalog. Link this when recommending or discussing a model.
 
-The default response is light but every item carries a `compliance` block — `residency`, `country`, `inference_location`, `zdr` (the object above), `training`, `logging`, `moderation`, `caching`, `content_storage`, `dpa_available`, `third_party_access`, `transfer_mechanism`, `route_id`. That answers most ZDR / residency / GDPR questions without a key. For per-route evidence or benchmarks, add `?include=`:
+The default response is light but every item carries a `compliance` block — `residency`, `country`, `inference_location`, `storage_location`, `zdr` (the object above), `training`, `logging`, `moderation`, `caching`, `content_storage`, `dpa_available`, `third_party_access`, `transfer_mechanism`, `route_id`. That answers most ZDR / residency / GDPR questions without a key. For per-route evidence or benchmarks, add `?include=`:
 
 | `include=` | Adds | What lives there |
 |---|---|---|
 | `route` (requires API key) | `route` object per model | The full service-route record: `data_handling.{training,logging,moderation,caching}` with `retention_days` / `storage_location` / `human_review`, `data_handling.subprocessors_read_content`, `gdpr.{residency,dpa_available,transfer_mechanism}`, `verification.status`, `sources`, `last_verified_at`, `underlying_maker` — plus the same `zdr` object as `compliance.zdr` |
 | `maker` (public) | `maker` | Original weights creator (e.g. `meta` for Llama, `mistral` for Mistral) |
 | `benchmarks` (public) | `benchmarks` | Public scores from artificialanalysis.ai |
+| `policy` (requires API key) | `policy` object per model | Whether the caller's Comply rules and entitlements let this row run: `allowed`, `blocked_by` (`org` / `project` / `entitlement`), `reason` (the same sentence a 403 would carry). The list stays unfiltered |
 
 Combine with commas, e.g. `?include=route,benchmarks`. Reach for `include=route` when you need retention days, storage location, verification status, or the sources behind a claim — `compliance` is the summary, `route` is the evidence.
 
@@ -160,10 +161,10 @@ References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabiliti
 |---|---|---|
 | **Bare model name** — a *pool* | `"kimi-k3"` | Every provider serving that model. Opper picks one; the rest are failover |
 | **Provider-qualified id** — a *pin* | `"tensorx/moonshotai/kimi-k3"` | Exactly that one provider row, no failover |
-| **Org alias** — your own list | `"my-flash"` | An ordered list you defined: primary first, then fallbacks. CRUD at `/v2/models/aliases` |
-| **Route** — a deployed graph | `"dynamic/my-route"` | Classification, branching, per-node fallbacks, versioned. Built in the platform UI (or `/management/v1/dynamic-routes` with a Management API Key) — but **calling** one only needs your normal project key |
+| **Org alias** — your own list | `"my-flash"` | An ordered list you defined: primary first, then fallbacks. Predates routes; still resolves for orgs that have one (CRUD at `/v2/models/aliases`) |
+| **Route** — a deployed graph | `"dynamic/my-route"` | Pools, fixed fallback order, classification, branching, versioned. **The way to build a fallback chain.** Built in the platform UI or over `/management/v1/dynamic-routes` with a Management API Key (in the public spec) — but **calling** one only needs your normal project key |
 
-**None of these is the default answer — pick per use case.** Pin for determinism (evals, a guaranteed jurisdiction or price, a provider-specific behaviour); pool for redundancy without thinking about it; alias to name your own policy once and reuse it; route when the decision depends on the request.
+**None of these is the default answer — pick per use case.** Pin for determinism (evals, a guaranteed jurisdiction or price, a provider-specific behaviour); pool for redundancy without thinking about it; route for your own fallback chain, or when the decision depends on the request. Don't propose a new alias; point new chains at a route. Fallbacks are never a per-request field on compat: no `fallback_models`, no `model` array.
 
 On pools specifically: **`model`** is the group key on each row (and the bare name you call), **`pooled`** is whether that row answers to it. `pooled: false` rows are fully callable by explicit id — they're just held out of bare-name routing, usually for a smaller context window or a pricier latency-tuned variant.
 
@@ -250,6 +251,7 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 | Concepts (Organization, Project, Call, Trace, Gateway, Control Plane) | [docs.opper.ai/overview/concepts](https://docs.opper.ai/overview/concepts) |
 | Gateway behaviour (routing, compat) | [docs.opper.ai/overview/gateway](https://docs.opper.ai/overview/gateway) |
 | Control Plane (Route / Observe / Steer / Guard / Comply) | [docs.opper.ai/control-plane/overview](https://docs.opper.ai/control-plane/overview) |
+| Management API: projects, keys, dynamic routes and rules from code or CI | [docs.opper.ai/control-plane/management-api](https://docs.opper.ai/control-plane/management-api) |
 | Media generation, files, vision/PDF input, realtime voice | the `opper-multimodal` skill |
 | Multimodality concepts (docs) | [docs.opper.ai/build/multimodal/overview](https://docs.opper.ai/build/multimodal/overview) |
 | Roundtable | [docs.opper.ai/build/roundtable/overview](https://docs.opper.ai/build/roundtable/overview) |
