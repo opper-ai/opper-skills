@@ -7,23 +7,24 @@ through the same resolution pipeline, and they compose.
 |---|---|---|
 | **Bare model name** — a *pool* | `"kimi-k3"` | Every provider Opper has for that model. Opper picks one; the rest are failover |
 | **Provider-qualified id** — a *pin* | `"tensorx/moonshotai/kimi-k3"` | Exactly that one provider row |
-| **Org alias** — your own list | `"my-flash"` | An ordered list of targets you defined: primary first, then fallbacks |
-| **Route** — a deployed graph | `"dynamic/my-route"` | A routing graph you built: classification, branching, per-node fallbacks, versioned |
+| **Org alias** — your own list | `"my-flash"` | An ordered list of targets you defined: primary first, then fallbacks. Predates routes; still resolves |
+| **Route** — a deployed graph | `"dynamic/my-route"` | A routing graph you built: pools, fixed fallback order, classification, branching, versioned. **The way to build a fallback chain today** |
 
 None of these need special headers or flags — they're all just the `model`
 field.
 
 **There is no universally right answer.** Pin when you need determinism, pool
-when you want resilience, alias when you want your own named policy, route when
-the decision depends on the request. Pick per use case:
+when you want resilience, route when you want your own fallback chain or the
+decision depends on the request. Pick per use case:
 
 | You want | Use |
 |---|---|
 | Provider redundancy without thinking about it | **bare name** |
 | Reproducible evals / A/B runs, one provider every time | **pin** |
 | A guaranteed jurisdiction, price, or provider-specific behaviour | **pin** |
-| Your own ordering across providers *or* across models, named once and reused | **alias** |
+| Your own fallback chain across providers *or* across models, named once and reused | **route** (a Model node with fallback edges, or a Pool node) |
 | A cheap model for easy prompts and an expensive one for hard ones | **route** |
+| An org already using a named list from before routes existed | **alias** (keep it; build new chains as routes) |
 | Versioning, rollback, and simulation of the routing decision itself | **route** |
 
 ---
@@ -115,8 +116,8 @@ serving *identical weights* still differ at the edges: whether remote
 `reasoning_effort` genuinely grades or is accepted-and-ignored, whether strict
 `json_schema` is enforced by guided decoding, what the context window is, and
 what it costs. Check the row's `capabilities`, `context_window` and
-`description` — and `?include=route` for `gdpr.residency` when jurisdiction
-matters, since **pools mix regions**.
+`description` — and the `compliance` block (`residency`, `inference_location`,
+`storage_location`) when jurisdiction matters, since **pools mix regions**.
 
 ---
 
@@ -125,6 +126,11 @@ matters, since **pools mix regions**.
 An **org alias** is a name you define that expands to an ordered list of
 targets: the first is the primary, the rest are fallbacks tried in order.
 Aliases are org-scoped, so every project in the org can use them.
+
+**Aliases predate routes.** They still resolve on every call for orgs that use
+them, but new fallback chains should be built as a route (section 4): a route
+gives ranking, a per-attempt trace, and skips members a Comply rule blocks
+instead of failing on them. Don't propose a new alias to a user who has none.
 
 ```bash
 # List your aliases
@@ -161,9 +167,9 @@ Full CRUD is there too — `GET /v2/models/aliases/{id}`,
 schemas, including the optional per-alias `options` object (routing knobs such
 as a first-token timeout).
 
-Reach for an alias when you want to **name a policy once and reuse it**: a
-preferred provider order, a cross-model backup chain (`opus` → `sonnet`), or a
-stable name you can repoint later without touching application code.
+An alias gave you a **name for a list you can repoint without touching
+application code**. A route gives you the same, plus versioning and rollback,
+so that is where to point new work.
 
 Two constraints:
 
@@ -196,8 +202,18 @@ Responses carry headers telling you exactly what the graph did:
 | `X-Opper-Route-Node` | Which node produced the answer |
 | `X-Opper-Route-Error` / `-Status` | Set when the route itself failed (e.g. `route_not_found`) |
 
+Two kinds of node answer a request:
+
+- A **Pool** node holds several models and re-ranks them per request on live
+  numbers (price, latency, throughput, or a blend). A member that a Comply rule
+  blocks for the org is skipped silently; the pool only fails when nothing is
+  left.
+- A **Model** node calls one model. Its fallbacks are the fixed order you wrote
+  as edges. A Comply-blocked model here is a hard failure that walks to the
+  fallback edge.
+
 Every model node in a graph is **required** to declare a fallback edge — to
-another model node or to END — so a route can't be deployed with a dead end.
+another node or to END — so a route can't be deployed with a dead end.
 
 ### Calling vs managing — two different credentials
 
@@ -211,7 +227,7 @@ and there are two ways in:
 | Path | Credential | Who uses it |
 |---|---|---|
 | Platform UI → *Settings → Dynamic Routes* | your normal login session | **the usual way** — a visual graph builder; no key to mint |
-| `/management/v1/dynamic-routes` | a **Management API Key** with `dynamic_routes:read` / `dynamic_routes:write` scopes | programmatic / CI management |
+| `/management/v1/dynamic-routes` | a **Management API Key** (`op-mak-...`) with `dynamic_routes:read` / `dynamic_routes:write` scopes | programmatic / CI management |
 
 A project API key (`op-...`) is **not** accepted on the management endpoints —
 that's a deliberate privilege split, not an oversight. Management API Keys are
@@ -228,8 +244,24 @@ PUT        /management/v1/dynamic-routes/{name}/draft
 POST       /management/v1/dynamic-routes/{name}/deploy
 POST       /management/v1/dynamic-routes/{name}/simulate
 GET        /management/v1/dynamic-routes/{name}/versions
+GET        /management/v1/dynamic-routes/{name}/versions/{n}
 POST       /management/v1/dynamic-routes/{name}/versions/{n}/rollback
+POST       /management/v1/dynamic-routes/{name}/versions/{n}/restore-to-draft
 ```
+
+The same key also manages **Control Plane rules** (Comply, Guard, Observe)
+with the `controls:read` / `controls:write` scopes:
+
+```
+GET|POST     /management/v1/controls/rules
+PATCH|DELETE /management/v1/controls/rules/{uuid}
+```
+
+All of these are in the public spec (grep it for `management/v1`) and on
+[docs.opper.ai/control-plane/management-api](https://docs.opper.ai/control-plane/management-api),
+which has a create → simulate → deploy walkthrough and a rules example. The
+graph body is the same JSON the platform's route builder saves, so the easiest
+way to get a valid one is to build a route in the UI and `GET` it.
 
 Aliases are *not* valid targets inside a route graph — model nodes resolve
 canonical model names and pinned ids only. (Aliases themselves have no such
@@ -296,13 +328,21 @@ only need to tell members apart rather than name them.
   quietly fanning out to every provider.
 - **Retired rows are excluded** from pools immediately. If *every* member of a
   group is retired, the error names the successor model.
-- **Allowlists filter the pool.** An org/project model allowlist narrows the
-  members before selection, so a pool can be effectively smaller than
-  `/v3/models` suggests.
+- **Comply rules filter the pool.** A model allowlist or a Comply rule (for
+  example "EU inference and storage") removes members before selection, so a
+  pool can be effectively smaller than `/v3/models` suggests. A thinned pool is
+  silent. An emptied pool is a **403 `permission_error`**: `model "X" has no
+  allowed members under the current model allowlist`. A restricted-provider row
+  the org has no agreement for is a **403 `entitlement_required`**. Both count
+  as errors on the platform dashboard ("blocked by policy").
+- **Ask before you call.** `GET /v3/models?include=policy` (needs an API key)
+  annotates every row with `policy.allowed`, `policy.blocked_by`
+  (`org` / `project` / `entitlement`) and `policy.reason`, the same sentence the
+  403 would carry. Use it to explain why a pool went empty.
 - **The compat endpoints take a string `model`, never an array.** Sending an
   array is a 400 (`cannot unmarshal array into ... type string`). The array
   form — a fallback chain across models — exists on `/v3/call`'s `CallRequest`,
-  which is legacy. On compat, use an alias or a route instead.
+  which is legacy. On compat, use a route instead.
 
 ## Checking your assumptions
 
@@ -311,5 +351,5 @@ The catalog moves weekly. Never hardcode a pool's membership — re-read
 anything this page doesn't answer:
 
 ```bash
-curl -s https://api.opper.ai/v3/openapi.yaml | grep -n -iE "pooled|ModelAlias"
+curl -s https://api.opper.ai/v3/openapi.yaml | grep -n -iE "pooled|ModelAlias|management/v1|controls/rules"
 ```
