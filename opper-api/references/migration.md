@@ -57,7 +57,7 @@ Field-by-field:
 | `instructions` | `system` message |
 | `input` | `user` message — JSON-encode structured input into the message content |
 | `output_schema` | `response_format: {type: "json_schema", json_schema: {name, schema}}` |
-| `model` (string or fallback array) | `model` — same `provider/model` form, string only; for fallback chains, build a dynamic route in the platform and pass `dynamic/<name>` |
+| `model` (string or fallback array) | `model` — same `provider/model` form, string only. For a chain, put the rest in the `models` array (chat completions only), or build a dynamic route and pass `dynamic/<name>` |
 | response `data` | `choices[0].message.content` — a JSON **string**; parse it |
 | `meta.cost` | `usage.opper.cost.total` in the body, and the `X-Opper-Cost` response header |
 | `meta.trace_uuid` | `meta.trace_uuid` — traces work identically, visible at [platform.opper.ai](https://platform.opper.ai) |
