@@ -261,4 +261,5 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 | Migrating from OpenRouter / OpenAI / Anthropic / Opper's legacy `/call` | [references/migration.md](references/migration.md) |
 | Model routing — pools, pins, org aliases, dynamic routes, failover | [references/model-routing.md](references/model-routing.md) |
 | Calling the API from Python or TypeScript | the `opper-sdks` skill |
+| Agent-assisted setup, platform operations, and model tests | the `opper-mcp` skill |
 | Calling the API from a terminal | the `opper-cli` skill |

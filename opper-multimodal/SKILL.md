@@ -221,5 +221,6 @@ The first client event is `session.start`. **Turn detection**: `server_vad` (aco
 | Browsable model catalog (for user-facing recommendations) | [opper.ai/models](https://opper.ai/models) |
 | Text / chat, structured output, migration, server-side tools | the [`opper-api`](https://skills.opper.ai/opper-api/SKILL.md) skill |
 | Doing this from Python or TypeScript | the [`opper-sdks`](https://skills.opper.ai/opper-sdks/SKILL.md) skill |
+| Agent-assisted setup, platform operations, and model tests | the `opper-mcp` skill |
 | Doing this from a terminal | the [`opper-cli`](https://skills.opper.ai/opper-cli/SKILL.md) skill |
 | Worked recipes in many languages | [github.com/opper-ai/opper-cookbook](https://github.com/opper-ai/opper-cookbook) |

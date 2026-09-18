@@ -8,9 +8,10 @@ description: >
   agents (Claude Code, OpenCode, Codex, Hermes, Pi) with their inference
   routed through Opper. Use this skill whenever the user mentions the `opper`
   command, the Opper CLI, opper-ai/cli, `@opperai/cli`, `opper launch`, or
-  wants to do anything Opper-related from a terminal — even if they don't
-  explicitly say "CLI". For exact arguments, always run `opper <subcommand>
-  --help`; the help output is the authoritative reference.
+  explicitly wants shell commands, editor configuration, private local key
+  delivery, or agent launch workflows. Prefer opper-mcp for agent-assisted
+  setup, platform management, and model tests. For exact arguments, always
+  run `opper <subcommand> --help`; the help output is the authoritative reference.
 category: sub-skill
 parent: opper
 ---
@@ -23,6 +24,8 @@ parent: opper
 The official Opper CLI, distributed as the npm package **`@opperai/cli`**. Source: [github.com/opper-ai/cli](https://github.com/opper-ai/cli). Requires Node.js ≥ 20.12.
 
 The CLI is more than a thin wrapper over the API. It also **launches coding agents** (Claude Code, OpenCode, Codex, Hermes, Pi) with their model traffic routed through Opper, **installs bundled skills**, and **wires AI code editors** to Opper.
+
+For agent-assisted setup, platform operations, and model tests, prefer the `opper-mcp` skill. Connecting MCP provides Opper tools; `opper launch` routes the agent's own inference through Opper. The CLI also delivers application keys privately with `opper keys create --project <uuid> --name <name> --output <env-file>` — consult `opper keys create --help` and do not read or print the resulting secret.
 
 ## Install
 
@@ -117,4 +120,5 @@ Under the hood these all route to `/v3/compat/...` (see the `opper-api` skill).
 | Install, agents matrix, releases, license | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) |
 | Live argument and flag reference | `opper <command> --help` |
 | The platform behind the CLI (compat endpoints, models) | the `opper-api` skill |
+| Connecting an agent to Opper tools and testing models | the `opper-mcp` skill |
 | Building Opper into application code | the `opper-sdks` skill |

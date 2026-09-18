@@ -9,12 +9,15 @@ One philosophy: **point at the live source of truth, don't duplicate it.** Each 
 | Skill | What it covers | Source of truth |
 |---|---|---|
 | [`opper`](./opper/) | **Entry point.** Discovers user intent, then routes to the right sub-skill. Owns setup, testing, and follow-up. | This repo |
+| [`opper-mcp`](./opper-mcp/) | **Preferred for agents.** Connect MCP, set up projects, manage rules, inspect usage/traces, and test models | [opper.ai/mcp](https://opper.ai/mcp) and connected MCP tool schemas |
 | [`opper-cli`](./opper-cli/) | The `opper` command-line tool: calling functions, indexes, traces, models, usage, config | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) and `opper --help` |
 | [`opper-sdks`](./opper-sdks/) | The unified `opperai` packages for Python and TypeScript, including agents | [github.com/opper-ai/opper-sdks](https://github.com/opper-ai/opper-sdks) |
 | [`opper-api`](./opper-api/) | The Opper REST API, gateway and platform concepts, models, compat endpoints, server-side tools, migration | [docs.opper.ai](https://docs.opper.ai) and `https://api.opper.ai/v3/openapi.yaml` |
 | [`opper-multimodal`](./opper-multimodal/) | Media generation (images, audio, video, OCR), the `/v3/files` storage API, vision/PDF input, and realtime voice | [docs.opper.ai/build/multimodal](https://docs.opper.ai/build/multimodal/overview) and `https://api.opper.ai/v3/openapi.yaml` |
 
-Start with `opper`. It figures out what you're trying to do, then loads the right sub-skill — by fetching it live from `https://skills.opper.ai/` if it isn't already installed locally.
+Start with `opper`. The entry skill figures out what you're trying to do and loads the right sub-skill, fetching it live from `https://skills.opper.ai/` if it isn't already installed locally.
+
+Prefer the [Opper MCP server](https://opper.ai/mcp) for agent-assisted setup and platform operations; keep SDK/API integrations for application inference and the CLI for explicit shell, private key delivery, editor, and agent launch workflows.
 
 > **Coming from older skills?** The previous `opper-python-sdk`, `opper-node-sdk`, `opper-python-agents`, and `opper-node-agents` skills have been folded into `opper-sdks` — agents are now part of the unified SDK package, not a separate one.
 
@@ -29,6 +32,7 @@ Use curl to download, read and follow: https://skills.opper.ai/
 Or fetch a specific skill directly:
 
 ```bash
+curl -sL https://skills.opper.ai/opper-mcp/SKILL.md
 curl -sL https://skills.opper.ai/opper-cli/SKILL.md
 curl -sL https://skills.opper.ai/opper-sdks/SKILL.md
 curl -sL https://skills.opper.ai/opper-api/SKILL.md
@@ -41,11 +45,17 @@ Skills are served as plain markdown so agents read the full content (not a summa
 
 Once a skill is installed, your agent will activate it automatically when you say things like:
 
+**`opper-mcp`**
+- "Connect my coding agent to Opper and set up this project."
+- "Show my Opper spend this month grouped by model."
+- "Check this project's allowed models and test two with the same prompt."
+- "Inspect the latest retained trace and help me debug it."
+
 **`opper-cli`**
 - "Sign me in to Opper from the terminal."
 - "Launch Claude Code through Opper so my traces show up."
 - "Install all the bundled Opper skills into Claude Code."
-- "Show my Opper spend this month grouped by model."
+- "Export Opper usage to CSV from the terminal."
 - "Create an Opper index and add this markdown file to it."
 
 **`opper-sdks`**
@@ -73,11 +83,12 @@ Once a skill is installed, your agent will activate it automatically when you sa
 ### Claude Code
 
 ```bash
-# All five skills (recommended — installs the opper router + sub-skills)
+# All six skills (recommended — installs the opper router + sub-skills)
 npx skills add opper-ai/opper-skills
 
 # Or pick what you need
 npx skills add opper-ai/opper-skills/opper
+npx skills add opper-ai/opper-skills/opper-mcp
 npx skills add opper-ai/opper-skills/opper-cli
 npx skills add opper-ai/opper-skills/opper-sdks
 npx skills add opper-ai/opper-skills/opper-api
@@ -171,6 +182,7 @@ MIT
 ## Links
 
 - [Skills index (live)](https://skills.opper.ai) — fetch any skill as plain markdown
+- [MCP connection instructions](https://opper.ai/mcp)
 - [Documentation](https://docs.opper.ai)
 - [Platform](https://platform.opper.ai)
 - [Cookbook](https://github.com/opper-ai/opper-cookbook)
