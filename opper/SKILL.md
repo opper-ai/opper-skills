@@ -1,20 +1,15 @@
 ---
 name: opper
 description: >
-  Main entry point for working with Opper (https://opper.ai) — the AI gateway
-  for agents, 300+ models through one EU-hosted gateway, GDPR-compliant. Use
-  this skill whenever the user mentions Opper without naming a specific
-  surface: "set up Opper", "try Opper", "build with Opper", "migrate to
-  Opper", "help me with Opper". This skill scans the user's context to detect
-  state (new user / existing integration / migration candidate) and API
-  surface (compat / multimodal / realtime / CLI), proposes a concrete plan,
-  then routes to the right sub-skill: `opper-cli` for terminal work,
-  `opper-sdks` for Python/TypeScript code, `opper-api` for raw HTTP and
-  platform concepts, or `opper-multimodal` for media generation (images,
-  audio, video, OCR), files, and realtime voice. It owns the full lifecycle
-  — explore, propose, guide,
-  test, and follow-up tied to Opper's Control Plane (Route, Observe, Steer,
-  Guard, Comply).
+  Main entry point for working with Opper (https://opper.ai), the AI gateway
+  for agents. Use when the user mentions Opper without choosing a surface:
+  "set up Opper", "try Opper", "build with Opper", "migrate to Opper", or
+  "help me with Opper". Explore context and route to opper-mcp for
+  agent-assisted setup, platform operations, and model tests; opper-cli for
+  explicit CLI and shell workflows or launching coding agents through Opper;
+  opper-sdks for Python/TypeScript application code; opper-api for HTTP,
+  compat endpoints, and platform concepts; or opper-multimodal for media,
+  files, and realtime voice. Own setup, verification, and follow-up.
 category: router
 ---
 
@@ -40,11 +35,11 @@ For deeper product concepts: [docs.opper.ai/overview/concepts](https://docs.oppe
 
 ## Phase 1: Explore
 
-Probe the user's current state before doing anything. These commands are cheap — run them all:
+First inspect your available tools for an existing Opper MCP connection. If present, read its instructions and use `get_context` to discover authorized account/project context. Load `opper-mcp` for agent-assisted setup and platform operations; do not install the CLI just because it is absent.
+
+Probe the project and application credentials without printing secrets:
 
 ```bash
-# Is the Opper CLI installed and signed in?
-command -v opper && opper whoami 2>/dev/null || echo "opper CLI not installed"
 test -n "$OPPER_API_KEY" && echo "OPPER_API_KEY set" || echo "OPPER_API_KEY not set"
 
 # Is the project already using Opper?
@@ -63,13 +58,14 @@ Cross-reference findings against this decision table:
 
 | Finding | User-state lane | Likely API surface |
 |---|---|---|
-| `opper` not installed, empty dir or no project files | **New / starter** | Compat chat (start small) |
-| `opper` not installed, project files exist, no LLM imports | **New integration in existing app** | Compat chat; structured output via `response_format` |
+| Empty dir or no project files | **New / starter** | Compat chat (start small) |
+| Project files exist, no LLM imports | **New integration in existing app** | Compat chat; structured output via `response_format` |
 | `opperai` already in deps | **Existing Opper integration** — likely debug or extend | Already chosen; deepen current surface |
 | OpenAI / Anthropic / Google / OpenRouter imports, no Opper | **Migration candidate** | `/v3/compat` — drop-in, zero code change |
 | User mentions image / audio / video / OCR generation, or files | (any lane) | **Multimodal endpoints** → load `opper-multimodal` (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files`) |
 | User mentions voice / two-way audio | (any lane) | **Realtime** → load `opper-multimodal` (`wss://api.opper.ai/v3/realtime`) |
-| User wants terminal-first or to route their coding agent through Opper | (any lane) | **CLI** (`opper login`, `opper launch`) |
+| User wants their agent to set up/manage Opper or test models | (any lane) | **MCP** → load `opper-mcp` |
+| User explicitly wants CLI/shell workflows or to route their coding agent's own inference through Opper | (any lane) | **CLI** (`opper login`, `opper launch`) |
 
 If two lanes are genuinely plausible, ask **one** question — never a menu of four. Example: *"Are you building a text/chat feature, or generating media (image / audio / video)?"*
 
@@ -87,17 +83,20 @@ Lead with one sentence: what you found + what you'd do next. Never an open-ended
 
 | Lane | Proposal |
 |---|---|
-| New / starter | *"You're starting fresh. I'd suggest: (1) `npm i -g @opperai/cli` + `opper login` to get a key, (2) one chat completion against `https://api.opper.ai/v3/compat` (curl or the OpenAI SDK), (3) inspect the trace at platform.opper.ai. Sound good?"* |
+| New / starter | *"You're starting fresh. I'd suggest: (1) connect the Opper MCP server to set up a project and deliver a local application key privately, (2) one chat completion against `https://api.opper.ai/v3/compat` (curl or the OpenAI SDK), (3) inspect the trace at platform.opper.ai. Sound good?"* |
 | New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) point your OpenAI/Anthropic SDK at `https://api.opper.ai/v3/compat` (add the `opperai` package only if you're building agents), (2) make one call against your simplest task, (3) inspect the trace at platform.opper.ai. Sound good?"* |
+| MCP / platform operations | *"I'd use the Opper MCP server to inspect your project and carry out [task], then verify the result. Sound good?"* |
 | Existing Opper integration | Skip the proposal — read the existing code and answer the user's actual question. |
 | Migration | *"You're using [OpenAI/Anthropic/Google]. Opper exposes a drop-in compat endpoint — point your existing SDK at `https://api.opper.ai/v3/compat` and your code keeps working. Want me to do that swap first, then we can explore native features?"* |
 | Media (image / audio / video / OCR) | *"For generating [images/audio/video] you'd use Opper's dedicated media endpoints (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`). I'll load the `opper-multimodal` skill and we'll make one call, then inspect the result + trace. Sound good?"* |
 | Realtime | *"For voice/realtime, Opper exposes `wss://api.opper.ai/v3/realtime` (covered by the `opper-multimodal` skill). I'd suggest following [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart). Sound good?"* |
 | CLI / route a coding agent | *"I'd suggest `opper login` followed by `opper launch <agent>` to route your coding agent's inference through Opper. Want to set that up?"* |
 
-### Compat is the default first call; the CLI is the easiest front door
+### MCP is the front door for agents; compat is the application path
 
-When the user has no strong preference, get them authenticated with the CLI (`opper login`) and make the **first call against a compat endpoint** — a chat completion at `https://api.opper.ai/v3/compat`, via curl or whichever provider SDK they already use. That's the shape they'll keep in production. The CLI organises everything around it — usage (`opper usage`), traces (`opper traces`), models (`opper models`), launching coding agents (`opper launch`). Do **not** steer first calls at `opper call` / `/v3/call` — that surface is legacy and being sunset (see the `opper-api` skill's migration reference).
+When the user has no strong preference, connect the Opper MCP server using the live [connection instructions](https://opper.ai/mcp), then select a project and inspect model access. For a quick model test, use MCP's `call_model` with a runtime key ID; no raw secret needs to enter the conversation. For an application, follow `opper-mcp`'s private local key delivery, then make the **first application call against a compat endpoint** at `https://api.opper.ai/v3/compat` via curl or their existing provider SDK. Verify that actual application path even if an MCP model test already passed. Keep the CLI for explicit shell workflows, private file delivery, editor configuration, and `opper launch`.
+
+Do **not** steer first calls at `opper call` / `/v3/call` — that surface is legacy and being sunset (see the `opper-api` skill's migration reference).
 
 ### Picking a model
 
@@ -113,12 +112,14 @@ Fetch the chosen sub-skill verbatim and follow it. Never paraphrase — sub-skil
 
 ```bash
 # Primary (mirrors the opper-ai/opper-skills repo)
+curl -sL https://skills.opper.ai/opper-mcp/SKILL.md
 curl -sL https://skills.opper.ai/opper-cli/SKILL.md
 curl -sL https://skills.opper.ai/opper-sdks/SKILL.md
 curl -sL https://skills.opper.ai/opper-api/SKILL.md
 curl -sL https://skills.opper.ai/opper-multimodal/SKILL.md
 
 # Fallback if skills.opper.ai is unreachable
+curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-mcp/SKILL.md
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-sdks/SKILL.md
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md
@@ -137,6 +138,8 @@ A setup isn't done until the user has seen it work. Run the **minimal** example 
 
 | Lane | What "working" looks like |
 |---|---|
+| MCP setup / operations | `get_context` confirms the authorized organization; a project list/get confirms the selected project; the requested operation succeeds and a follow-up read confirms its state |
+| MCP model test | `call_model` returns the expected text/structured output; `get_usage` confirms cost; inspect retained traces when available |
 | CLI | `opper whoami` returns an active slot; `opper models list` prints the live model roster |
 | Compat (curl or any SDK) | A chat completion returns 200 from `api.opper.ai/v3/compat`; structured output validates via `response_format`; the call appears as a trace at [platform.opper.ai](https://platform.opper.ai) |
 | Media (`opper-multimodal`) | `POST /v3/images` returns an image inline; `POST /v3/videos` returns `202` + a `status_url` that resolves to a download URL |
@@ -145,6 +148,7 @@ A setup isn't done until the user has seen it work. Run the **minimal** example 
 
 **If it doesn't work, read the actual error** — don't guess. Common causes:
 
+- Missing MCP permissions — use native OAuth and fresh browser consent for the required permissions; stop if consent is denied or canceled.
 - Wrong API key slot — CLI uses `~/.opper/config.json` slots; SDKs read `OPPER_API_KEY` first.
 - Model name not allowed by the project's **Route** rules in the Control Plane — check the project's allowed models at [platform.opper.ai](https://platform.opper.ai) and pick one from there.
 - Schema mismatch — the model returned data that doesn't validate against the requested output shape (use a looser schema or inspect the trace to see the raw payload).
@@ -162,9 +166,9 @@ Once something works, suggest **one** natural next step — don't dump the whole
 | Heading to production | **Comply** — set budget caps, retention policy, allowed providers | [control-plane/overview](https://docs.opper.ai/control-plane/overview) |
 | User-input-heavy app | **Guard** — PII redaction + content filters before requests hit the model | [control-plane/overview](https://docs.opper.ai/control-plane/overview) |
 | Quality regressions | **Steer** — use Observe scores to build eval sets and tune prompts | [control-plane/overview](https://docs.opper.ai/control-plane/overview) |
-| Any working integration, CLI not installed | Install the CLI for unified usage + traces from the terminal: `npm i -g @opperai/cli && opper login` then `opper usage` (spend) / `opper traces list` (recent calls) | — |
+| Any working integration, agent needs platform access | Connect MCP to inspect usage/traces and manage the project through discovered tools | [MCP connection instructions](https://opper.ai/mcp) |
 | Any working integration | Inspect traces in the UI at [platform.opper.ai](https://platform.opper.ai) | — |
-| CLI installed | `opper launch claude-code` (or `codex` / `opencode`) to route their coding agent through Opper | — |
+| User wants their coding agent's own inference routed through Opper | `opper launch claude` (or `codex` / `opencode`) to route their coding agent through Opper | — |
 | Migrated from OpenAI/Anthropic | Stay on the provider SDK — add `response_format` for structured output and the `X-Opper-Name` header for named tracing; reach for `opperai` only for agents and knowledge bases | — |
 
 ---
@@ -173,6 +177,7 @@ Once something works, suggest **one** natural next step — don't dump the whole
 
 | Skill | Primary URL | Fallback (GitHub raw) | When to load |
 |---|---|---|---|
+| `opper-mcp` | https://skills.opper.ai/opper-mcp/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-mcp/SKILL.md | Agent-assisted setup, platform operations, model tests, private application key delivery |
 | `opper-cli` | https://skills.opper.ai/opper-cli/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md | Terminal: login, calls, traces, indexes, `opper launch` |
 | `opper-sdks` | https://skills.opper.ai/opper-sdks/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-sdks/SKILL.md | Python/TS code using `opperai` — calls, agents, streaming, knowledge |
 | `opper-api` | https://skills.opper.ai/opper-api/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md | Raw HTTP, gateway concepts, `/v3/compat`, structured output, server-side tools, migration |
@@ -241,6 +246,7 @@ Structured output is a parameter (`response_format`), not a separate surface. Th
 | OpenAPI spec | https://api.opper.ai/v3/openapi.yaml — endpoint signatures and payload shapes live here |
 | Platform UI (traces, usage, billing) | https://platform.opper.ai |
 | SDK source (Python + TS) | https://github.com/opper-ai/opper-sdks |
+| MCP connection instructions | https://opper.ai/mcp — client setup and native OAuth |
 | CLI source | https://github.com/opper-ai/cli |
 | This skill set on GitHub | https://github.com/opper-ai/opper-skills |
 
@@ -250,5 +256,5 @@ Structured output is a parameter (`response_format`), not a separate surface. Th
 
 - **Fetch, don't summarise.** Skills are short on purpose; summarising loses the parts that matter (exact flag names, exact endpoints, schema syntax).
 - **Any API question that isn't already obvious — endpoint, parameter, field, capability, compliance attribute, query flag — grep the OpenAPI spec first:** `curl -s https://api.opper.ai/v3/openapi.yaml | grep -i -n <term>`. The spec is the only source that doesn't rot. Don't guess from docs pages, don't fall back to the browsable catalog, don't ask the user — just grep. e.g. *"which models have ZDR?"* → grep `zdr` → discover the `compliance.zdr` object every `GET /v3/models` item carries (no key, no `include`) and derive the answer from its facts — worked example in `opper-api`.
-- **Don't invent endpoints, flags, or model IDs.** Sources of truth: [OpenAPI spec](https://api.opper.ai/v3/openapi.yaml) for endpoints, `opper <subcommand> --help` for CLI flags, [api.opper.ai/v3/models](https://api.opper.ai/v3/models) for models. Use [opper.ai/models](https://opper.ai/models) when *talking to the user* — it's the browsable catalog.
+- **Don't invent endpoints, tools, flags, or model IDs.** Sources of truth: connected MCP instructions and tool schemas for agent operations, [OpenAPI spec](https://api.opper.ai/v3/openapi.yaml) for endpoints, `opper <subcommand> --help` for CLI flags, [api.opper.ai/v3/models](https://api.opper.ai/v3/models) for models. Use [opper.ai/models](https://opper.ai/models) when *talking to the user* — it's the browsable catalog.
 - **Verify before suggesting more.** Phase 4 before Phase 5, always.

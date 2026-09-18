@@ -30,9 +30,11 @@ The unified `opperai` package exposes a few different shapes. Pick by what you'r
 - **One-shot structured task** (input → typed output): the recommended path is a **compat chat endpoint with `response_format`**, called through the provider SDK you already know — point the OpenAI SDK's `base_url` at `https://api.opper.ai/v3/compat` and pass your Pydantic / Zod model via `chat.completions.parse(...)`. Seeds below; full shape in the **`opper-api` skill**.
 - **Streaming**: `stream: true` on the same compat call — standard OpenAI SSE semantics.
 - **Multi-turn chat or message-thread style**: the compat chat endpoints are message-native — carry the `messages` array forward.
-- **Tool-using agent, multi-step reasoning, multi-agent, MCP**: the **Agent SDK** (`Agent`, `tool`, `Conversation`, `Hooks`, `mcp`) is recommended for any "model decides what to do next" flow. Use **`agent.run(...)`** for a single shot or **`agent.stream(...)`** for live progress.
+- **Tool-using agent, multi-step reasoning, multi-agent, external MCP tools**: the **Agent SDK** (`Agent`, `tool`, `Conversation`, `Hooks`, `mcp`) is recommended for any "model decides what to do next" flow. Use **`agent.run(...)`** for a single shot or **`agent.stream(...)`** for live progress.
 - **Knowledge bases / RAG**: **`opper.knowledge.*`** — `create`, `query`, `add`, etc.
 - **`opper.call(...)` / `opper.stream(...)` are legacy.** They ride Opper's `/call` surface, which is **being sunset** — don't start new work on them, and don't use them in examples. The `opperai` SDK itself is being reworked to no longer use `/call`; a future release drops it. Existing code migrates to compat + `response_format`; the field-by-field mapping (`name` → `X-Opper-Name` header, `output_schema` → `response_format`, `result.data` → parsed message content) is in the `opper-api` skill's `references/migration.md`.
+
+The Agent SDK's `mcp` integration lets your application agent consume external MCP tools. To connect a coding assistant to the Opper MCP server for platform operations or model tests, use `opper-mcp`.
 
 ## Pick a path
 
@@ -158,4 +160,5 @@ Type definitions: `python/src/opperai/types.py` and `typescript/src/types.ts`.
 | Models available, gateway concepts, raw HTTP, Realtime | the `opper-api` skill |
 | Browsable model catalog (for user-facing recommendations) | [opper.ai/models](https://opper.ai/models) |
 | Control Plane (Route / Observe / Steer / Guard / Comply) | [docs.opper.ai/control-plane/overview](https://docs.opper.ai/control-plane/overview) |
+| Agent-assisted setup, platform operations, and model tests | the `opper-mcp` skill |
 | Calling Opper from a terminal | the `opper-cli` skill |
