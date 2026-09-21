@@ -222,17 +222,23 @@ with your ordinary project API key, exactly like any other model string. This is
 the part your application does, and it is not gated.
 
 **Managing** routes — create, edit the draft, deploy, roll back — is separate,
-and there are two ways in:
+and there are three ways in:
 
 | Path | Credential | Who uses it |
 |---|---|---|
-| Platform UI → *Settings → Dynamic Routes* | your normal login session | **the usual way** — a visual graph builder; no key to mint |
+| Platform UI → open a project → *Models* → *New route* | your normal login session | **the usual way**: a visual graph builder; no key to mint |
+| The Opper MCP (`https://api.opper.ai/mcp`), tools `create_dynamic_route` / `deploy_dynamic_route` / `simulate_dynamic_route` | a one-time browser consent; pick **Build and manage** (the default is read only) | a coding agent building routes for you; see the `opper-mcp` skill |
 | `/management/v1/dynamic-routes` | a **Management API Key** (`op-mak-...`) with `dynamic_routes:read` / `dynamic_routes:write` scopes | programmatic / CI management |
 
 A project API key (`op-...`) is **not** accepted on the management endpoints —
 that's a deliberate privilege split, not an oversight. Management API Keys are
-minted from the platform UI behind a human approval flow, and `/management/v1/*`
-is tier-gated (orgs without the control-plane entitlement get a 403).
+minted from the platform UI (*Settings → API keys → Management keys*) behind a
+human approval flow, and are available on **every plan**. The API gates features,
+not the key: dynamic routes, projects and runtime keys work on any plan, while
+writing a Control Plane rule (`guard`, `observe`, `route`, `comply`) on a plan
+without it answers `402` with `code: "plan_required"`. A `403` here always means
+a missing scope (`required_scope` names it). Organizations without a card are
+capped at 60 requests per minute and 3 active management keys.
 
 So: no, you don't need a management key to *use* routes, and you don't need one
 to *build* them in the UI either. You need one only to manage them over HTTP.
