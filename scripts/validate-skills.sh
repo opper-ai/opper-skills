@@ -90,6 +90,19 @@ for skill_file in "$REPO_ROOT"/*/SKILL.md; do
     echo "ERROR: $dir_name/SKILL.md missing or empty 'description' field in frontmatter"
     errors=$((errors + 1))
   fi
+
+  # --- Check 6: metadata.version is a date, and the version-check block agrees ---
+  # scripts/bump-version.sh writes both; this catches hand edits that drift.
+  version="$(bash "$REPO_ROOT/scripts/skill-version.sh" "$skill_file")"
+  if ! echo "$version" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\.[0-9]+)?$'; then
+    echo "ERROR: $dir_name/SKILL.md metadata.version '$version' must be YYYY-MM-DD or YYYY-MM-DD.N (run scripts/bump-version.sh $dir_name)"
+    errors=$((errors + 1))
+  elif [ "$(grep -c '^<!-- version-check' "$skill_file")" -ne 1 ] \
+    || ! grep -qF "> **Skill version $version.**" "$skill_file" \
+    || ! grep -qF "https://skills.opper.ai/$dir_name/SKILL.md" "$skill_file"; then
+    echo "ERROR: $dir_name/SKILL.md version-check block is missing or does not match metadata.version $version (run scripts/bump-version.sh $dir_name)"
+    errors=$((errors + 1))
+  fi
 done
 
 if [ "$errors" -gt 0 ]; then

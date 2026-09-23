@@ -144,6 +144,8 @@ npx skills update
 cd opper-skills && git pull
 ```
 
+Each skill carries a version (`metadata.version`, a date such as `2026-09-23`) and a short note near the top of its `SKILL.md`. The note asks the agent to compare the installed copy with [skills.opper.ai/versions.json](https://skills.opper.ai/versions.json) once per session. When they differ, the agent reads the live skill for that session and tells you to update. It never edits your installed files. The note is removed from the copies served at skills.opper.ai, since those are always the latest.
+
 ## Development
 
 ### Pre-push hook
@@ -157,12 +159,24 @@ The hook runs `scripts/validate-skills.sh`, which checks that each `SKILL.md`:
 - has a frontmatter `name` matching its directory and a non-empty `description`
 - keeps `description` under 1024 characters
 - keeps the body under 500 lines
+- has a date `metadata.version` that matches its version note
 
 Run it manually any time:
 
 ```bash
 bash scripts/validate-skills.sh
 ```
+
+### Versioning
+
+Every change to a skill (its `SKILL.md` or anything under `references/`) must bump that skill's version, or CI fails:
+
+```bash
+bash scripts/bump-version.sh opper-api      # sets today's date; a second bump the same day gives 2026-09-23.2
+bash scripts/check-versions.sh origin/main  # what CI runs on pull requests
+```
+
+`bump-version.sh` rewrites both places the version lives (the frontmatter and the version note) and adds the note to a new skill. Don't edit either by hand; `validate-skills.sh` fails if they disagree.
 
 ### Build the static site locally
 

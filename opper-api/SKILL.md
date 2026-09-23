@@ -17,7 +17,13 @@ description: >
   live OpenAPI spec at https://api.opper.ai/v3/openapi.yaml first.
 category: sub-skill
 parent: opper
+metadata:
+  version: "2026-09-23"
 ---
+
+<!-- version-check: removed from the copy served at skills.opper.ai -->
+> **Skill version 2026-09-23.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-09-23. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+<!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
 > Source: https://github.com/opper-ai/opper-skills/blob/main/opper-api/SKILL.md

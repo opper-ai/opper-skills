@@ -11,7 +11,13 @@ description: >
   compat endpoints, and platform concepts; or opper-multimodal for media,
   files, and realtime voice. Own setup, verification, and follow-up.
 category: router
+metadata:
+  version: "2026-09-23"
 ---
+
+<!-- version-check: removed from the copy served at skills.opper.ai -->
+> **Skill version 2026-09-23.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-09-23. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+<!-- /version-check -->
 
 # Opper
 
@@ -126,7 +132,7 @@ curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md
 ```
 
-If the skill is already installed locally (under `.claude/skills/`, `~/.claude/skills/`, `.cursor/rules/`, etc.), load it through your agent's normal mechanism instead of fetching.
+If the skill is already installed locally (under `.claude/skills/`, `~/.claude/skills/`, `.cursor/rules/`, etc.), load it through your agent's normal mechanism instead of fetching. A local copy starts with a version note; follow it, since it tells you when the copy is stale and the live one should be read instead.
 
 Sub-skills will often instruct you to fetch a deeper reference (e.g. `references/python.md`, `references/agents.md`). Follow those pointers — they exist because the parent skill is intentionally short.
 
