@@ -54,10 +54,17 @@ jobs:
             --content-type "text/plain; charset=utf-8" \
             --cache-control "public, max-age=0, must-revalidate"
 
+      - name: Upload versions.json (no cache)
+        run: |
+          aws s3 cp _site/versions.json s3://${S3_BUCKET}/versions.json \
+            --content-type "application/json; charset=utf-8" \
+            --cache-control "public, max-age=0, must-revalidate"
+
       - name: Upload non-md assets (5 min cache)
         run: |
           aws s3 sync _site/ s3://${S3_BUCKET}/ \
             --exclude "*.md" \
+            --exclude "versions.json" \
             --cache-control "public, max-age=300"
 
       - name: Invalidate CloudFront

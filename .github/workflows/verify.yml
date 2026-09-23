@@ -21,6 +21,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          # check-versions diffs against the base branch.
+          fetch-depth: 0
+
+      - name: Validate skills
+        run: bash scripts/validate-skills.sh
+
+      - name: Changed skills bump their version
+        run: bash scripts/check-versions.sh "origin/${{ github.base_ref }}"
 
       - name: Dry build
         run: bash scripts/build-site.sh --dry-run

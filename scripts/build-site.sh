@@ -3,12 +3,13 @@
 # Build the static site for skills.opper.ai.
 #
 # Walks every <skill>/SKILL.md, validates its YAML frontmatter, copies each
-# skill folder (SKILL.md + references/) into _site/, and copies the router
-# (opper/SKILL.md) to _site/index.md so curl https://skills.opper.ai/ returns
-# the router content.
+# skill folder (SKILL.md + references/) into _site/ with the local-only
+# version-check block removed, writes _site/versions.json (skill name ->
+# metadata.version), and copies the router (opper/SKILL.md) to _site/index.md
+# so curl https://skills.opper.ai/ returns the router content.
 #
 # Deliberately dumb on purpose: no eval, no executing repo content, only
-# cp/find/grep. See CONTRIBUTING.md / safety design for why.
+# cp/find/grep/awk. See CONTRIBUTING.md / safety design for why.
 #
 # Usage:
 #   scripts/build-site.sh             # build into ./_site
@@ -68,19 +69,56 @@ fi
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
+# The version-check block tells a locally installed copy to compare itself
+# with the live one. The live copy is the latest by definition, so the block
+# is removed from what we serve.
+strip_version_check() {
+  awk '
+    /^<!-- version-check/ { skipping = 1; next }
+    skipping { if ($0 ~ /^<!-- \/version-check -->/) { skipping = 0; drop_blank = 1 } next }
+    drop_blank && $0 == "" { drop_blank = 0; next }
+    { drop_blank = 0; print }
+  ' "$1"
+}
+
+# Same parsing as scripts/skill-version.sh, inlined so this script runs
+# nothing else from the repo.
+skill_version() {
+  awk '
+    NR == 1 && /^---$/ { fm = 1; next }
+    fm && /^---$/ { exit }
+    fm && /^metadata:[[:space:]]*$/ { in_meta = 1; next }
+    fm && in_meta && !/^  / { in_meta = 0 }
+    fm && in_meta && /^  version:/ {
+      sub(/^  version:[[:space:]]*/, ""); gsub(/["\047]/, ""); print; exit
+    }
+  ' "$1"
+}
+
+VERSIONS="{"
+sep=""
 for f in "${SKILLS[@]}"; do
   dir="${f%/SKILL.md}"
   mkdir -p "$OUT/$dir"
-  cp "$f" "$OUT/$dir/SKILL.md"
+  strip_version_check "$f" > "$OUT/$dir/SKILL.md"
+  if grep -q 'version-check' "$OUT/$dir/SKILL.md"; then
+    echo "FATAL: $f has an unterminated version-check block." >&2
+    exit 1
+  fi
   if [[ -d "$dir/references" ]]; then
     cp -R "$dir/references" "$OUT/$dir/references"
   fi
+  VERSIONS+="$sep\"$dir\": \"$(skill_version "$f")\""
+  sep=", "
 done
 
-# 3. Router becomes the site root so `curl https://skills.opper.ai/` works.
-cp "$ROUTER" "$OUT/index.md"
+# 3. versions.json: what a local copy compares its own version against.
+echo "$VERSIONS}" > "$OUT/versions.json"
 
-# 4. Minimal 404 (referenced by the CloudFront distribution).
+# 4. Router becomes the site root so `curl https://skills.opper.ai/` works.
+cp "$OUT/$ROUTER" "$OUT/index.md"
+
+# 5. Minimal 404 (referenced by the CloudFront distribution).
 cat > "$OUT/404.html" <<'EOF'
 <!doctype html>
 <title>404 — skills.opper.ai</title>
