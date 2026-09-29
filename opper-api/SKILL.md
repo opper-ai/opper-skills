@@ -18,11 +18,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-09-23"
+  version: "2026-09-29"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-09-23.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-09-23. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-09-29.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-09-29. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -36,7 +36,7 @@ Opper is a **gateway** in front of LLM providers plus a **control plane** for th
 - **Observe** — every call yields a trace with input, output, latency, cost, and model used; attach metrics and evaluations to track quality over time.
 - **Steer** — improve quality through feedback loops; save good outputs as examples and build evaluation datasets.
 - **Guard** — guardrails at the infrastructure level (PII removal, content filtering, budget limits) before data reaches the model.
-- **Comply** — follows European data protection directives and security standards, including GDPR.
+- **Comply** — follows European data protection directives and security standards, including GDPR. Company-level evidence (ISO/IEC 27001 certificate, security controls, subprocessor list, DPA, privacy policy) lives at the trust center, [trust.opper.ai](https://trust.opper.ai).
 
 The HTTP API at `https://api.opper.ai` is the foundation — every SDK and the CLI talk to it.
 
@@ -154,6 +154,8 @@ The default response is light but every item carries a `compliance` block — `r
 | `policy` (requires API key) | `policy` object per model | Whether the caller's Comply rules and entitlements let this row run: `allowed`, `blocked_by` (`org` / `project` / `entitlement`), `reason` (the same sentence a 403 would carry). The list stays unfiltered |
 
 Combine with commas, e.g. `?include=route,benchmarks`. Reach for `include=route` when you need retention days, storage location, verification status, or the sources behind a claim — `compliance` is the summary, `route` is the evidence.
+
+These fields describe one model on one route. Questions about Opper as a company (certifications, security controls, the subprocessor list, the DPA, privacy policy, security questionnaires) are answered by [trust.opper.ai](https://trust.opper.ai): link it rather than restating its figures, which change.
 
 Filter by capability and type: `?capability=vision` / `?capability=pdf` (which chat models accept images / PDFs), `?type=image|tts|stt|video`. The modality endpoints below also have scoped discovery lists.
 
