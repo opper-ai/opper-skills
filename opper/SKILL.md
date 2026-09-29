@@ -12,11 +12,11 @@ description: >
   files, and realtime voice. Own setup, verification, and follow-up.
 category: router
 metadata:
-  version: "2026-09-23"
+  version: "2026-09-29"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-09-23.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-09-23. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-09-29.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-09-29. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 # Opper
@@ -251,6 +251,7 @@ Structured output is a parameter (`response_format`), not a separate surface. Th
 | **Models API (code)** | https://api.opper.ai/v3/models — programmatic discovery; never hardcode lists |
 | OpenAPI spec | https://api.opper.ai/v3/openapi.yaml — endpoint signatures and payload shapes live here |
 | Platform UI (traces, usage, billing) | https://platform.opper.ai |
+| Trust center (security, compliance) | https://trust.opper.ai: ISO/IEC 27001 certificate, security controls, subprocessors, DPA, privacy policy |
 | SDK source (Python + TS) | https://github.com/opper-ai/opper-sdks |
 | MCP connection instructions | https://opper.ai/mcp — client setup and native OAuth |
 | CLI source | https://github.com/opper-ai/cli |
@@ -262,5 +263,6 @@ Structured output is a parameter (`response_format`), not a separate surface. Th
 
 - **Fetch, don't summarise.** Skills are short on purpose; summarising loses the parts that matter (exact flag names, exact endpoints, schema syntax).
 - **Any API question that isn't already obvious — endpoint, parameter, field, capability, compliance attribute, query flag — grep the OpenAPI spec first:** `curl -s https://api.opper.ai/v3/openapi.yaml | grep -i -n <term>`. The spec is the only source that doesn't rot. Don't guess from docs pages, don't fall back to the browsable catalog, don't ask the user — just grep. e.g. *"which models have ZDR?"* → grep `zdr` → discover the `compliance.zdr` object every `GET /v3/models` item carries (no key, no `include`) and derive the answer from its facts — worked example in `opper-api`.
+- **Per-model compliance comes from the API, company-level compliance from the trust center.** ZDR, residency, retention and training for a model: the `compliance` block on `GET /v3/models`. Certifications, security controls, the subprocessor list, the DPA, privacy policy or a security questionnaire: point the user to [trust.opper.ai](https://trust.opper.ai) and don't restate its figures from memory.
 - **Don't invent endpoints, tools, flags, or model IDs.** Sources of truth: connected MCP instructions and tool schemas for agent operations, [OpenAPI spec](https://api.opper.ai/v3/openapi.yaml) for endpoints, `opper <subcommand> --help` for CLI flags, [api.opper.ai/v3/models](https://api.opper.ai/v3/models) for models. Use [opper.ai/models](https://opper.ai/models) when *talking to the user* — it's the browsable catalog.
 - **Verify before suggesting more.** Phase 4 before Phase 5, always.
