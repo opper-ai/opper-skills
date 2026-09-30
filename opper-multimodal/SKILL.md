@@ -3,12 +3,12 @@ name: opper-multimodal
 description: >
   Use the Opper multimodal and realtime surfaces — everything beyond text.
   Covers media generation (images, audio speech / TTS, transcription / STT,
-  video, OCR), the /v3/files storage API and file_id reuse, vision / PDF input
+  music and sound effects, video, OCR), the /v3/files storage API and file_id reuse, vision / PDF input
   on chat models, and realtime two-way voice / audio over WebSocket
   (wss://api.opper.ai/v3/realtime, browser tickets via /v3/realtime-sessions,
   function-scoped /v3/realtime/{name}). Use this skill whenever the user wants
   to generate or edit an image, do text-to-speech or speech-to-text, transcribe
-  audio, generate video, run OCR on a PDF / image, upload or reuse media files,
+  audio, generate music or sound effects, generate video, run OCR on a PDF / image, upload or reuse media files,
   send images / PDFs to a model, or build a voice / realtime app on Opper —
   even if they only say "Opper". For text / chat, structured output, migration,
   and server-side tools like web_search, use the `opper-api` skill instead. For
@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-09-23"
+  version: "2026-09-30"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-09-23.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-09-23. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-09-30.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-09-30. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -55,6 +55,7 @@ One key, one gateway. Pick the endpoint by what you're producing:
 | **Images** (generate / edit) | `POST /v3/images` | sync (opt-in async) | `GET /v3/images/models` | [images](https://docs.opper.ai/build/multimodal/images) |
 | **Speech / TTS** | `POST /v3/audio/speech` | sync | `GET /v3/audio/models?type=tts` | [audio](https://docs.opper.ai/build/multimodal/audio) |
 | **Transcription / STT** | `POST /v3/audio/transcriptions` | sync (opt-in `stream`) | `GET /v3/audio/models?type=stt` | [audio](https://docs.opper.ai/build/multimodal/audio) |
+| **Music / sound effects** | `POST /v3/audio/generations` (`/v3/audio/music` is an alias) | sync (opt-in `async`) | `GET /v3/audio/models?type=music` / `?type=sound` | [audio](https://docs.opper.ai/build/multimodal/audio) |
 | **Voice cloning** | `POST /v3/audio/voices` | sync | `GET /v3/audio/voices` (your voices) | [audio](https://docs.opper.ai/build/multimodal/audio) |
 | **Video** (generate) | `POST /v3/videos` | **async** — poll `status_url` | `GET /v3/videos/models` | [video](https://docs.opper.ai/build/multimodal/video) |
 | **OCR** (PDF / image → markdown) | `POST /v3/ocr` | sync | `GET /v3/ocr/models` | [ocr](https://docs.opper.ai/build/multimodal/ocr) |
@@ -67,7 +68,7 @@ One key, one gateway. Pick the endpoint by what you're producing:
 A shared contract across `/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`:
 
 - **`model` and the prompt/input are owned by Opper.** A small set of high-level params is normalized (e.g. `size`, `aspect_ratio`, `quality`, `voice`, `format`). Everything you put in **`parameters`** is forwarded **verbatim** to the provider — that's the escape hatch for provider-specific knobs.
-- **Generated output is stored by default** (`store: true`) to [Files](https://docs.opper.ai/build/multimodal/files) and returned with a reusable **`file_id`**. Pass `store: false` to opt out.
+- **Nothing is stored unless you ask.** Send `store: true` to save the output to [Files](https://docs.opper.ai/build/multimodal/files) and get a reusable **`file_id`** back; the default is `false`.
 - **Reuse media without re-uploading** by passing a `file_id` (from a previous generation or a `POST /v3/files` upload) anywhere a media source is accepted — `image` / `mask` / `reference_images` on images, `image` / `video` / `reference_images` on videos, `audio` on transcriptions, `document` on OCR.
 - **Everything is traced and billed** like any other call — visible at [platform.opper.ai](https://platform.opper.ai).
 
@@ -77,9 +78,11 @@ A shared contract across `/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`:
 # Generate (synchronous)
 curl -s -X POST https://api.opper.ai/v3/images \
   -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
-  -d '{"model": "openai/gpt-image-1", "prompt": "a hot air balloon over green hills", "size": "1024x1024"}'
+  -d '{"model": "openai/gpt-image-2.5-sunburst", "prompt": "a hot air balloon over green hills", "size": "1024x1024"}'
 # → { "data": [{ "url" | "b64_json", "file_id": "file_..." }], "usage": {...} }
 ```
+
+**Which model**: start with `openai/gpt-image-2.5-sunburst` or `openai/gpt-image-2.5-flare`, then check `GET /v3/images/models` for what is live. Probe the size you get back: some models reach higher resolutions through another knob (Gemini image models give 2K with `quality: "high"` and refuse a `resolution` field).
 
 **Edit / variations**: pass a source `image` (and optional `mask` or `reference_images`). **Slow models**: send `"async": true` to get a `202` + `status_url` instead of blocking; poll it like video below.
 
@@ -90,7 +93,7 @@ curl -s -X POST https://api.opper.ai/v3/images \
 curl -s -X POST https://api.opper.ai/v3/audio/speech \
   -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
   -d '{"model": "openai/tts-1", "input": "Hello from Opper", "voice": "alloy", "format": "mp3"}'
-# → { "audio": "<base64>", "file_id": "file_...", "mime_type": "audio/mpeg", "usage": {...} }
+# → { "audio": { "b64_json": "...", "mime_type": "audio/mpeg", "file_id"?: "file_..." }, "usage": { "cost": ..., "characters": ... } }
 
 # Speech-to-text — audio as file_id, URL, or data-URI
 curl -s -X POST https://api.opper.ai/v3/audio/transcriptions \
@@ -100,6 +103,10 @@ curl -s -X POST https://api.opper.ai/v3/audio/transcriptions \
 ```
 
 `GET /v3/audio/models?type=tts` lists each speech model's `voices`, `default_voice`, and `max_length`; `?type=stt` lists each transcription model's `languages`, `formats`, whether it supports `diarize` (speaker labels — rejected if the model can't do it), and whether it supports `stream`.
+
+**Brand and product names in transcripts**: pass them as key terms through `parameters` on models that take them (for example `"parameters": {"keyterms": ["Opper"]}` on `elevenlabs/scribe_v2`, which otherwise wrote "Opper" as "OPA").
+
+**Provider voices**: `?type=tts` lists voices on most speech models, and `GET /v3/audio/voices` lists only *your* cloned voices. Where a model lists none (ElevenLabs today), take the provider's premade voice ids from its own docs and test one short line per voice.
 
 **Streaming transcription**: send `"stream": true` to `/v3/audio/transcriptions` to get incremental `transcript.text.delta` events over SSE (final `transcript.text.done` + `[DONE]`) instead of one blocking response. Only some models support it — check `stream` in the `?type=stt` discovery list; unsupported models return a `400`.
 
@@ -120,15 +127,42 @@ curl -s -X POST https://api.opper.ai/v3/audio/speech \
 
 `GET /v3/audio/voices` lists your voices (with `expires_at` — some providers expire clones); `GET`/`DELETE /v3/audio/voices/{id}` fetch or remove one (delete also removes it at the provider).
 
+### Audio: music and sound effects
+
+One endpoint for both: `POST /v3/audio/generations`. Pick the model by type: `GET /v3/audio/models?type=music` for songs and scores, `?type=sound` for sound effects and ambience.
+
+```bash
+# A sound effect: one action per request, described as the material
+curl -s -X POST https://api.opper.ai/v3/audio/generations \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -d '{"model": "elevenlabs/eleven_text_to_sound_v2", "prompt": "a single wooden block knock, close, dry", "duration_seconds": 1}'
+# → { "id": "snd_...", "audio": { "b64_json": "...", "mime_type": "audio/mpeg" }, "usage": { "cost": 0.002, "duration_seconds": 1 } }
+
+# Music with a timed plan (models with the audio_sections capability)
+curl -s -X POST https://api.opper.ai/v3/audio/generations \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -d '{"model": "elevenlabs/music_v2_5", "sections": [
+        {"duration_ms": 8000, "prompt": "quiet marimba intro, 120 BPM", "styles": ["marimba", "instrumental"]},
+        {"duration_ms": 8000, "prompt": "same marimba, fuller, resolves on a final chord", "negative_styles": ["vocals"]}]}'
+```
+
+- **Normalized fields**: `prompt` (required unless `sections` are sent), `duration_seconds` (not with `sections`, which set the length), `instrumental`, `format` (`mp3`, `wav`, `opus`, `pcm`; omit it for the model's native format), `seed`. A value a model cannot honor answers `400` naming its limit.
+- **Capability-gated fields answer `400`, never silently drop**: `sections` needs `audio_sections`, `loop` (seamless repeat, for ambience and hums) needs `audio_loop`. Find them with `GET /v3/audio/models?capability=audio_sections` or `?capability=audio_loop`. `parameters` is never gated: it goes to the provider as is.
+- **Sections**: each has `duration_ms` (required), `prompt` (what it should sound like; never sung), `styles`, `negative_styles`, and `lyrics` (words to sing; leave empty for instrumental). Boundaries tend to snap to the tempo's phrase grid (at 120 BPM, multiples of 2 or 4 s), so place them there and measure the result.
+- **Long tracks**: send `"async": true` to get a `202` + `status_url` and poll it like video.
+- **Response**: `audio.b64_json` (or `file_id` with `store: true`), `lyrics` when the provider writes any, and `usage.cost`.
+
 ### Video — `POST /v3/videos` (asynchronous)
 
 Video is **always async**: submit, get a `202` with a `status_url`, then poll until it resolves to a download URL + `file_id`.
+
+**Which model**: start with Gemini Omni (`gemini-omni-1.1-flash`), Wan 3 (`wan3.0`, `wan3.0-prime`), Seedance 2.5 (`seedance-2.5`) or Kling 3 (`kling-3.0-pro`, image-to-video `kling-3.0-pro-i2v`). Bare names are pooled across the providers that serve them; a provider-prefixed id (for example `fal/seedance-2.5`, `bytedance:ap/seedance-2.5`) pins one. Check `GET /v3/videos/models` for what is live for your key.
 
 ```bash
 # 1. Submit
 curl -s -X POST https://api.opper.ai/v3/videos \
   -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
-  -d '{"model": "openai/sora-2", "prompt": "the balloon drifts at dawn"}'
+  -d '{"model": "seedance-2.5", "prompt": "the balloon drifts at dawn"}'
 # → 202 { "id": "...", "status_url": "https://api.opper.ai/v3/artifacts/{id}/status" }
 
 # 2. Poll
@@ -207,13 +241,14 @@ The first client event is `session.start`. **Turn detection**: `server_vad` (aco
 
 ## Non-obvious gotchas
 
-- **Video is the only always-async media endpoint.** `POST /v3/videos` returns `202` + `status_url`; poll `GET /v3/artifacts/{id}/status`. Images, audio, and OCR are synchronous — though `/v3/images` accepts `"async": true` for slow models, returning the same poll shape.
-- **Generated media is stored by default** (`store: true`) and returns a `file_id`. Pass `store: false` to skip storage; `file_id` then won't be reusable.
+- **Video is the only always-async media endpoint.** `POST /v3/videos` returns `202` + `status_url`; poll `GET /v3/artifacts/{id}/status`. Images, audio, and OCR are synchronous, though `/v3/images` and `/v3/audio/generations` accept `"async": true` for slow models, returning the same poll shape.
+- **Generated media is not stored by default.** Send `store: true` when you want a reusable `file_id`; without it you get the bytes (or a URL) only.
 - **Pass `file_id`, don't re-upload.** Any media source field (`image`, `mask`, `reference_images`, `audio`, `video`, `document`) accepts a `file_id` from a prior generation or a `/v3/files` upload.
 - **`parameters` is a verbatim passthrough.** Top-level fields are normalized across providers; anything provider-specific goes in `parameters` untouched.
 - **Vision/PDF *input* is not a media endpoint** — it's content parts on a compat chat call to a `vision`/`pdf`-capable model. Media *generation* uses the dedicated endpoints here.
 - **Realtime browser clients use a ticket, never the API key.** Mint it from `/v3/realtime-sessions`; the key stays server-side.
 - **Server-side tools (`opper:web_search`, etc.) live in `opper-api`, not here.** They ride the compat chat endpoints.
+- **Music and sound effects share one endpoint.** `type=music` versus `type=sound` in `/v3/audio/models` tells them apart; `sections` and `loop` are capability-gated and answer `400` on models without them.
 - **The spec is the most up-to-date reference; this skill follows it.** Scoped discovery lists (`/v3/images/models`, `/v3/videos/models`, `/v3/audio/models`, `/v3/ocr/models`) tell you what's live.
 
 ## Where to look next
