@@ -12,11 +12,11 @@ description: >
   files, and realtime voice. Own setup, verification, and follow-up.
 category: router
 metadata:
-  version: "2026-09-29"
+  version: "2026-09-30"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-09-29.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-09-29. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-09-30.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-09-30. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 # Opper
@@ -68,7 +68,7 @@ Cross-reference findings against this decision table:
 | Project files exist, no LLM imports | **New integration in existing app** | Compat chat; structured output via `response_format` |
 | `opperai` already in deps | **Existing Opper integration** — likely debug or extend | Already chosen; deepen current surface |
 | OpenAI / Anthropic / Google / OpenRouter imports, no Opper | **Migration candidate** | `/v3/compat` — drop-in, zero code change |
-| User mentions image / audio / video / OCR generation, or files | (any lane) | **Multimodal endpoints** → load `opper-multimodal` (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files`) |
+| User mentions image / audio / music / sound effect / video / OCR generation, or files | (any lane) | **Multimodal endpoints** → load `opper-multimodal` (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files`) |
 | User mentions voice / two-way audio | (any lane) | **Realtime** → load `opper-multimodal` (`wss://api.opper.ai/v3/realtime`) |
 | User wants their agent to set up/manage Opper or test models | (any lane) | **MCP** → load `opper-mcp` |
 | User explicitly wants CLI/shell workflows or to route their coding agent's own inference through Opper | (any lane) | **CLI** (`opper login`, `opper launch`) |
@@ -94,7 +94,7 @@ Lead with one sentence: what you found + what you'd do next. Never an open-ended
 | MCP / platform operations | *"I'd use the Opper MCP server to inspect your project and carry out [task], then verify the result. Sound good?"* |
 | Existing Opper integration | Skip the proposal — read the existing code and answer the user's actual question. |
 | Migration | *"You're using [OpenAI/Anthropic/Google]. Opper exposes a drop-in compat endpoint — point your existing SDK at `https://api.opper.ai/v3/compat` and your code keeps working. Want me to do that swap first, then we can explore native features?"* |
-| Media (image / audio / video / OCR) | *"For generating [images/audio/video] you'd use Opper's dedicated media endpoints (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`). I'll load the `opper-multimodal` skill and we'll make one call, then inspect the result + trace. Sound good?"* |
+| Media (image / audio / music / sound effects / video / OCR) | *"For generating [images/audio/music/sound effects/video] you'd use Opper's dedicated media endpoints (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`). I'll load the `opper-multimodal` skill and we'll make one call, then inspect the result + trace. Sound good?"* |
 | Realtime | *"For voice/realtime, Opper exposes `wss://api.opper.ai/v3/realtime` (covered by the `opper-multimodal` skill). I'd suggest following [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart). Sound good?"* |
 | CLI / route a coding agent | *"I'd suggest `opper login` followed by `opper launch <agent>` to route your coding agent's inference through Opper. Want to set that up?"* |
 
@@ -187,7 +187,7 @@ Once something works, suggest **one** natural next step — don't dump the whole
 | `opper-cli` | https://skills.opper.ai/opper-cli/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md | Terminal: login, calls, traces, indexes, `opper launch` |
 | `opper-sdks` | https://skills.opper.ai/opper-sdks/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-sdks/SKILL.md | Python/TS code using `opperai` — calls, agents, streaming, knowledge |
 | `opper-api` | https://skills.opper.ai/opper-api/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md | Raw HTTP, gateway concepts, `/v3/compat`, structured output, server-side tools, migration |
-| `opper-multimodal` | https://skills.opper.ai/opper-multimodal/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md | Media generation (images, audio, video, OCR), files, vision/PDF input, realtime voice |
+| `opper-multimodal` | https://skills.opper.ai/opper-multimodal/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md | Media generation (images, speech, transcription, music, sound effects, video, OCR), files, vision/PDF input, realtime voice |
 
 Install everything locally:
 
@@ -219,7 +219,7 @@ Use these terms exactly — they're proper nouns in Opper's universe. All define
 | Surface | Use when | Endpoint |
 |---|---|---|
 | **Compat endpoints** ⭐ | Text generation, chat, multi-turn, tools, structured output — **the recommended starting point**; drop-in for OpenAI / Anthropic / Google SDKs | `/v3/compat/...` |
-| **Multimodality** *(`opper-multimodal`)* | Generate or edit images, speech, transcripts, video; OCR; store/reuse files | `/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files` |
+| **Multimodality** *(`opper-multimodal`)* | Generate or edit images, speech, transcripts, music, sound effects, video; OCR; store/reuse files | `/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files` |
 | **Realtime** *(`opper-multimodal`)* | Two-way voice / audio over WebSocket | `wss://api.opper.ai/v3/realtime` |
 | **Roundtable** | One prompt to several models, consolidated or compared | `/v3/roundtable` |
 
