@@ -113,7 +113,7 @@ For the agent seeds (`Agent`, `tool`, `agent.run(...)`), see [references/agents.
 
 ### Picking a model
 
-The SDK uses the project's default model when `model:` is omitted — set the default once with a **default-model rule** (Management API, see [docs.opper.ai/control-plane/route](https://docs.opper.ai/control-plane/route)) so the same code works across environments without edits. Pin a specific `model: "provider/name"` only when you need to override.
+Pass `model: "provider/name"` on every call. On the Control Plane plan you can instead set a **default-model rule** (Management API, see [docs.opper.ai/control-plane/route](https://docs.opper.ai/control-plane/route)) and omit `model:`; without such a rule, a call with no model is refused.
 
 - **Browse models for the user**: link them at [opper.ai/models](https://opper.ai/models) — the human catalog.
 - **Discover models in code**: `GET https://api.opper.ai/v3/models` (no auth required). **Never hardcode model lists** — they change.
