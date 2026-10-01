@@ -13,11 +13,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-09-23"
+  version: "2026-10-01"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-09-23.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-sdks"` entry with 2026-09-23. If they differ, read https://skills.opper.ai/opper-sdks/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-01.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-sdks"` entry with 2026-10-01. If they differ, read https://skills.opper.ai/opper-sdks/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -113,7 +113,7 @@ For the agent seeds (`Agent`, `tool`, `agent.run(...)`), see [references/agents.
 
 ### Picking a model
 
-The SDK uses the project's default model when `model:` is omitted — set the default once via a Control Plane **Route** rule at [platform.opper.ai](https://platform.opper.ai) so the same code works across environments without edits. Pin a specific `model: "provider/name"` only when you need to override.
+The SDK uses the project's default model when `model:` is omitted — set the default once with a **default-model rule** (Management API, see [docs.opper.ai/control-plane/route](https://docs.opper.ai/control-plane/route)) so the same code works across environments without edits. Pin a specific `model: "provider/name"` only when you need to override.
 
 - **Browse models for the user**: link them at [opper.ai/models](https://opper.ai/models) — the human catalog.
 - **Discover models in code**: `GET https://api.opper.ai/v3/models` (no auth required). **Never hardcode model lists** — they change.
@@ -165,6 +165,6 @@ Type definitions: `python/src/opperai/types.py` and `typescript/src/types.ts`.
 | Repo-level workflows (OpenAPI sync, beta endpoints) | `CLAUDE.md` in the opper-sdks repo |
 | Models available, gateway concepts, raw HTTP, Realtime | the `opper-api` skill |
 | Browsable model catalog (for user-facing recommendations) | [opper.ai/models](https://opper.ai/models) |
-| Control Plane (Route / Observe / Steer / Guard / Comply) | [docs.opper.ai/control-plane/overview](https://docs.opper.ai/control-plane/overview) |
+| Control Plane rules (spend limits, data retention, model access, checks, routing) | [docs.opper.ai/control-plane/rules/overview](https://docs.opper.ai/control-plane/rules/overview) |
 | Agent-assisted setup, platform operations, and model tests | the `opper-mcp` skill |
 | Calling Opper from a terminal | the `opper-cli` skill |
