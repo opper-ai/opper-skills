@@ -15,6 +15,19 @@ One philosophy: **point at the live source of truth, don't duplicate it.** Each 
 | [`opper-api`](./opper-api/) | The Opper REST API, gateway and platform concepts, models, compat endpoints, server-side tools, migration | [docs.opper.ai](https://docs.opper.ai) and `https://api.opper.ai/v3/openapi.yaml` |
 | [`opper-multimodal`](./opper-multimodal/) | Media generation (images, audio, video, OCR), the `/v3/files` storage API, vision/PDF input, and realtime voice | [docs.opper.ai/build/multimodal](https://docs.opper.ai/build/multimodal/overview) and `https://api.opper.ai/v3/openapi.yaml` |
 
+## Guides
+
+Guides are community recipes: how we combine Opper with other tools to make something. They are suggestions, not part of Opper's API, and they are not installed with the core skills.
+
+| Guide | What it covers |
+|---|---|
+| [`video-production`](./guides/video-production/) | Making videos with open-source tools (HyperFrames, GSAP, FFmpeg) and Opper media: brief and cue file, images, clips, voice, music, sound effects, captions, mixing and a measured review loop |
+
+```bash
+npx skills add opper-ai/opper-skills/guides/video-production
+curl -sL https://skills.opper.ai/guides/video-production/SKILL.md
+```
+
 Start with `opper`. The entry skill figures out what you're trying to do and loads the right sub-skill, fetching it live from `https://skills.opper.ai/` if it isn't already installed locally.
 
 Prefer the [Opper MCP server](https://opper.ai/mcp) for agent-assisted setup and platform operations; keep SDK/API integrations for application inference and the CLI for explicit shell, private key delivery, editor, and agent launch workflows.

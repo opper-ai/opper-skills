@@ -2,7 +2,7 @@
 #
 # Build the static site for skills.opper.ai.
 #
-# Walks every <skill>/SKILL.md, validates its YAML frontmatter, copies each
+# Walks every <skill>/SKILL.md and guides/<guide>/SKILL.md, validates its YAML frontmatter, copies each
 # skill folder (SKILL.md + references/) into _site/ with the local-only
 # version-check block removed, writes _site/versions.json (skill name ->
 # metadata.version), and copies the router (opper/SKILL.md) to _site/index.md
@@ -35,7 +35,7 @@ fi
 # 1. Validate every <skill>/SKILL.md has YAML frontmatter with name + description.
 shopt -s nullglob
 SKILLS=()
-for f in */SKILL.md; do
+for f in */SKILL.md guides/*/SKILL.md; do
   SKILLS+=("$f")
   if ! head -1 "$f" | grep -qx -- '---'; then
     echo "FATAL: $f is missing leading '---' frontmatter delimiter." >&2

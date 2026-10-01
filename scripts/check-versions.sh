@@ -13,7 +13,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 errors=0
-for f in */SKILL.md; do
+for f in */SKILL.md guides/*/SKILL.md; do
   dir="${f%/SKILL.md}"
   if git diff --quiet "$BASE"...HEAD -- "$dir/"; then
     continue
