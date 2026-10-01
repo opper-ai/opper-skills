@@ -8,7 +8,7 @@ through the same resolution pipeline, and they compose.
 | **Bare model name** — a *pool* | `"kimi-k3"` | Every provider Opper has for that model. Opper picks one; the rest are failover |
 | **Provider-qualified id** — a *pin* | `"tensorx/moonshotai/kimi-k3"` | Exactly that one provider row |
 | **Org alias** — your own list | `"my-flash"` | An ordered list of targets you defined: primary first, then fallbacks. Predates routes; still resolves |
-| **Route** — a deployed graph | `"dynamic/my-route"` | A routing graph you built: pools, fixed fallback order, classification, branching, versioned. **The way to build a fallback chain today** |
+| **Dynamic route** — a deployed graph | `"dynamic/my-route"` | A routing graph you built: pools, fixed fallback order, classification, branching, versioned. **The way to build a fallback chain today** |
 
 None of these need special headers or flags — they're all just the `model`
 field.
@@ -180,9 +180,9 @@ Two constraints:
 
 ---
 
-## 4. Routes — a deployed routing graph
+## 4. Dynamic routes — a deployed routing graph
 
-A **Route** is the heavyweight option: a graph you build and deploy, with
+A **dynamic route** is the heavyweight option: a graph you build and deploy, with
 classifier nodes that inspect the request and branch, model nodes that call a
 model, per-node fallback edges, and full version history.
 
@@ -206,11 +206,11 @@ Two kinds of node answer a request:
 
 - A **Pool** node holds several models and re-ranks them per request on live
   numbers (price, latency, throughput, or a blend). A member that a model access rule
-  blocks for the org is skipped silently; the pool only fails when nothing is
-  left.
+  blocks for the org is skipped silently; when nothing is left, the pool takes its
+  fallback edge, or fails with `403` when it has none.
 - A **Model** node calls one model. Its fallbacks are the fixed order you wrote
-  as edges. A model blocked by a model access rule here is a hard failure that walks to the
-  fallback edge.
+  as edges. A model blocked by a model access rule here ends the route with `403`
+  and the code `route_compliance_blocked`; it does not take the fallback edge.
 
 Every model node in a graph is **required** to declare a fallback edge — to
 another node or to END — so a route can't be deployed with a dead end.
@@ -334,8 +334,8 @@ only need to tell members apart rather than name them.
   quietly fanning out to every provider.
 - **Retired rows are excluded** from pools immediately. If *every* member of a
   group is retired, the error names the successor model.
-- **Model access rules filter the pool.** A model allowlist or a model access rule (for
-  example "EU inference and storage") removes members before selection, so a
+- **Model access rules filter the pool.** A model access rule (for
+  example an allowlist, or "EU inference and storage") removes members before selection, so a
   pool can be effectively smaller than `/v3/models` suggests. A thinned pool is
   silent. An emptied pool is a **403 `permission_error`**: `model "X" has no
   allowed members under the current model allowlist`. A restricted-provider row
