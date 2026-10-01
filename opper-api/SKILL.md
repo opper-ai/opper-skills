@@ -18,11 +18,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-01"
+  version: "2026-10-01.2"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-01.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-01. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-01.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-01.2. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -30,13 +30,11 @@ metadata:
 
 # Opper API
 
-Opper is a **gateway** in front of LLM providers plus a **control plane** for the things you build on top. The gateway is one connection to 700+ models across all major providers (OpenAI, Anthropic, Google, Mistral, …), EU-hosted and GDPR-compliant. The control plane covers five capabilities:
+Opper is a **gateway** in front of LLM providers plus a **control plane** for the things you build on top. The gateway is one connection to 700+ models across all major providers (OpenAI, Anthropic, Google, Mistral, …), hosted in AWS Stockholm, ISO/IEC 27001:2022 certified and GDPR-compliant, at provider rates with no markup on tokens (a 3% fee when buying credits, 5.5% with Control Plane features; see [opper.ai/pricing.md](https://opper.ai/pricing.md)). On top of it:
 
-- **Route** — call any supported model through one key, no provider-specific SDKs or credentials.
-- **Observe** — every call yields a trace with input, output, latency, cost, and model used; attach metrics and evaluations to track quality over time.
-- **Steer** — improve quality through feedback loops; save good outputs as examples and build evaluation datasets.
-- **Guard** — guardrails at the infrastructure level (PII removal, content filtering, budget limits) before data reaches the model.
-- **Comply** — follows European data protection directives and security standards, including GDPR. Company-level evidence (ISO/IEC 27001 certificate, security controls, subprocessor list, DPA, privacy policy) lives at the trust center, [trust.opper.ai](https://trust.opper.ai).
+- **Traces**: every call is recorded with model, provider, tokens, cost, latency and status; with tracing on (a data retention rule), the full trace also keeps inputs, outputs and every rule that fired.
+- **Rules** (Control Plane plan), set per organization and tightened per project: **spend limits** (monthly budget, caps per project, role, user or key), **data retention** (traces 1 to 30 days, or 0), **model access** (providers, routes, locations, makers, countries, models, zero data retention), **checks** (flag, redact or block content, score answers) and **routing** (provider order for pooled models). The API groups them into rule kinds `comply`, `guard`, `observe` and `route`; see [docs.opper.ai/control-plane/rules/overview](https://docs.opper.ai/control-plane/rules/overview).
+- **Company-level evidence** (ISO/IEC 27001:2022 certificate, security controls, platform sub-processors and model providers, DPA, privacy policy) lives at the trust center, [trust.opper.ai](https://trust.opper.ai).
 
 The HTTP API at `https://api.opper.ai` is the foundation — every SDK and the CLI talk to it.
 
@@ -151,7 +149,7 @@ The default response is light but every item carries a `compliance` block — `r
 | `route` (requires API key) | `route` object per model | The full service-route record: `data_handling.{training,logging,moderation,caching}` with `retention_days` / `storage_location` / `human_review`, `data_handling.subprocessors_read_content`, `gdpr.{residency,dpa_available,transfer_mechanism}`, `verification.status`, `sources`, `last_verified_at`, `underlying_maker` — plus the same `zdr` object as `compliance.zdr` |
 | `maker` (public) | `maker` | Original weights creator (e.g. `meta` for Llama, `mistral` for Mistral) |
 | `benchmarks` (public) | `benchmarks` | Public scores from artificialanalysis.ai |
-| `policy` (requires API key) | `policy` object per model | Whether the caller's Comply rules and entitlements let this row run: `allowed`, `blocked_by` (`org` / `project` / `entitlement`), `reason` (the same sentence a 403 would carry). The list stays unfiltered |
+| `policy` (requires API key) | `policy` object per model | Whether the caller's model access rules and entitlements let this row run: `allowed`, `blocked_by` (`org` / `project` / `entitlement`), `reason` (the same sentence a 403 would carry). The list stays unfiltered |
 
 Combine with commas, e.g. `?include=route,benchmarks`. Reach for `include=route` when you need retention days, storage location, verification status, or the sources behind a claim — `compliance` is the summary, `route` is the evidence.
 
@@ -258,7 +256,7 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 | Live, definitive endpoint shapes | `https://api.opper.ai/v3/openapi.yaml` |
 | Concepts (Organization, Project, Call, Trace, Gateway, Control Plane) | [docs.opper.ai/overview/concepts](https://docs.opper.ai/overview/concepts) |
 | Gateway behaviour (routing, compat) | [docs.opper.ai/overview/gateway](https://docs.opper.ai/overview/gateway) |
-| Control Plane (Route / Observe / Steer / Guard / Comply) | [docs.opper.ai/control-plane/overview](https://docs.opper.ai/control-plane/overview) |
+| Control Plane rules (spend limits, data retention, model access, checks, routing) | [docs.opper.ai/control-plane/rules/overview](https://docs.opper.ai/control-plane/rules/overview) |
 | Management API: projects, keys, dynamic routes and rules from code or CI | [docs.opper.ai/control-plane/management-api](https://docs.opper.ai/control-plane/management-api) |
 | Media generation, files, vision/PDF input, realtime voice | the `opper-multimodal` skill |
 | Multimodality concepts (docs) | [docs.opper.ai/build/multimodal/overview](https://docs.opper.ai/build/multimodal/overview) |

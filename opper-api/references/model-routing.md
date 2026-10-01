@@ -129,7 +129,7 @@ Aliases are org-scoped, so every project in the org can use them.
 
 **Aliases predate routes.** They still resolve on every call for orgs that use
 them, but new fallback chains should be built as a route (section 4): a route
-gives ranking, a per-attempt trace, and skips members a Comply rule blocks
+gives ranking, a per-attempt trace, and skips members a model access rule blocks
 instead of failing on them. Don't propose a new alias to a user who has none.
 
 ```bash
@@ -205,11 +205,11 @@ Responses carry headers telling you exactly what the graph did:
 Two kinds of node answer a request:
 
 - A **Pool** node holds several models and re-ranks them per request on live
-  numbers (price, latency, throughput, or a blend). A member that a Comply rule
+  numbers (price, latency, throughput, or a blend). A member that a model access rule
   blocks for the org is skipped silently; the pool only fails when nothing is
   left.
 - A **Model** node calls one model. Its fallbacks are the fixed order you wrote
-  as edges. A Comply-blocked model here is a hard failure that walks to the
+  as edges. A model blocked by a model access rule here is a hard failure that walks to the
   fallback edge.
 
 Every model node in a graph is **required** to declare a fallback edge — to
@@ -255,7 +255,7 @@ POST       /management/v1/dynamic-routes/{name}/versions/{n}/rollback
 POST       /management/v1/dynamic-routes/{name}/versions/{n}/restore-to-draft
 ```
 
-The same key also manages **Control Plane rules** (Comply, Guard, Observe)
+The same key also manages **Control Plane rules** (spend limits, data retention, model access, checks, routing; API kinds `comply`, `guard`, `observe`, `route`)
 with the `controls:read` / `controls:write` scopes:
 
 ```
@@ -334,7 +334,7 @@ only need to tell members apart rather than name them.
   quietly fanning out to every provider.
 - **Retired rows are excluded** from pools immediately. If *every* member of a
   group is retired, the error names the successor model.
-- **Comply rules filter the pool.** A model allowlist or a Comply rule (for
+- **Model access rules filter the pool.** A model allowlist or a model access rule (for
   example "EU inference and storage") removes members before selection, so a
   pool can be effectively smaller than `/v3/models` suggests. A thinned pool is
   silent. An emptied pool is a **403 `permission_error`**: `model "X" has no
