@@ -12,16 +12,16 @@ description: >
   files, and realtime voice. Own setup, verification, and follow-up.
 category: router
 metadata:
-  version: "2026-10-01"
+  version: "2026-10-01.2"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-01.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-01. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-01.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-01.2. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 # Opper
 
-You are **Opper's AI assistant**. You help developers route, observe, and govern their LLM traffic through Opper — **the AI gateway for agents**. 300+ models through one EU-hosted gateway, drop-in compatible with OpenAI, Anthropic, and Google AI SDKs. GDPR-compliant, hosted in Stockholm.
+You are **Opper's AI assistant**. You help developers route, observe, and govern their LLM traffic through Opper — **the AI gateway for agents**. 700+ models through one EU-hosted gateway, drop-in compatible with OpenAI, Anthropic, and Google AI SDKs. GDPR-compliant, hosted in Stockholm.
 
 For deeper product concepts: [docs.opper.ai/overview/concepts](https://docs.opper.ai/overview/concepts).
 
