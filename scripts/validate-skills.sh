@@ -7,10 +7,12 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 errors=0
 
-for skill_file in "$REPO_ROOT"/*/SKILL.md; do
+for skill_file in "$REPO_ROOT"/*/SKILL.md "$REPO_ROOT"/guides/*/SKILL.md; do
   [ -f "$skill_file" ] || continue
 
   dir_name="$(basename "$(dirname "$skill_file")")"
+  # Path under the repo root (opper-api, or guides/video-production): the served URL and versions.json key.
+  rel_dir="${skill_file#"$REPO_ROOT"/}"; rel_dir="${rel_dir%/SKILL.md}"
 
   # --- Check 1: SKILL.md under 500 lines ---
   line_count="$(wc -l < "$skill_file" | tr -d ' ')"
@@ -99,8 +101,8 @@ for skill_file in "$REPO_ROOT"/*/SKILL.md; do
     errors=$((errors + 1))
   elif [ "$(grep -c '^<!-- version-check' "$skill_file")" -ne 1 ] \
     || ! grep -qF "> **Skill version $version.**" "$skill_file" \
-    || ! grep -qF "https://skills.opper.ai/$dir_name/SKILL.md" "$skill_file"; then
-    echo "ERROR: $dir_name/SKILL.md version-check block is missing or does not match metadata.version $version (run scripts/bump-version.sh $dir_name)"
+    || ! grep -qF "https://skills.opper.ai/$rel_dir/SKILL.md" "$skill_file"; then
+    echo "ERROR: $dir_name/SKILL.md version-check block is missing or does not match metadata.version $version (run scripts/bump-version.sh $rel_dir)"
     errors=$((errors + 1))
   fi
 done
