@@ -24,14 +24,14 @@ Seedance music video (99 hand-written clip prompts, 189 takes).
   change tells the story.
 - **One accent colour carries meaning,** so check every frame for it. In the brand film cyan meant "a live connection";
   a still with blue-lit cords before any line was live had to be corrected.
-- **Gates the owner approves:** story and style; the score; the stills (contact sheet); **the prompt book, read before
+- **Gates the person commissioning the film approves:** story and style; the score; the stills (contact sheet); **the prompt book, read before
   any clip spends**; the final. Drafts and retakes happen between gates without asking.
 
 ## 2. Stills
 
 - **Hero frame first.** Generate the one frame that sets the look, approve it, then pass it as a reference image to
   every other still. Palette, grain and set held across 10 stills this way; a separate colour-grade pass was not needed.
-- **People from photos: never the originals in the film.** Turn the photos into one identity sheet (front, three
+- **People from photos: never the originals in the film,** and only with the person's consent. Turn the photos into one identity sheet (front, three
   quarters, profile, full body, plain backdrop) and reference only the sheet. Likeness held in every style listed
   above.
 - **Strong styles fight a photoreal reference.** Claymation from the sheet came back photoreal twice. Two steps fix it:
@@ -64,7 +64,7 @@ Audio: <the diegetic sound, in order>. No music, no voices.
 
 - **Action and reaction** for everyone in frame; nobody idle or posing. The environment moves too (spray, cords, light).
 - **Write all prompts in one pass, in one context that holds the story,** into a prompt book (`PROMPTS.md`) that the
-  generator reads verbatim. The owner reads it before anything spends. When quality is flagged mid-run, stop every
+  generator reads verbatim. The person commissioning the film reads it before anything spends. When quality is flagged mid-run, stop every
   process that can spend, rewrite the prompts and re-make, rather than reviewing bad takes.
 - **The audio line works:** Kling and Seedance produced the listed sounds in order (crackle, silence, pull, click,
   hum). Seedance still put music in one clip despite "No music", and Omni ignored the line: listen to each clip's
@@ -75,7 +75,7 @@ Audio: <the diegetic sound, in order>. No music, no voices.
 ## 4. Model per shot, from a shoot-out
 
 Run the hardest shot on 3 models with the same frames and prompt (about $5) before casting the film. Measured
-2026-10:
+2026-10 through Opper; model names and per-route prices change, so read `GET /v3/videos/models` first:
 
 | | Kling 3.0 pro i2v | Seedance 2.5 | Gemini Omni 1.1 |
 |---|---|---|---|
@@ -83,12 +83,13 @@ Run the hardest shot on 3 models with the same frames and prompt (about $5) befo
 | Camera travel (glides, cranes, night to dawn) | Tends to stay put | **Best** | Fine for short moves |
 | Holding a style (anime, pop art, flat, pixel, vector) | Held all for 5 s | Not tested | Over-acts ("swing a few degrees" became vertical) |
 | Native audio | Good | Best | Ignored the prompt |
-| Price at 1080p | $0.112/s audio off, $0.168/s with | ~$0.57/s | ~$0.15/s |
+| Price at 1080p (2026-10) | $0.112/s audio off, $0.168/s with | $0.57/s (`bytedance:ap`), $1.16/s (`fal`) | ~$0.15/s |
 
 - **Cheap drafts first** for expensive models (Seedance 480p) to check the move, then 1080p.
-- **Beat-locked motion** by passing the score as a reference audio (`@Audio1`) is reported to work on some routes;
-  on ours it did not copy the score and the actions landed off the beat. The reliable path: measure, then cut and
-  retime in the edit.
+- **Beat-locked motion** by passing the score as a reference audio (`@Audio1`) is reported to work on some providers;
+  in one test through `fal/seedance-2.5` (`parameters.audio_urls`) it did not copy the score and the actions landed
+  off the beat. Test it on one clip before relying on it; the reliable path is to measure, then cut and retime in the
+  edit.
 - **Retakes for one artefact are cheap.** A fireball and then a salt cloud covered a face; "nothing in front of his
   face, no smoke, no steam, no clouds" fixed the third take.
 
@@ -124,8 +125,8 @@ still the clip starts on), so the handoff to the clip is invisible.
   face; a decaying camera jolt on each rip; a warm grade inside so the hole previews the next shot; an empty plate
   inside; a full flash to carry the character through.
 - **Effects that belong to the set live in the set layer,** behind the characters, with the revealed image mapped back
-  to screen space (x = fx - 540/k, width = 1080/k for a 1080-wide frame and camera zoom k). Drawn in screen space, the
-  rip cut through the character's head.
+  to screen space (for a frame W wide, a camera centred on world x = fx and zoomed k: image x = fx - W/2k, width = W/k;
+  the same for y and height). Drawn in screen space, the rip cut through the character's head.
 - **Never pop a cut-out puppet between poses:** dissolve every pose change over 0.2-0.27 s. If a pose image carries its
   own prop (a sofa), hide the standalone prop while it shows, or it doubles.
 - **3D card flips flicker** when the card passes edge-on. Slide pages instead.
