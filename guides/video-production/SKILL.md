@@ -150,6 +150,15 @@ Transcribe the **final mix** for word timings. Pass brand names as key terms (`p
 
 Send frames (`image_url`) or the mix (`input_audio`) to a chat model and ask for a blunt score. Useful as a second opinion on "is this good". Never for "when" (timestamps are seconds off), and not as proof: a listening model rated a mix 10/10 with "every effect audible" while measurement showed effects 10 to 20 dB under the music, and vision critics invented objects. Measurement and a fresh critic decide.
 
+### Films made mostly of generated footage
+
+Cinematic brand films and multi-style montages (each scene in a different art style) have their own method: canon
+blocks and a hero frame, identity sheets instead of real photos, last frames made by editing the first, clip prompts
+written as timed scripts and read before any spend, a model per shot from a shoot-out, events measured from pixels and
+retimed onto beats, motivated transitions that reveal the next scene from its own first frame, a code assist for the
+key moment, songs with lyrics and karaoke subtitles. **Read [references/generated-films.md](references/generated-films.md)**
+before planning one.
+
 ## 3. Assembly
 
 Any code renderer works if **every frame is a pure function of time**: frame *n* renders at *n / fps* after any seek. No free-running timers, `Date.now()` or unseeded randomness.
