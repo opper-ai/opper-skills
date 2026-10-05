@@ -13,11 +13,11 @@ description: >
   "make a video".
 category: guide
 metadata:
-  version: "2026-10-01"
+  version: "2026-10-05"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-01.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-10-01. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-05.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-10-05. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > **A guide, not an Opper API skill.** It shares how we make videos with open-source tools (HyperFrames, GSAP, FFmpeg) and Opper for the media; the method and tool choices are suggestions. For Opper itself, start at [`opper`](https://skills.opper.ai/); request fields live in [`opper-multimodal`](https://skills.opper.ai/opper-multimodal/SKILL.md) and `https://api.opper.ai/v3/openapi.yaml`.
@@ -76,7 +76,7 @@ One key (`Authorization: Bearer $OPPER_API_KEY`), base `https://api.opper.ai`. *
 |---|---|---|
 | Image / edit | `POST /v3/images` | `GET /v3/images/models` |
 | Video clip (async) | `POST /v3/videos`, poll `status_url` | `GET /v3/videos/models` |
-| Voice | `POST /v3/audio/speech` | `GET /v3/audio/models?type=tts` |
+| Voice | `POST /v3/audio/speech` | `GET /v3/audio/voices?model=<model>` for its voices |
 | Music, sound effects | `POST /v3/audio/generations` | `GET /v3/audio/models?type=music` / `?type=sound` |
 | Transcription (captions) | `POST /v3/audio/transcriptions` | `GET /v3/audio/models?type=stt` |
 | Text, vision, listening | `POST /v3/compat/chat/completions` (OpenAI shape) | `GET /v3/models` |
@@ -114,7 +114,8 @@ What we recommend in 2026-09 (check the lists; newer may exist): `openai/gpt-ima
 ```
 - **One file per line**, placed on the cue file. You control the gaps and a bad line is a cheap retake.
 - Write warm, full sentences; punctuation is the direction. Agents default to clipped fragments and piles of numbers.
-- The audio comes back in `audio.b64_json`. Some providers' premade voice ids are only in their own docs; test one line per voice.
+- Pick the voice by ear: `GET /v3/audio/voices?model=<model>` (filter by `language`, `gender`) lists each voice with its accent and, on ElevenLabs, a `preview_url`. Shortlist two or three, then render the same real line in each before choosing.
+- The audio comes back in `audio.b64_json`.
 
 ### Music
 
@@ -129,6 +130,7 @@ What we recommend in 2026-09 (check the lists; newer may exist): `openai/gpt-ima
 - Describe each section in `prompt` (and `styles`); words to be sung go only in `lyrics`. Put section boundaries on the phrase grid (at 120 BPM, multiples of 2 or 4 s); other boundaries get moved.
 - **Do breakdowns, drops and silences in the mix,** not in the prompt. Models often ignore "drums out here".
 - Generate 3 or 4, measure all (beats, loudness per second), listen to the survivors, and cue the picture to the measured track.
+- Send a `seed` with your `sections` and note it next to each take, so the one you choose can be rendered again. A changed section can still change the whole track, so measure any retake again. On ElevenLabs a seed works only with sections. Sound effects take no seed: generate a few takes and pick one.
 - Timbre is the weak point: generated orchestral strings and piano often sound synthetic. Light, plucked and electronic palettes hold up better.
 
 ### Sound effects

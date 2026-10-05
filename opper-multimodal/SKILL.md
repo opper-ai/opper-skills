@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-09-30"
+  version: "2026-10-05"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-09-30.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-09-30. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-05.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-05. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -56,7 +56,7 @@ One key, one gateway. Pick the endpoint by what you're producing:
 | **Speech / TTS** | `POST /v3/audio/speech` | sync | `GET /v3/audio/models?type=tts` | [audio](https://docs.opper.ai/build/multimodal/audio) |
 | **Transcription / STT** | `POST /v3/audio/transcriptions` | sync (opt-in `stream`) | `GET /v3/audio/models?type=stt` | [audio](https://docs.opper.ai/build/multimodal/audio) |
 | **Music / sound effects** | `POST /v3/audio/generations` (`/v3/audio/music` is an alias) | sync (opt-in `async`) | `GET /v3/audio/models?type=music` / `?type=sound` | [audio](https://docs.opper.ai/build/multimodal/audio) |
-| **Voice cloning** | `POST /v3/audio/voices` | sync | `GET /v3/audio/voices` (your voices) | [audio](https://docs.opper.ai/build/multimodal/audio) |
+| **Voice cloning** | `POST /v3/audio/voices` | sync | `GET /v3/audio/voices?model=` (a model's voices, yours included) | [audio](https://docs.opper.ai/build/multimodal/audio) |
 | **Video** (generate) | `POST /v3/videos` | **async** — poll `status_url` | `GET /v3/videos/models` | [video](https://docs.opper.ai/build/multimodal/video) |
 | **OCR** (PDF / image → markdown) | `POST /v3/ocr` | sync | `GET /v3/ocr/models` | [ocr](https://docs.opper.ai/build/multimodal/ocr) |
 | **Files** (store / reuse media) | `/v3/files` | sync | — | [files](https://docs.opper.ai/build/multimodal/files) |
@@ -106,7 +106,7 @@ curl -s -X POST https://api.opper.ai/v3/audio/transcriptions \
 
 **Brand and product names in transcripts**: pass them as key terms through `parameters` on models that take them (for example `"parameters": {"keyterms": ["Opper"]}` on `elevenlabs/scribe_v2`, which otherwise wrote "Opper" as "OPA").
 
-**Provider voices**: `?type=tts` lists voices on most speech models, and `GET /v3/audio/voices` lists only *your* cloned voices. Where a model lists none (ElevenLabs today), take the provider's premade voice ids from its own docs and test one short line per voice.
+**Finding voices**: `GET /v3/audio/voices?model=<tts model>` lists every voice that model takes as `voice`: the provider's built-in voices (`type: preset`), then your project's clones on that provider (`type: custom`). Filter with `language` (`en` matches `en-GB`), `gender` and `type`; `"default": true` marks the voice used when `voice` is left out. ElevenLabs and Mistral voices are read live from the provider, with name, accent, languages and (ElevenLabs) a `preview_url` to listen to first. Voices in a caller's own ElevenLabs account do not work through Opper (it calls ElevenLabs with its own account): clone them instead. Fish Audio voices are not listed; pass a Fish voice id.
 
 **Streaming transcription**: send `"stream": true` to `/v3/audio/transcriptions` to get incremental `transcript.text.delta` events over SSE (final `transcript.text.done` + `[DONE]`) instead of one blocking response. Only some models support it — check `stream` in the `?type=stt` discovery list; unsupported models return a `400`.
 
@@ -146,7 +146,7 @@ curl -s -X POST https://api.opper.ai/v3/audio/generations \
         {"duration_ms": 8000, "prompt": "same marimba, fuller, resolves on a final chord", "negative_styles": ["vocals"]}]}'
 ```
 
-- **Normalized fields**: `prompt` (required unless `sections` are sent), `duration_seconds` (not with `sections`, which set the length), `instrumental`, `format` (`mp3`, `wav`, `opus`, `pcm`; omit it for the model's native format), `seed`. A value a model cannot honor answers `400` naming its limit.
+- **Normalized fields**: `prompt` (required unless `sections` are sent), `duration_seconds` (not with `sections`, which set the length), `instrumental`, `format` (`mp3`, `wav`, `opus`, `pcm`; omit it for the model's native format), `seed`. A value a model cannot honor answers `400` naming its limit. On ElevenLabs, `seed` works on music only with `sections` (never with `prompt`), `instrumental` only with `prompt` (put "instrumental" in the section `styles` instead), and sound effects take no seed.
 - **Capability-gated fields answer `400`, never silently drop**: `sections` needs `audio_sections`, `loop` (seamless repeat, for ambience and hums) needs `audio_loop`. Find them with `GET /v3/audio/models?capability=audio_sections` or `?capability=audio_loop`. `parameters` is never gated: it goes to the provider as is.
 - **Sections**: each has `duration_ms` (required), `prompt` (what it should sound like; never sung), `styles`, `negative_styles`, and `lyrics` (words to sing; leave empty for instrumental). Boundaries tend to snap to the tempo's phrase grid (at 120 BPM, multiples of 2 or 4 s), so place them there and measure the result.
 - **Long tracks**: send `"async": true` to get a `202` + `status_url` and poll it like video.
