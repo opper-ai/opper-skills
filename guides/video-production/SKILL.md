@@ -13,11 +13,11 @@ description: >
   "make a video".
 category: guide
 metadata:
-  version: "2026-10-01"
+  version: "2026-10-05"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-01.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-10-01. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-05.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-10-05. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > **A guide, not an Opper API skill.** It shares how we make videos with open-source tools (HyperFrames, GSAP, FFmpeg) and Opper for the media; the method and tool choices are suggestions. For Opper itself, start at [`opper`](https://skills.opper.ai/); request fields live in [`opper-multimodal`](https://skills.opper.ai/opper-multimodal/SKILL.md) and `https://api.opper.ai/v3/openapi.yaml`.
@@ -147,6 +147,15 @@ Transcribe the **final mix** for word timings. Pass brand names as key terms (`p
 ### Looking and listening
 
 Send frames (`image_url`) or the mix (`input_audio`) to a chat model and ask for a blunt score. Useful as a second opinion on "is this good". Never for "when" (timestamps are seconds off), and not as proof: a listening model rated a mix 10/10 with "every effect audible" while measurement showed effects 10 to 20 dB under the music, and vision critics invented objects. Measurement and a fresh critic decide.
+
+### Films made mostly of generated footage
+
+Cinematic brand films and multi-style montages (each scene in a different art style) have their own method: canon
+blocks and a hero frame, identity sheets instead of real photos, last frames made by editing the first, clip prompts
+written as timed scripts and read before any spend, a model per shot from a shoot-out, events measured from pixels and
+retimed onto beats, motivated transitions that reveal the next scene from its own first frame, a code assist for the
+key moment, songs with lyrics and karaoke subtitles. **Read [references/generated-films.md](references/generated-films.md)**
+before planning one.
 
 ## 3. Assembly
 
