@@ -13,11 +13,11 @@ description: >
   "make a video".
 category: guide
 metadata:
-  version: "2026-10-05"
+  version: "2026-10-06"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-05.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-10-05. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-06.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-10-06. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > **A guide, not an Opper API skill.** It shares how we make videos with open-source tools (HyperFrames, GSAP, FFmpeg) and Opper for the media; the method and tool choices are suggestions. For Opper itself, start at [`opper`](https://skills.opper.ai/); request fields live in [`opper-multimodal`](https://skills.opper.ai/opper-multimodal/SKILL.md) and `https://api.opper.ai/v3/openapi.yaml`.
@@ -50,12 +50,15 @@ Other renderers fit other teams: [Remotion](https://www.remotion.dev) for React 
 
 ## 1. Ask, then plan
 
-Open with a short round of questions unless the user said to just go: purpose and viewer, length and aspect ratio, the look (hand-drawn, flat vector, paper cut, photoreal, motion graphics), whether generated video clips are wanted at all or code animation is enough, narration / music / sound design, allowed brand assets and claims, and whether real people appear (and have agreed). Offer two or three concrete directions with a recommendation.
+Open with a short round of questions unless the user said to just go: purpose and viewer, length and aspect ratio, the look (hand-drawn, flat vector, paper cut, photoreal, motion graphics), how each shot should move (code animation or pose cuts, generated clips, or a mix per shot), narration / music / sound design, allowed brand assets and claims, and whether real people appear (and have agreed). Offer two or three concrete directions with a recommendation.
+
+**Animate only when the style or the request calls for it.** Cut-out poses swapped on the beat, code animation and held stills are styles in their own right: cheaper, exact, and often what a paper or explainer piece wants. Recommend per shot; never default to generating clips for everything.
 
 Then write:
 - **`BRIEF.md`**: viewer, the one takeaway, length, look, claims you may make. For an explainer, a **`FACTS.md`** with a source for every on-screen claim, and a list of words to avoid.
 - **A shot table**: time, on screen, purpose of the beat, carried object, audio cue.
 - **One `cues.json`** that picture *and* sound both read: tempo, every cut, every hit, every narration line. Retiming is then one edit.
+- **A still animatic** (the approved stills on the real cue times, with the real score) before any clip spends. Say plainly that it is stills only, or put one real clip in it: held stills look far worse than the film will, and a viewer judges the film by it.
 
 Choose the medium by what must be true on screen:
 
@@ -93,7 +96,7 @@ What we recommend in 2026-09 (check the lists; newer may exist): `openai/gpt-ima
 - `image` = the picture to edit; `reference_images` = identity or style to keep.
 - **Fix a still by editing it, not by regenerating.** "Same drawing, identical in every line; the only change: ...". Regenerating from references snaps back to their composition.
 - **Colours as hex or light, never as objects.** "A peach sphere" came back as a fruit with a stem. Write "a round ball of light, coral #F9B58C core, cyan #8CECF2 glow".
-- Probe the size you got. Resolution can hide behind another knob (`quality: "high"` gave 2K on Gemini image models).
+- Probe the size you got. Resolution can hide behind another knob (`quality: "high"` gave 2K on Gemini image models). Send `size` on edits too: an edit without it came back square. An edit can also shift the picture (a 1024x1824 edit of a 1080x1920 frame moved a sofa 72 px): register edited frames to the original before animating them.
 - Photo to drawing: edit the real photo ("redraw this exact photograph as pencil line art, same composition, same people") so a code wipe from photo to drawing registers.
 
 ### Video clips
@@ -105,6 +108,8 @@ What we recommend in 2026-09 (check the lists; newer may exist): `openai/gpt-ima
 - Plan to use the first good 1 to 2.5 s; clips drift after that. Cut on the beat.
 - Watch for what sampled frames hide: a cut to a new angle mid-clip, invented people, props turning into other objects, a light that tints every shirt. Check a 4 to 5 fps strip and crop the key prop at full size.
 - A clip that continues a still must continue its camera move, or the handover pops.
+- **Clip audio:** when the score carries the film, set clip audio off. When you want the clip's own sound, name only what the scene makes, in order: `Diegetic sound only: oil sizzling, the pan scraping the burner, a spoon tap, the stove knob click, then room tone.` Never write instrument or genre words, or even "no music": with "No music" Seedance still added music, and Scenario reports such words can trip audio moderation. With this wording Kling gave clean foley with no music or voice, the events in order.
+- Clips come back a little longer than requested (about 0.04 s): read the real duration before laying out the timeline.
 - **Handing a generated subject to code** (an object flying out of the clip): measure its last position from pixels, edit the last frame to remove it, check the two register, then animate a code-drawn copy from exactly that spot.
 
 ### Voice
@@ -140,7 +145,8 @@ What we recommend in 2026-09 (check the lists; newer may exist): `openai/gpt-ima
 ```
 - **One action per request, described as the material on screen.** Add `loop: true` for ambience and hums.
 - Place each effect on the **measured** action frame (motion or brightness peak), not a guess.
-- Normalise every effect to about -1 dBFS peak before gains; some come back nearly silent. Trim leading silence.
+- Normalise every effect to about -1 dBFS peak before gains; some come back nearly silent. Place each effect by its measured onset, not its file start (a lever's clack began 0.375 s into its file).
+- **A diegetic bed under a song needs a level target,** about -18 LUFS under a -14 LUFS song, ducking the song a few dB under the key effects. Check the lift at every hit: a bed at -26 LUFS was "in the mix" and inaudible.
 
 ### Transcription and captions
 
@@ -155,8 +161,8 @@ Send frames (`image_url`) or the mix (`input_audio`) to a chat model and ask for
 Cinematic brand films and multi-style montages (each scene in a different art style) have their own method: canon
 blocks and a hero frame, identity sheets instead of real photos, last frames made by editing the first, clip prompts
 written as timed scripts and read before any spend, a model per shot from a shoot-out, events measured from pixels and
-retimed onto beats, motivated transitions that reveal the next scene from its own first frame, a code assist for the
-key moment, songs with lyrics and karaoke subtitles. **Read [references/generated-films.md](references/generated-films.md)**
+retimed onto beats, motivated transitions that reveal the next scene from its own first frame, a character animated
+over a code set (keyed off green), a code assist for the key moment, songs with lyrics and karaoke subtitles. **Read [references/generated-films.md](references/generated-films.md)**
 before planning one.
 
 ## 3. Assembly
@@ -181,7 +187,7 @@ Any code renderer works if **every frame is a pure function of time**: frame *n*
 
 1. **Checks on every render:** loudness and true peak; frames that differ sharply from both neighbours (glitches, a layer one frame early); near-frozen time; single-colour frames; cut and hit sync within 1 to 2 frames.
 2. **Look yourself:** contact sheets at 2 to 4 fps plus every frame of each transition.
-3. **A fresh critic each round:** a new agent with only the render, the brief and the facts, returning ranked defects and SHIP or ONE MORE PASS. It catches what the builder cannot: blank cut frames, a fruit for an orb, a highlight on the wrong code line, an invented failover shown as "a real call".
+3. **A fresh critic each round:** a new agent with only the render, the brief and the facts, returning ranked defects and SHIP or ONE MORE PASS. It catches what the builder cannot: blank cut frames, a fruit for an orb, a highlight on the wrong code line, an invented failover shown as "a real call". **On a film the owner already approved, its findings are proposals, not fixes:** show them and let the owner choose. A critic checks its own rubric, not whether the film got better; applying every fix to an approved brand film (cutting a scale shot for pace, a colour wash, a code overlay patching the story beat) passed the critic and made the film worse.
 4. **A human watches last.** They catch what nobody measured (a camera that "jumps", tools whose sounds do not match). Measured is not judged; say which is which.
 
 ## 6. Delivery and honesty
