@@ -158,7 +158,7 @@ A setup isn't done until the user has seen it work. Run the **minimal** example 
 | CLI | `opper whoami` returns an active slot; `opper models list` prints the live model roster |
 | Compat (curl or any SDK) | A chat completion returns 200 from `api.opper.ai/v3/compat`; structured output validates via `response_format`; the call appears under **Logs** at [platform.opper.ai](https://platform.opper.ai) (inputs, outputs and the trace tree only with tracing on) |
 | Media (`opper-multimodal`) | `POST /v3/images` returns an image inline; `POST /v3/videos` returns `202` + a `status_url` that resolves to a download URL |
-| Agent (any framework, or a tool loop on compat) | The run returns a final answer after at least one tool call; each model call appears under **Logs**, grouped by its `X-Opper-Name` |
+| Agent (any framework, or a tool loop on compat) | The run returns a final answer after at least one tool call; each model call shows as its own row under **Logs** at [platform.opper.ai](https://platform.opper.ai) (inputs, outputs and the trace tree only with tracing on) |
 | Realtime (`opper-multimodal`) | WebSocket connects; first server message is `{"type": "session.started", "session_id": ...}` |
 
 **If it doesn't work, read the actual error** — don't guess. Common causes:
