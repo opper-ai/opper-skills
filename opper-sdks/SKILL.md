@@ -1,23 +1,23 @@
 ---
 name: opper-sdks
 description: >
-  Use the unified Opper SDKs (`opperai` package for both Python and TypeScript,
-  with built-in agent support) for AI task completion, structured output with
-  Pydantic / Zod / JSON Schema, knowledge base semantic search, streaming,
-  tracing, tool use, and multi-agent composition. Use this skill whenever the
-  user is writing Python or TypeScript code that imports `opperai`, builds an
-  Opper agent, needs to migrate code off the legacy `opper.call`, or asks how
-  to do anything Opper-related in code — even if they don't explicitly name
-  the SDK. Both languages live in one repo with parallel
-  numbered examples; agents are part of the SDK, not a separate package.
+  Use the unified Opper SDKs (`opperai` package for both Python and TypeScript)
+  and Opper's compat endpoints from code for AI task completion, structured
+  output with Pydantic / Zod / JSON Schema, knowledge base semantic search,
+  streaming, tracing, and tool use. Use this skill whenever the user is writing
+  Python or TypeScript code that imports `opperai`, wants to build an agent on
+  Opper, needs to migrate code off the legacy `opper.call` or off the
+  discontinued Opper Agent SDK, or asks how to do anything Opper-related in
+  code — even if they don't explicitly name the SDK. Both languages live in one
+  repo with parallel numbered examples.
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-01"
+  version: "2026-10-09"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-01.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-sdks"` entry with 2026-10-01. If they differ, read https://skills.opper.ai/opper-sdks/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-09.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-sdks"` entry with 2026-10-09. If they differ, read https://skills.opper.ai/opper-sdks/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -25,7 +25,9 @@ metadata:
 
 # Opper SDKs
 
-The Python and TypeScript SDKs for Opper live in a single monorepo: [github.com/opper-ai/opper-sdks](https://github.com/opper-ai/opper-sdks). Both publish as `opperai` (PyPI / npm). **Agents are part of the SDK** — there is no separate `opperai-agents` package.
+The Python and TypeScript SDKs for Opper live in a single monorepo: [github.com/opper-ai/opper-sdks](https://github.com/opper-ai/opper-sdks). Both publish as `opperai` (PyPI / npm).
+
+**The Opper Agent SDK is discontinued** (October 2026): `Agent`, `tool`, `Conversation`, `Hooks` and `mcp` in `opperai`, and the older standalone `opperai-agents` / `@opperai/agents` packages, are no longer maintained and are being removed. Don't write new code against them or suggest them. For agents, see [references/agents.md](references/agents.md).
 
 The upstream READMEs (`python/README.md`, `typescript/README.md`) and the numbered example files are the source of truth. This skill points at them; it does not duplicate them.
 
@@ -36,11 +38,11 @@ The unified `opperai` package exposes a few different shapes. Pick by what you'r
 - **One-shot structured task** (input → typed output): the recommended path is a **compat chat endpoint with `response_format`**, called through the provider SDK you already know — point the OpenAI SDK's `base_url` at `https://api.opper.ai/v3/compat` and pass your Pydantic / Zod model via `chat.completions.parse(...)`. Seeds below; full shape in the **`opper-api` skill**.
 - **Streaming**: `stream: true` on the same compat call — standard OpenAI SSE semantics.
 - **Multi-turn chat or message-thread style**: the compat chat endpoints are message-native — carry the `messages` array forward.
-- **Tool-using agent, multi-step reasoning, multi-agent, external MCP tools**: the **Agent SDK** (`Agent`, `tool`, `Conversation`, `Hooks`, `mcp`) is recommended for any "model decides what to do next" flow. Use **`agent.run(...)`** for a single shot or **`agent.stream(...)`** for live progress.
+- **Tool-using agent, multi-step reasoning, multi-agent, external MCP tools**: use the agent framework the user already has (OpenAI Agents SDK, Vercel AI SDK, Mastra, LangChain, …) pointed at Opper, or a plain tool-calling loop on the compat chat endpoint. Wiring per framework and both seeds in [references/agents.md](references/agents.md). Not the discontinued Opper Agent SDK.
 - **Knowledge bases / RAG**: **`opper.knowledge.*`** — `create`, `query`, `add`, etc.
 - **`opper.call(...)` / `opper.stream(...)` are legacy.** They ride Opper's `/call` surface, which is **being sunset** — don't start new work on them, and don't use them in examples. The `opperai` SDK itself is being reworked to no longer use `/call`; a future release drops it. Existing code migrates to compat + `response_format`; the field-by-field mapping (`name` → `X-Opper-Name` header, `output_schema` → `response_format`, `result.data` → parsed message content) is in the `opper-api` skill's `references/migration.md`.
 
-The Agent SDK's `mcp` integration lets your application agent consume external MCP tools. To connect a coding assistant to the Opper MCP server for platform operations or model tests, use `opper-mcp`.
+To connect a coding assistant to the Opper MCP server for platform operations or model tests, use `opper-mcp`.
 
 ## Pick a path
 
@@ -109,7 +111,7 @@ console.log(resp.choices[0].message.content);
 
 For typed output, pass `response_format: { type: "json_schema", json_schema: { name, schema } }` (generate the schema from Zod v4 with `z.toJSONSchema(...)`) and `JSON.parse` the message content.
 
-For the agent seeds (`Agent`, `tool`, `agent.run(...)`), see [references/agents.md](references/agents.md).
+For agents (a tool-calling loop, or the user's framework on Opper), see [references/agents.md](references/agents.md).
 
 ### Picking a model
 
@@ -139,7 +141,7 @@ Both `python/examples/` and `typescript/examples/` hold parallel numbered files.
 | Knowledge base | `12_knowledge_base.{py,ts}` |
 | Web tools | `13_web_tools.{py,ts}` |
 
-**Agents** (`examples/agents/`, numbered `00..10`): first agent → output schema → tools → streaming → hooks (logging / timing / streaming) → agent-as-tool → multi-agent → MCP (stdio) → conversation. See [references/agents.md](references/agents.md) for the topic↔file table.
+**Agents** (`examples/agents/`): these demonstrate the discontinued Agent SDK. Read them only to understand existing code you are migrating; [references/agents.md](references/agents.md) maps each concept to its replacement.
 
 Type definitions: `python/src/opperai/types.py` and `typescript/src/types.ts`.
 
@@ -149,7 +151,7 @@ Type definitions: `python/src/opperai/types.py` and `typescript/src/types.ts`.
 - **No required schema library.** Both SDKs accept plain JSON Schema dicts and don't need any third-party schema package. Pydantic (Python) and Zod (TS) are bundled integrations for convenience — most users will reach for them, but they are optional.
 - **If you use Zod with the TS SDK, it must be v4.** `npm install zod@4`. The `zod@3.25.x` dual-mode package is *not* supported. (Zod is an *optional peer dependency*.)
 - **Python depends on `httpx`** (not zero-dep at runtime); TypeScript is zero-dep at runtime.
-- **`opperai` is the unified package.** Old separate `opperai-agents` (PyPI) and `@opperai/agents` (npm) are deprecated; `Agent`, `tool`, `Conversation`, `Hooks`, etc. are all re-exported from the top-level `opperai`.
+- **The Opper Agent SDK is discontinued.** `Agent`, `tool`, `Conversation`, `Hooks` and `mcp` (re-exported from the top-level `opperai`, and the older `opperai-agents` / `@opperai/agents` packages) are no longer maintained and are being removed. Migrate existing agent code with the table in [references/agents.md](references/agents.md).
 - **Migration from earlier versions** is documented at `python/MIGRATION.md` and `typescript/MIGRATION.md` upstream.
 - **For API signature questions**, fetch the live OpenAPI spec at `https://api.opper.ai/v3/openapi.yaml`. The SDK shape mirrors the spec.
 

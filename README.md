@@ -11,7 +11,7 @@ One philosophy: **point at the live source of truth, don't duplicate it.** Each 
 | [`opper`](./opper/) | **Entry point.** Discovers user intent, then routes to the right sub-skill. Owns setup, testing, and follow-up. | This repo |
 | [`opper-mcp`](./opper-mcp/) | **Preferred for agents.** Connect MCP, set up projects, manage rules, inspect usage/traces, and test models | [opper.ai/mcp](https://opper.ai/mcp) and connected MCP tool schemas |
 | [`opper-cli`](./opper-cli/) | The `opper` command-line tool: calling functions, indexes, traces, models, usage, config | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) and `opper --help` |
-| [`opper-sdks`](./opper-sdks/) | The unified `opperai` packages for Python and TypeScript, including agents | [github.com/opper-ai/opper-sdks](https://github.com/opper-ai/opper-sdks) |
+| [`opper-sdks`](./opper-sdks/) | The unified `opperai` packages for Python and TypeScript, and building agents on Opper | [github.com/opper-ai/opper-sdks](https://github.com/opper-ai/opper-sdks) |
 | [`opper-api`](./opper-api/) | The Opper REST API, gateway and platform concepts, models, compat endpoints, server-side tools, migration | [docs.opper.ai](https://docs.opper.ai) and `https://api.opper.ai/v3/openapi.yaml` |
 | [`opper-multimodal`](./opper-multimodal/) | Media generation (images, audio, video, OCR), the `/v3/files` storage API, vision/PDF input, and realtime voice | [docs.opper.ai/build/multimodal](https://docs.opper.ai/build/multimodal/overview) and `https://api.opper.ai/v3/openapi.yaml` |
 
@@ -32,7 +32,7 @@ Start with `opper`. The entry skill figures out what you're trying to do and loa
 
 Prefer the [Opper MCP server](https://opper.ai/mcp) for agent-assisted setup and platform operations; keep SDK/API integrations for application inference and the CLI for explicit shell, private key delivery, editor, and agent launch workflows.
 
-> **Coming from older skills?** The previous `opper-python-sdk`, `opper-node-sdk`, `opper-python-agents`, and `opper-node-agents` skills have been folded into `opper-sdks` — agents are now part of the unified SDK package, not a separate one.
+> **Coming from older skills?** The previous `opper-python-sdk` and `opper-node-sdk` skills have been folded into `opper-sdks`. The `opper-python-agents` and `opper-node-agents` skills are retired along with the discontinued Opper Agent SDK; for agents, see [`opper-sdks/references/agents.md`](./opper-sdks/references/agents.md).
 
 ## Agent-assisted setup (no install)
 
