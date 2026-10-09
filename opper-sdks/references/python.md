@@ -1,8 +1,8 @@
 # Opper Python SDK — orientation
 
-The upstream [`python/README.md`](https://github.com/opper-ai/opper-sdks/tree/main/python) is the source of truth for install, quick start, schema flavours, observability, agents, configuration, and error handling. Read it first. This file only covers what the README doesn't.
+The upstream [`python/README.md`](https://github.com/opper-ai/opper-sdks/tree/main/python) is the source of truth for install, quick start, schema flavours, observability, configuration, and error handling. Read it first (skip its "Agent SDK" section: discontinued, see [agents.md](agents.md)). This file only covers what the README doesn't.
 
-> **Legacy note:** `opper.call(...)` / `opper.stream(...)` ride Opper's `/call` surface, which is being sunset, and the `opperai` SDK is being reworked to no longer use `/call` — a future release drops it. Use this file to maintain or migrate existing code, not to start new `opper.call` work — new one-shot tasks go through a compat chat endpoint with `response_format` (mapping in the `opper-api` skill's `references/migration.md`). The Agent SDK and `opper.knowledge.*` are unaffected.
+> **Legacy note:** `opper.call(...)` / `opper.stream(...)` ride Opper's `/call` surface, which is being sunset, and the `opperai` SDK is being reworked to no longer use `/call` — a future release drops it. Use this file to maintain or migrate existing code, not to start new `opper.call` work — new one-shot tasks go through a compat chat endpoint with `response_format` (mapping in the `opper-api` skill's `references/migration.md`). `opper.knowledge.*` is unaffected. The Agent SDK is discontinued: see [agents.md](agents.md).
 
 ## Numbered examples — concept → file map
 

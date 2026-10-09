@@ -1,8 +1,8 @@
 # Opper TypeScript SDK — orientation
 
-The upstream [`typescript/README.md`](https://github.com/opper-ai/opper-sdks/tree/main/typescript) is the source of truth for install, quick start, schemas, observability, agents, configuration, and error handling. Read it first. This file only covers what the README doesn't.
+The upstream [`typescript/README.md`](https://github.com/opper-ai/opper-sdks/tree/main/typescript) is the source of truth for install, quick start, schemas, observability, configuration, and error handling. Read it first (skip its "Agent SDK" section: discontinued, see [agents.md](agents.md)). This file only covers what the README doesn't.
 
-> **Legacy note:** `opper.call(...)` / `opper.stream(...)` ride Opper's `/call` surface, which is being sunset, and the `opperai` SDK is being reworked to no longer use `/call` — a future release drops it. Use this file to maintain or migrate existing code, not to start new `opper.call` work — new one-shot tasks go through a compat chat endpoint with `response_format` (mapping in the `opper-api` skill's `references/migration.md`). The Agent SDK and `opper.knowledge.*` are unaffected.
+> **Legacy note:** `opper.call(...)` / `opper.stream(...)` ride Opper's `/call` surface, which is being sunset, and the `opperai` SDK is being reworked to no longer use `/call` — a future release drops it. Use this file to maintain or migrate existing code, not to start new `opper.call` work — new one-shot tasks go through a compat chat endpoint with `response_format` (mapping in the `opper-api` skill's `references/migration.md`). `opper.knowledge.*` is unaffected. The Agent SDK is discontinued: see [agents.md](agents.md).
 
 ## Numbered examples — concept → file map
 
@@ -56,7 +56,7 @@ Full discriminated union `StreamChunk<T>` is exported from `opperai`; source at 
 
 ## Non-obvious
 
-- **Zero runtime dependencies.** `zod ^4.0.0` and `@modelcontextprotocol/sdk` are *optional peer dependencies*; install only what you use.
+- **Zero runtime dependencies.** `zod ^4.0.0` is an *optional peer dependency*; install it only if you use Zod. (The other optional peer, `@modelcontextprotocol/sdk`, is only for the discontinued Agent SDK's `mcp()`.)
 - **Zod v4 only** if you use Zod. The `zod@3.25.x` dual-mode package is not supported.
 - **`Agent`, `tool`, `Conversation`, `mcp` are the discontinued Opper Agent SDK.** They still import from `"opperai"` but are no longer maintained and are being removed; build agents as in [agents.md](agents.md).
 - **Native `fetch`** is used for HTTP, so Node ≥ 18 (or any modern fetch-capable runtime) is required.

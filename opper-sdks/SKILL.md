@@ -29,7 +29,7 @@ The Python and TypeScript SDKs for Opper live in a single monorepo: [github.com/
 
 **The Opper Agent SDK is discontinued** (October 2026): `Agent`, `tool`, `Conversation`, `Hooks` and `mcp` in `opperai`, and the older standalone `opperai-agents` / `@opperai/agents` packages, are no longer maintained and are being removed. Don't write new code against them or suggest them. For agents, see [references/agents.md](references/agents.md).
 
-The upstream READMEs (`python/README.md`, `typescript/README.md`) and the numbered example files are the source of truth. This skill points at them; it does not duplicate them.
+The upstream READMEs (`python/README.md`, `typescript/README.md`) and the numbered example files are the source of truth, except their Agent SDK sections and `examples/agents/`, which are discontinued. This skill points at them; it does not duplicate them.
 
 ## Pick your primitive
 
@@ -57,7 +57,7 @@ To connect a coding assistant to the Opper MCP server for platform operations or
 
 ```bash
 pip install opperai          # Python — has one runtime dep: httpx
-npm  install opperai         # TypeScript — zero runtime deps; zod and @modelcontextprotocol/sdk are optional peers
+npm  install opperai         # TypeScript — zero runtime deps; zod is an optional peer
 ```
 
 Authentication: both SDKs read `OPPER_API_KEY` from the environment, or accept `api_key=` / `apiKey:` in the constructor.
@@ -151,7 +151,7 @@ Type definitions: `python/src/opperai/types.py` and `typescript/src/types.ts`.
 - **No required schema library.** Both SDKs accept plain JSON Schema dicts and don't need any third-party schema package. Pydantic (Python) and Zod (TS) are bundled integrations for convenience — most users will reach for them, but they are optional.
 - **If you use Zod with the TS SDK, it must be v4.** `npm install zod@4`. The `zod@3.25.x` dual-mode package is *not* supported. (Zod is an *optional peer dependency*.)
 - **Python depends on `httpx`** (not zero-dep at runtime); TypeScript is zero-dep at runtime.
-- **The Opper Agent SDK is discontinued.** `Agent`, `tool`, `Conversation`, `Hooks` and `mcp` (re-exported from the top-level `opperai`, and the older `opperai-agents` / `@opperai/agents` packages) are no longer maintained and are being removed. Migrate existing agent code with the table in [references/agents.md](references/agents.md).
+- **The Opper Agent SDK is discontinued.** `Agent`, `tool`, `Conversation`, `Hooks` (top-level `opperai`), `mcp` (`opperai.agent.mcp` in Python, top-level in TS) and the older `opperai-agents` / `@opperai/agents` packages are no longer maintained and are being removed. Migrate existing agent code with the table in [references/agents.md](references/agents.md).
 - **Migration from earlier versions** is documented at `python/MIGRATION.md` and `typescript/MIGRATION.md` upstream.
 - **For API signature questions**, fetch the live OpenAPI spec at `https://api.opper.ai/v3/openapi.yaml`. The SDK shape mirrors the spec.
 
