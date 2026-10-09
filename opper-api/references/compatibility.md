@@ -54,7 +54,7 @@ curl -s https://api.opper.ai/v3/compat/v1/messages \
 
 ## Auth header note
 
-Opper accepts only `Authorization: Bearer ...`. The Anthropic SDK sends `x-api-key` by default — when migrating, override default headers to send `Authorization`. See [migration.md](migration.md).
+Opper reads the key from `Authorization: Bearer ...`, which is what the OpenAI SDK sends. The vendor-protocol routes also read that vendor's own header: `x-api-key` on the Anthropic Messages endpoints, `x-goog-api-key` on the Gemini ones. So the Anthropic and Google SDKs authenticate with just their normal API key, no header override. See [migration.md](migration.md).
 
 ## Opper-specific request and response headers
 

@@ -57,7 +57,7 @@ Field-by-field:
 | `instructions` | `system` message |
 | `input` | `user` message — JSON-encode structured input into the message content |
 | `output_schema` | `response_format: {type: "json_schema", json_schema: {name, schema}}` |
-| `model` (string or fallback array) | `model` — same `provider/model` form, string only; for fallback chains, build a dynamic route in the platform and pass `dynamic/<name>` |
+| `model` (string or fallback array) | `model` — same `provider/model` form, string only. Put a fallback chain in the separate `models` array (primary in `model`, the rest in `models`, at most 10), or build a dynamic route and pass `dynamic/<name>` |
 | response `data` | `choices[0].message.content` — a JSON **string**; parse it |
 | `meta.cost` | `usage.opper.cost.total` in the body, and the `X-Opper-Cost` response header |
 | `meta.trace_uuid` | `meta.trace_uuid` — traces work identically, visible at [platform.opper.ai](https://platform.opper.ai) |
@@ -116,17 +116,17 @@ resp = client.chat.completions.create(
 )
 ```
 
-That's it. Verify the model identifier with `curl -s https://api.opper.ai/v3/models` — provider-side names sometimes differ between gateways.
+That's it. Verify the model identifier with `curl -s https://api.opper.ai/v3/models` — provider-side names sometimes differ between gateways. OpenRouter's `models` fallback array works unchanged: same shape, at most 10 entries.
 
 ## From OpenAI
 
 Same code change as OpenRouter — point `base_url` at `https://api.opper.ai/v3/compat`. The OpenAI SDK appends `/chat/completions`, `/responses`, `/embeddings`, all of which exist on the compat tree. Use Opper's `provider/model` identifier form.
 
-For schema-constrained output, add `response_format: {type: "json_schema"}` to the compat call — no separate endpoint. For multi-model fall-back, define a Route alias in the platform that maps one name to an ordered backup chain.
+For schema-constrained output, add `response_format: {type: "json_schema"}` to the compat call — no separate endpoint. For multi-model fall-back, send a `models` array next to `model` (tried in order, at most 10), or build a dynamic route in the platform for a named chain you reuse.
 
 ## From Anthropic
 
-Anthropic SDK users can point at the compat tree, but the Anthropic SDK sends `x-api-key` by default and Opper only accepts `Authorization: Bearer`. Override default headers:
+Anthropic SDK users point the base URL at the compat tree and pass the Opper key as the normal API key. The Messages endpoints accept the SDK's default `x-api-key` header, so no header override is needed:
 
 ```ts
 import Anthropic from "@anthropic-ai/sdk";
@@ -134,7 +134,6 @@ import Anthropic from "@anthropic-ai/sdk";
 const client = new Anthropic({
   baseURL: "https://api.opper.ai/v3/compat",
   apiKey: process.env.OPPER_API_KEY,
-  defaultHeaders: { Authorization: `Bearer ${process.env.OPPER_API_KEY}` },
 });
 ```
 
@@ -147,7 +146,7 @@ Same pattern: base URL → `https://api.opper.ai/v3/compat`, key → Opper key. 
 ## Why migrate at all
 
 - One bill, one key, one trace surface across providers.
-- Multi-model fall-back via a Route alias (one name → an ordered backup chain).
+- Multi-model fall-back per request (`models` array) or as a named dynamic route.
 - Multimodality (images, audio, video) and realtime voice behind the same key.
 - Knowledge bases (on the v2 surface — `/v2/knowledge/...`) and tracing in the same control plane.
 
