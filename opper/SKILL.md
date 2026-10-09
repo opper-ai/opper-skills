@@ -12,11 +12,11 @@ description: >
   files, and realtime voice. Own setup, verification, and follow-up.
 category: router
 metadata:
-  version: "2026-10-09"
+  version: "2026-10-09.2"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-09.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-09. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-09.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-09.2. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 # Opper
@@ -224,7 +224,7 @@ Use these terms exactly — they're proper nouns in Opper's universe. All define
 | **Gateway** | The request path. Enforces Control Plane rules on every call |
 | **Pool** | The set of providers serving one model. A bare model name (`kimi-k3`) routes across the pool with failover; a provider-qualified id (`tensorx/moonshotai/kimi-k3`) pins one member |
 | **Alias** | An org-scoped name for your own ordered list of models — primary first, then fallbacks. Predates dynamic routes; still resolves, but new fallback chains are dynamic routes |
-| **Dynamic route** | A deployed routing graph (pools, fixed fallback order, classify, branch, versioned), called as `dynamic/<name>`. The way to build a fallback chain. Manageable from CI over `/management/v1/dynamic-routes` |
+| **Dynamic route** | A deployed routing graph (pools, fixed fallback order, classify, branch, versioned), called as `dynamic/<name>`. The way to build a named fallback chain you reuse (for a one-off, a compat request can carry a `models` fallback array). Manageable from CI over `/management/v1/dynamic-routes` |
 
 **API surfaces** — one gateway, pick the endpoint by what you're building:
 

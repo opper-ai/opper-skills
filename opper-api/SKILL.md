@@ -18,11 +18,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-09"
+  version: "2026-10-09.2"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-09.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-09. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-09.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-09.2. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -86,7 +86,7 @@ Same pattern answers any "where is X" question — grep the spec, follow the sch
 Authorization: Bearer $OPPER_API_KEY
 ```
 
-Server URL: `https://api.opper.ai` (the `/v3` or `/v2` prefix is part of each path). Bearer is the **only** auth scheme — there is no `x-api-key`. Get a key at [platform.opper.ai](https://platform.opper.ai).
+Server URL: `https://api.opper.ai` (the `/v3` or `/v2` prefix is part of each path). Use `Authorization: Bearer`; the OpenAI-shaped endpoints accept nothing else. The vendor-protocol compat routes also read that vendor's own header (`x-api-key` on the Anthropic Messages endpoints, `x-goog-api-key` on the Gemini ones), so the Anthropic and Google SDKs work with just their normal API key. Get a key at [platform.opper.ai](https://platform.opper.ai).
 
 A few endpoints have `security: []` and don't require a key: `/health`, `/v3/openapi.yaml`, `/v3/openapi.json`, `/v3/models`.
 
@@ -168,9 +168,9 @@ References: [docs.opper.ai/capabilities/models](https://docs.opper.ai/capabiliti
 | **Bare model name** — a *pool* | `"kimi-k3"` | Every provider serving that model. Opper picks one; the rest are failover |
 | **Provider-qualified id** — a *pin* | `"tensorx/moonshotai/kimi-k3"` | Exactly that one provider row, no failover |
 | **Org alias** — your own list | `"my-flash"` | An ordered list you defined: primary first, then fallbacks. Predates routes; still resolves for orgs that have one (CRUD at `/v2/models/aliases`) |
-| **Dynamic route** — a deployed graph | `"dynamic/my-route"` | Pools, fixed fallback order, classification, branching, versioned. **The way to build a fallback chain.** Built in the platform UI or over `/management/v1/dynamic-routes` with a Management API Key (in the public spec) — but **calling** one only needs your normal project key |
+| **Dynamic route** — a deployed graph | `"dynamic/my-route"` | Pools, fixed fallback order, classification, branching, versioned. **The way to build a named fallback chain you reuse.** Built in the platform UI or over `/management/v1/dynamic-routes` with a Management API Key (in the public spec) — but **calling** one only needs your normal project key |
 
-**None of these is the default answer — pick per use case.** Pin for determinism (evals, a guaranteed jurisdiction or price, a provider-specific behaviour); pool for redundancy without thinking about it; route for your own fallback chain, or when the decision depends on the request. Don't propose a new alias; point new chains at a route. Fallbacks are never a per-request field on compat: no `fallback_models`, no `model` array.
+**None of these is the default answer — pick per use case.** Pin for determinism (evals, a guaranteed jurisdiction or price, a provider-specific behaviour); pool for redundancy without thinking about it; route for your own fallback chain, or when the decision depends on the request. Don't propose a new alias; point new chains at a route. `model` itself is always a string (an array is a 400), but a request can also carry its own fallback list in a separate **`models`** array (OpenRouter shape: primary in `model`, the rest in `models`, at most 10, tried in order when the one before fails at runtime; not together with `dynamic/<name>`). Unknown ids are rejected up front (404 `model_not_found`), they don't fall through. Use `models` for a one-off chain on a request, a route for a chain you name once and reuse.
 
 On pools specifically: **`model`** is the group key on each row (and the bare name you call), **`pooled`** is whether that row answers to it. `pooled: false` rows are fully callable by explicit id — they're just held out of bare-name routing, usually for a smaller context window or a pricier latency-tuned variant.
 
@@ -241,7 +241,7 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 - **One gateway, many endpoints.** Text/chat is `/v3/compat/...`; media generation, files, and realtime are a separate surface (the `opper-multimodal` skill). All share the same key and governance.
 - **`/v3/call` is legacy and being sunset.** Never point a new integration at it, and don't use it in examples. Existing `/call` users (including legacy v2 Python SDK `opper.call`) migrate to compat + `response_format` — see [references/migration.md](references/migration.md).
 - **Compat endpoints live under `/v3/compat/...`**, not at `/v3/...`. SDK migrations should point base URL at `https://api.opper.ai/v3/compat`.
-- **Auth is `Authorization: Bearer ...` only.** Anthropic SDKs send `x-api-key` by default — set the `Authorization` header explicitly when migrating.
+- **Auth is `Authorization: Bearer ...`** on the OpenAI-shaped endpoints (`x-api-key` there is a 401). The Anthropic Messages and Gemini compat routes also accept their SDK's own header (`x-api-key`, `x-goog-api-key`), so no header override is needed when migrating those SDKs.
 - **Structured output is a parameter, not an endpoint** — use `response_format: {type: "json_schema"}` on a compat chat call.
 - **A bare model name is a pool, not a provider.** `"model": "kimi-k3"` routes to any provider serving it; `"tensorx/moonshotai/kimi-k3"` pins one; `"my-alias"` uses your own ordered list; `"dynamic/my-route"` runs a deployed graph. The response `model` field just echoes what you sent, so only the trace (`span.meta.model`) reveals which one ran — see [references/model-routing.md](references/model-routing.md).
 - **Server-side web search is portable** — one `{"type": "opper:web_search"}` tool entry works on every model; native provider shapes also forward verbatim.

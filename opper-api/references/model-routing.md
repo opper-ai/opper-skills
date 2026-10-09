@@ -8,7 +8,7 @@ through the same resolution pipeline, and they compose.
 | **Bare model name** — a *pool* | `"kimi-k3"` | Every provider Opper has for that model. Opper picks one; the rest are failover |
 | **Provider-qualified id** — a *pin* | `"tensorx/moonshotai/kimi-k3"` | Exactly that one provider row |
 | **Org alias** — your own list | `"my-flash"` | An ordered list of targets you defined: primary first, then fallbacks. Predates routes; still resolves |
-| **Dynamic route** — a deployed graph | `"dynamic/my-route"` | A routing graph you built: pools, fixed fallback order, classification, branching, versioned. **The way to build a fallback chain today** |
+| **Dynamic route** — a deployed graph | `"dynamic/my-route"` | A routing graph you built: pools, fixed fallback order, classification, branching, versioned. **The way to build a named fallback chain you reuse** |
 
 None of these need special headers or flags — they're all just the `model`
 field.
@@ -23,6 +23,7 @@ decision depends on the request. Pick per use case:
 | Reproducible evals / A/B runs, one provider every time | **pin** |
 | A guaranteed jurisdiction, price, or provider-specific behaviour | **pin** |
 | Your own fallback chain across providers *or* across models, named once and reused | **route** (a Model node with fallback edges, or a Pool node) |
+| A one-off fallback list on a single request | the **`models`** array next to `model` (at most 10, tried in order) |
 | A cheap model for easy prompts and an expensive one for hard ones | **route** |
 | An org already using a named list from before routes existed | **alias** (keep it; build new chains as routes) |
 | Versioning, rollback, and simulation of the routing decision itself | **route** |
@@ -346,9 +347,12 @@ only need to tell members apart rather than name them.
   (`org` / `project` / `entitlement`) and `policy.reason`, the same sentence the
   403 would carry. Use it to explain why a pool went empty.
 - **The compat endpoints take a string `model`, never an array.** Sending an
-  array is a 400 (`cannot unmarshal array into ... type string`). The array
-  form — a fallback chain across models — exists on `/v3/call`'s `CallRequest`,
-  which is legacy. On compat, use a route instead.
+  array is a 400 (`cannot unmarshal array into ... type string`). A per-request
+  fallback chain goes in the separate `models` array instead (OpenRouter shape:
+  primary in `model`, the rest in `models`, at most 10, not together with
+  `dynamic/<name>`). `meta.routing.attempts` and the `X-Opper-Served-Model`
+  header show what answered. Unknown ids are rejected up front (404
+  `model_not_found`) and don't fall through.
 
 ## Checking your assumptions
 
