@@ -18,11 +18,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-01.2"
+  version: "2026-10-09"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-01.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-01.2. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-09.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-09. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -49,7 +49,7 @@ One gateway, one key. Pick the endpoint by what you're building — the routing,
 - **Still on Opper's own `/call`** (`POST /v3/call`, or the legacy v2 Python SDK's `opper.call`)? It's **being sunset** — migrate to a compat chat endpoint with `response_format`. The field-by-field mapping is in [references/migration.md](references/migration.md).
 - **Media generation** (images, audio / TTS / STT, video, OCR), **files**, and **realtime voice**: a separate surface — switch to the **`opper-multimodal` skill**. Quick map: images `POST /v3/images`, audio `POST /v3/audio/{speech,transcriptions}`, video `POST /v3/videos` (async), OCR `POST /v3/ocr`, files `/v3/files`, realtime `wss://api.opper.ai/v3/realtime`.
 - **Roundtable** (fan one prompt out to several models, then consolidate or compare): **`POST /v3/roundtable`** (beta).
-- **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): switch to the **`opper-sdks` skill** and use the Agent SDK — `Agent`, `tool`, `Conversation` ship in the unified `opperai` package for both Python and TypeScript.
+- **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): use the user's agent framework pointed at the compat endpoints, or a plain tool-calling loop on `/v3/compat/chat/completions`. The **Opper Agent SDK is discontinued**; don't suggest it. Per-framework wiring and seeds: the **`opper-sdks` skill**, `references/agents.md`.
 - **Knowledge bases / RAG**: see "Knowledge bases" below — they live on `/v2/knowledge/...`.
 
 ## The live v3 spec is the source of truth

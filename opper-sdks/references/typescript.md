@@ -58,7 +58,7 @@ Full discriminated union `StreamChunk<T>` is exported from `opperai`; source at 
 
 - **Zero runtime dependencies.** `zod ^4.0.0` and `@modelcontextprotocol/sdk` are *optional peer dependencies*; install only what you use.
 - **Zod v4 only** if you use Zod. The `zod@3.25.x` dual-mode package is not supported.
-- **`import { Agent, tool, Conversation, mcp } from "opperai"`** — the agent surface is re-exported from the top-level package.
+- **`Agent`, `tool`, `Conversation`, `mcp` are the discontinued Opper Agent SDK.** They still import from `"opperai"` but are no longer maintained and are being removed; build agents as in [agents.md](agents.md).
 - **Native `fetch`** is used for HTTP, so Node ≥ 18 (or any modern fetch-capable runtime) is required.
 
 ## Where to look next

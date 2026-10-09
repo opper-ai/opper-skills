@@ -53,7 +53,7 @@ Worked example: `02_stream.py`. The full discriminated-union type is `StreamChun
 
 ## Non-obvious
 
-- **`from opperai import Opper, Agent, tool, Conversation, Hooks`** — the agent surface is re-exported from the top-level package; no need to write `opperai.agent.*` unless you prefer the longer form.
+- **`Agent`, `tool`, `Conversation`, `Hooks` are the discontinued Opper Agent SDK.** They still import from `opperai` but are no longer maintained and are being removed; build agents as in [agents.md](agents.md).
 - **`opperai` requires `httpx`** at runtime. Pydantic is an *optional* extra: `pip install opperai[pydantic]`.
 - **Async variants** end in `_async` (e.g. `opper.knowledge.create_async(...)`). The README's "Async Support" section has details.
 
