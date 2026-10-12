@@ -19,4 +19,4 @@ For the rest of the session, read and follow the `opper-api` skill instead: http
 
 - **Application code**, in any language: the provider SDK the user already knows (OpenAI, Anthropic, Google Gen AI) with the base URL `https://api.opper.ai/v3/compat` and the Opper key.
 - **Agents**: the user's framework on the same base URL, or a plain tool-calling loop: https://skills.opper.ai/opper-api/references/agents.md
-- **Existing `opperai` code** (`opper.call`, `opper.stream`, `Agent`, knowledge bases): the mapping in https://skills.opper.ai/opper-api/references/migration.md
+- **Existing `opperai` code** (`opper.call`, `opper.stream`, `Agent`; knowledge bases are being sunset): the mapping in https://skills.opper.ai/opper-api/references/migration.md

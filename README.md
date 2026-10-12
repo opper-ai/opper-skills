@@ -10,7 +10,7 @@ One philosophy: **point at the live source of truth, don't duplicate it.** Each 
 |---|---|---|
 | [`opper`](./opper/) | **Entry point.** Discovers user intent, then routes to the right sub-skill. Owns setup, testing, and follow-up. | This repo |
 | [`opper-mcp`](./opper-mcp/) | **Preferred for agents.** Connect MCP, set up projects, manage rules, inspect usage/traces, and test models | [opper.ai/mcp](https://opper.ai/mcp) and connected MCP tool schemas |
-| [`opper-cli`](./opper-cli/) | The `opper` command-line tool: calling functions, indexes, traces, models, usage, config | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) and `opper --help` |
+| [`opper-cli`](./opper-cli/) | The `opper` command-line tool: sign-in, traces, models, usage, config, and launching coding agents through Opper | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) and `opper --help` |
 | [`opper-api`](./opper-api/) | Application code on the OpenAI, Anthropic and Google SDKs (or any agent framework) through the compat endpoints, the REST API, gateway and platform concepts, models, server-side tools, migration | [docs.opper.ai](https://docs.opper.ai) and `https://api.opper.ai/v3/openapi.yaml` |
 | [`opper-multimodal`](./opper-multimodal/) | Media generation (images, audio, video, OCR), the `/v3/files` storage API, vision/PDF input, and realtime voice | [docs.opper.ai/build/multimodal](https://docs.opper.ai/build/multimodal/overview) and `https://api.opper.ai/v3/openapi.yaml` |
 
@@ -69,7 +69,6 @@ Once a skill is installed, your agent will activate it automatically when you sa
 - "Launch Claude Code through Opper so my traces show up."
 - "Install all the bundled Opper skills into Claude Code."
 - "Export Opper usage to CSV from the terminal."
-- "Create an Opper index and add this markdown file to it."
 
 **`opper-api`**
 - "What models does Opper support?"
@@ -140,7 +139,7 @@ That's why each `SKILL.md` here is short and points outward. Heavy detail lives 
 
 ## What is Opper?
 
-Opper is a **gateway** in front of LLM providers plus a **control plane** for the things you build on top: functions, knowledge bases, tracing, evaluations, and custom models. One key, one bill, one trace surface across providers — see [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about) for the longer version.
+Opper is a **gateway** in front of LLM providers plus a **control plane** with rules for every model call: spend limits, data retention, model access, checks and routing. One key, one bill, one trace surface across providers — see [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about) for the longer version.
 
 ## Updating
 
