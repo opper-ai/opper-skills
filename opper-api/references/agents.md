@@ -1,6 +1,6 @@
 # Building agents on Opper
 
-> **The Opper Agent SDK is discontinued (October 2026).** `Agent`, `tool`, `Conversation`, `Hooks` and `mcp` in `opperai`, and the older standalone `opperai-agents` (PyPI) and `@opperai/agents` (npm) packages, are no longer maintained and are being removed. Don't write new code against them and don't suggest them. Existing code: migrate with the table at the bottom.
+> **The Opper Agent SDK is discontinued (October 2026)**, along with the rest of Opper's own SDKs. `Agent`, `tool`, `Conversation`, `Hooks` and `mcp` in `opperai`, and the older standalone `opperai-agents` (PyPI) and `@opperai/agents` (npm) packages, are no longer maintained. Don't write new code against them and don't suggest them. Existing code: migrate with the table at the bottom.
 
 An agent on Opper is any tool-calling loop whose model calls go through Opper's gateway. Two ways to build one:
 
@@ -17,7 +17,7 @@ An agent on Opper is any tool-calling loop whose model calls go through Opper's 
 | LangChain | `ChatOpenAI(base_url="https://api.opper.ai/v3/compat", api_key=<Opper key>, model="anthropic/claude-sonnet-5")` | [opper.ai/apps/langchain](https://opper.ai/apps/langchain) |
 | LlamaIndex | `OpenAILike(api_base="https://api.opper.ai/v3/compat", api_key=<Opper key>, model="anthropic/claude-sonnet-5", is_chat_model=True, is_function_calling_model=True)` from `llama-index-llms-openai-like`. The plain `OpenAI` class rejects non-OpenAI model names | [opper.ai/apps/llamaindex](https://opper.ai/apps/llamaindex) |
 | CrewAI | `LLM(model="openai/anthropic/claude-sonnet-5", base_url="https://api.opper.ai/v3/compat", api_key=<Opper key>)`. The `openai/` prefix selects CrewAI's OpenAI-compatible client; without it CrewAI treats `anthropic/` as its own provider | — |
-| Anything else with an OpenAI-compatible client | Base URL `https://api.opper.ai/v3/compat`, the Opper key, model `provider/name` | `opper-api` skill, `references/compatibility.md` |
+| Anything else with an OpenAI-compatible client | Base URL `https://api.opper.ai/v3/compat`, the Opper key, model `provider/name` | [compatibility.md](compatibility.md) |
 | Code built on the Anthropic SDK | Base URL `https://api.opper.ai/v3/compat` (the SDK appends `/v1/messages`), the Opper key as its normal `api_key`, model `provider/name` | [docs.opper.ai/build/gateway/drop-in-sdks](https://docs.opper.ai/build/gateway/drop-in-sdks) |
 
 More frameworks and apps that run on Opper: [opper.ai/apps](https://opper.ai/apps).
@@ -108,7 +108,7 @@ Both seeds were run as plain scripts against the live API in October 2026 (`open
 | `Agent(name, instructions, tools, model)` | the framework's agent, or the loop above with `instructions` as the system message |
 | `@tool` (Python) / `tool({...})` (TS) | the framework's tool helper (`@function_tool`, AI SDK `tool()`, Mastra `createTool`), or a JSON Schema entry in `tools` |
 | `agent.run(...)` / `agent.stream(...)` | the framework's runner, or the loop (`stream: true` for streaming) |
-| `output_schema` | `response_format: {"type": "json_schema", ...}` on the final call (see the `opper-api` skill) |
+| `output_schema` | `response_format: {"type": "json_schema", ...}` on the final call (see the `opper-api` SKILL.md) |
 | `Hooks` | the framework's callbacks; `X-Opper-Tags` to find a run's calls in Logs |
 | `mcp(...)` | the framework's MCP client (the OpenAI Agents SDK, Mastra and the Vercel AI SDK each ship one) |
 | `Conversation` | keep the `messages` array between runs |

@@ -1,28 +1,26 @@
 ---
 name: opper-api
 description: >
-  Use the Opper REST API directly (HTTP / curl / fetch) and as the source of
-  truth for Opper platform concepts: the gateway, the control plane, available
-  models, the OpenAI / Anthropic / Google / OpenResponses-compatible endpoints
-  under /v3/compat, structured output, server-side tools (web search),
-  roundtable, streaming via SSE, tracing, and migration from other LLM
-  gateways. Use this skill whenever the user asks about Opper concepts, what
-  models Opper supports, API endpoints or signatures, raw HTTP integration,
-  gateway behaviour, integrating Opper with a coding assistant, or
-  compatibility / migration from OpenAI / OpenRouter / Anthropic, or migrating
-  off Opper's own legacy /v3/call (opper.call) — even if they only say "Opper"
-  without "API". For media generation (images, audio, video,
-  OCR), files, and realtime voice, use the `opper-multimodal` skill instead.
-  For any endpoint signature or payload question always recommend fetching the
-  live OpenAPI spec at https://api.opper.ai/v3/openapi.yaml first.
+  Use Opper from application code and over HTTP, and as the source of truth for
+  Opper platform concepts: the gateway, control plane, models, the OpenAI /
+  Anthropic / Google / OpenResponses-compatible endpoints under /v3/compat,
+  structured output, server-side tools (web search), roundtable, streaming,
+  tracing, and building agents. Use whenever the user writes code against
+  Opper in any language (the OpenAI, Anthropic or Google Gen AI SDK, or an
+  agent framework, pointed at /v3/compat), asks about Opper concepts, models,
+  endpoints or raw HTTP, or migrates from OpenAI / OpenRouter / Anthropic, off
+  Opper's legacy /v3/call (opper.call), or off the discontinued `opperai` SDK,
+  even if they only say "Opper". For media generation (images, audio, video,
+  OCR), files, and realtime voice, use `opper-multimodal`. For endpoint
+  signatures, fetch the live spec at https://api.opper.ai/v3/openapi.yaml.
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-09.2"
+  version: "2026-10-12"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-09.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-09.2. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -36,7 +34,7 @@ Opper is a **gateway** in front of LLM providers plus a **control plane** for th
 - **Rules** (Control Plane plan), set per organization and tightened per project: **spend limits** (monthly budget, caps per project, role, user or key), **data retention** (traces 1 to 30 days, or 0), **model access** (providers, service routes, locations, makers, countries, models, zero data retention), **checks** (flag, redact or block content, score answers) and **routing** (provider order for pooled models). The API groups them into rule kinds `comply`, `guard`, `observe` and `route`; see [docs.opper.ai/control-plane/rules/overview](https://docs.opper.ai/control-plane/rules/overview).
 - **Company-level evidence** (ISO/IEC 27001:2022 certificate, security controls, platform sub-processors and model providers, DPA, privacy policy) lives at the trust center, [trust.opper.ai](https://trust.opper.ai).
 
-The HTTP API at `https://api.opper.ai` is the foundation — every SDK and the CLI talk to it.
+The HTTP API at `https://api.opper.ai` is the foundation. Opper has no SDK of its own for new code: application code uses the provider SDK it already knows (OpenAI, Anthropic, Google Gen AI) or its agent framework, pointed at `https://api.opper.ai/v3/compat`. The older `opperai` packages are no longer developed; don't suggest them.
 
 Concepts: [docs.opper.ai/overview/about](https://docs.opper.ai/overview/about). Quickstart: [docs.opper.ai/overview/quickstart](https://docs.opper.ai/overview/quickstart).
 
@@ -46,10 +44,10 @@ One gateway, one key. Pick the endpoint by what you're building — the routing,
 
 - **Text generation / chat / migrating from OpenAI, Anthropic, Google, or OpenResponses**: the compat endpoints under **`/v3/compat/...`**. Point your SDK's base URL there, keep your code, swap the key. This is the main path. See [references/compatibility.md](references/compatibility.md) and [references/migration.md](references/migration.md).
 - **Structured output** (typed JSON out of a model): the standard **`response_format: {type: "json_schema"}`** on any compat chat endpoint — no separate endpoint.
-- **Still on Opper's own `/call`** (`POST /v3/call`, or the legacy v2 Python SDK's `opper.call`)? It's **being sunset** — migrate to a compat chat endpoint with `response_format`. The field-by-field mapping is in [references/migration.md](references/migration.md).
+- **Still on Opper's own `/call`** (`POST /v3/call`, or the `opperai` SDK's `opper.call`)? It's **being sunset** — migrate to a compat chat endpoint with `response_format`. The field-by-field mapping, and the rest of the `opperai` SDK, are in [references/migration.md](references/migration.md).
 - **Media generation** (images, audio / TTS / STT, video, OCR), **files**, and **realtime voice**: a separate surface — switch to the **`opper-multimodal` skill**. Quick map: images `POST /v3/images`, audio `POST /v3/audio/{speech,transcriptions}`, video `POST /v3/videos` (async), OCR `POST /v3/ocr`, files `/v3/files`, realtime `wss://api.opper.ai/v3/realtime`.
 - **Roundtable** (fan one prompt out to several models, then consolidate or compare): **`POST /v3/roundtable`** (beta).
-- **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): use the user's agent framework pointed at the compat endpoints, or a plain tool-calling loop on `/v3/compat/chat/completions`. The **Opper Agent SDK is discontinued**; don't suggest it. Per-framework wiring and seeds: the **`opper-sdks` skill**, `references/agents.md`.
+- **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): use the user's agent framework pointed at the compat endpoints, or a plain tool-calling loop on `/v3/compat/chat/completions`. The **Opper Agent SDK is discontinued**; don't suggest it. Per-framework wiring and seeds: [references/agents.md](references/agents.md).
 - **Knowledge bases / RAG**: see "Knowledge bases" below — they live on `/v2/knowledge/...`.
 
 ## The live v3 spec is the source of truth
@@ -128,6 +126,45 @@ curl -s -X POST https://api.opper.ai/v3/compat/chat/completions \
 ```
 
 The model's `content` comes back as a JSON string validated against the schema. Streaming: add `"stream": true` and read the `text/event-stream` (events prefixed `data: `, ending with `[DONE]`).
+
+### From code: the provider SDKs
+
+Use the SDK the user already has. Set its base URL to `https://api.opper.ai/v3/compat` and pass the Opper key as its API key; call sites stay the same. `X-Opper-Name` names the calls for tracing.
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.opper.ai/v3/compat",
+    api_key=os.environ["OPPER_API_KEY"],
+    default_headers={"X-Opper-Name": "summarise"},
+)
+resp = client.chat.completions.create(
+    model="openai/gpt-5-mini",
+    messages=[{"role": "user", "content": "Summarise in two sentences: ..."}],
+)
+print(resp.choices[0].message.content)
+```
+
+```ts
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.opper.ai/v3/compat",
+  apiKey: process.env.OPPER_API_KEY,
+  defaultHeaders: { "X-Opper-Name": "summarise" },
+});
+const resp = await client.chat.completions.create({
+  model: "openai/gpt-5-mini",
+  messages: [{ role: "user", content: "Summarise in two sentences: ..." }],
+});
+```
+
+- **Typed output**: Python `client.chat.completions.parse(..., response_format=YourPydanticModel)` and read `message.parsed`; TypeScript passes `response_format: { type: "json_schema", json_schema: { name, schema } }` (Zod v4: `z.toJSONSchema(...)`) and parses `message.content`.
+- **Anthropic SDK** (Python / TS): same base URL; it appends `/v1/messages`. **Google Gen AI SDK**: the `generateContent` / `streamGenerateContent` routes live under `/v3/compat/v1beta/models/...`. Both send their own key header, which Opper accepts. Details: [references/compatibility.md](references/compatibility.md).
+- **Any model from any SDK**: the model id is Opper's `provider/name`, so the OpenAI SDK can call Claude and the Anthropic SDK can call GPT.
+- **Agents**: the user's framework (OpenAI Agents SDK, Vercel AI SDK, Mastra, LangChain, …) on the same base URL; see [references/agents.md](references/agents.md).
 
 ## Models — `GET /v3/models` (no auth required)
 
@@ -224,13 +261,13 @@ The v3 spec also covers tracing (`/v3/spans`, `/v3/traces`), generations, files 
 
 ## Knowledge bases — on the v2 surface
 
-Knowledge bases (indexes) live at `/v2/knowledge/...`, served from the same host with the same Bearer auth. They are **not** in `/v3/openapi.yaml`. For raw HTTP, fetch `https://api.opper.ai/v2/openapi.json`. For application code, the SDKs and CLI abstract this: `opper.knowledge.*` (Python / TS) and `opper indexes ...`.
+Knowledge bases (indexes) live at `/v2/knowledge/...`, served from the same host with the same Bearer auth. They are **not** in `/v3/openapi.yaml`, and the v2 surface no longer publishes a spec. Manage them from the terminal with `opper indexes ...` (the `opper-cli` skill). Code that uses the `opperai` SDK's `opper.knowledge.*` keeps working against the same routes, but that SDK is no longer developed.
 
 ## Migration — from another gateway, or from Opper's own `/call`
 
 Moving from OpenRouter, OpenAI, Anthropic, or similar: see [references/migration.md](references/migration.md). Recap: point the base URL at `https://api.opper.ai/v3/compat` and use your Opper API key.
 
-Moving off Opper's own legacy `/call` (`POST /v3/call` or the v2 Python SDK's `opper.call`): same file — it opens with the field-by-field `/call` → chat-completions mapping (`name` → `X-Opper-Name` header, `instructions` → system message, `output_schema` → `response_format`, `data` → parsed `choices[0].message.content`).
+Moving off Opper's own legacy `/call` (`POST /v3/call` or the `opperai` SDK's `opper.call`) or off the `opperai` SDK in general: same file — it opens with the field-by-field `/call` → chat-completions mapping (`name` → `X-Opper-Name` header, `instructions` → system message, `output_schema` → `response_format`, `data` → parsed `choices[0].message.content`).
 
 ## Coding assistant integrations
 
@@ -239,7 +276,7 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 ## Non-obvious gotchas
 
 - **One gateway, many endpoints.** Text/chat is `/v3/compat/...`; media generation, files, and realtime are a separate surface (the `opper-multimodal` skill). All share the same key and governance.
-- **`/v3/call` is legacy and being sunset.** Never point a new integration at it, and don't use it in examples. Existing `/call` users (including legacy v2 Python SDK `opper.call`) migrate to compat + `response_format` — see [references/migration.md](references/migration.md).
+- **`/v3/call` is legacy and being sunset.** Never point a new integration at it, and don't use it in examples. Existing `/call` users (including the `opperai` SDK's `opper.call`) migrate to compat + `response_format` — see [references/migration.md](references/migration.md).
 - **Compat endpoints live under `/v3/compat/...`**, not at `/v3/...`. SDK migrations should point base URL at `https://api.opper.ai/v3/compat`.
 - **Auth is `Authorization: Bearer ...`** on the OpenAI-shaped endpoints (`x-api-key` there is a 401). The Anthropic Messages and Gemini compat routes also accept their SDK's own header (`x-api-key`, `x-goog-api-key`), so no header override is needed when migrating those SDKs.
 - **Structured output is a parameter, not an endpoint** — use `response_format: {type: "json_schema"}` on a compat chat call.
@@ -266,6 +303,6 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 | Provider-compatible endpoints, deeper | [references/compatibility.md](references/compatibility.md) |
 | Migrating from OpenRouter / OpenAI / Anthropic / Opper's legacy `/call` | [references/migration.md](references/migration.md) |
 | Model routing — pools, pins, org aliases, dynamic routes, failover | [references/model-routing.md](references/model-routing.md) |
-| Calling the API from Python or TypeScript | the `opper-sdks` skill |
+| Building agents (frameworks, a plain tool loop, migrating off the Agent SDK) | [references/agents.md](references/agents.md) |
 | Agent-assisted setup, platform operations, and model tests | the `opper-mcp` skill |
 | Calling the API from a terminal | the `opper-cli` skill |

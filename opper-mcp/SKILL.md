@@ -6,15 +6,15 @@ description: >
   and traces, or test models with real inference through MCP. Prefer this
   skill for agent-assisted Opper setup and platform operations. Use opper-cli
   for explicit CLI or shell workflows and launching an agent's own inference
-  through Opper; use opper-api or opper-sdks for application integration.
+  through Opper; use opper-api for application integration.
 metadata:
-  version: "2026-09-23"
+  version: "2026-10-12"
   category: sub-skill
   parent: opper
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-09-23.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-mcp"` entry with 2026-09-23. If they differ, read https://skills.opper.ai/opper-mcp/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-mcp"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper-mcp/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -46,7 +46,7 @@ Use `get_guide` for current workflows: `getting_started`, `connect_app`, `struct
 4. Confirm the actual response. For typed output, fetch `get_guide` with topic `structured_output`, use `json_object` or `json_schema` as documented, and validate the returned content against the intended shape. Compare models by repeating the same prompt with selected catalog IDs, bounded by the requested test scope and budget; do not start an open-ended benchmark.
 5. Inspect costs with `get_usage`. Use `list_traces` / `get_trace` when the project retains traces; zero-retention calls still appear in usage. Read errors before retrying and distinguish policy denial from provider or inference failure.
 
-For streaming, advanced tool calling, multimodal generation, or realtime, load `opper-api`, `opper-sdks`, or `opper-multimodal` and use their actual application integration path.
+For streaming, advanced tool calling, multimodal generation, or realtime, load `opper-api` or `opper-multimodal` and use their actual application integration path.
 
 ## Deliver a key to a local application privately
 
