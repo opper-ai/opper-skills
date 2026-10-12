@@ -2,11 +2,11 @@
 
 Most migrations are a **base URL + API key swap**. The compat tree at `/v3/compat/...` is shaped so that pointing a stock provider SDK at `https://api.opper.ai/v3/compat` works without changing your call sites.
 
-For exact provider-side payload shapes, follow each provider's own spec. This file documents only what differs at the Opper boundary — plus the one migration that isn't a base-URL swap: moving off Opper's own legacy `/call`.
+For exact provider-side payload shapes, follow each provider's own spec. This file documents only what differs at the Opper boundary — plus the migrations that aren't a base-URL swap: moving off Opper's own legacy `/call`, and off the `opperai` SDK.
 
-## From Opper's own `/call` — `POST /v3/call` or the legacy v2 Python SDK
+## From Opper's own `/call` — `POST /v3/call` or the `opperai` SDK's `opper.call`
 
-`/call` (Opper's task-completion endpoint, also what the legacy v2 Python SDK's `opper.call(...)` hits) is **being sunset**. The replacement is a compat chat endpoint with structured output as a parameter — same models, same tracing and control plane, standard OpenAI shape. Don't point new integrations at `/call`; migrate existing ones.
+`/call` (Opper's task-completion endpoint, also what the `opperai` SDK's `opper.call(...)` hits) is **being sunset**. The replacement is a compat chat endpoint with structured output as a parameter — same models, same tracing and control plane, standard OpenAI shape. Don't point new integrations at `/call`; migrate existing ones.
 
 Before — a typical structured `/v3/call`:
 
@@ -99,6 +99,21 @@ Notes:
 - **`.parse()` vs `.create()`** — the OpenAI SDK's `parse()` accepts a Pydantic model and returns `message.parsed`, the closest ergonomic match to `result.data`. With plain `create()` + a raw `json_schema`, parse `choices[0].message.content` yourself.
 - **`strict: true`** on `json_schema` follows OpenAI's rules: every property must be listed in `required` and objects need `additionalProperties: false`. Leave `strict` off to keep a `/call`-style loose schema.
 - **Any compat surface works** — Anthropic Messages with a forced tool schema, OpenAI Responses with `text.format`, etc. Chat completions is the shortest hop from `/call`.
+
+## From the `opperai` SDK (Python / TypeScript)
+
+Opper no longer develops its own SDKs (`opperai` on PyPI and npm, and the older `opperai-agents` / `@opperai/agents`). Existing code keeps running, but don't write new code against them: move it to the provider SDK on `/v3/compat` (the OpenAI SDK unless the user prefers another), the same client as the seeds above.
+
+| `opperai` | Instead |
+|---|---|
+| `opper.call(...)` / `opper.stream(...)` | `chat.completions.create` / `.parse` with `response_format`; `stream=True` for streaming (mapping above) |
+| `name=` on a call | `X-Opper-Name` request header |
+| tags, `opper.traces` / manual spans | `X-Opper-Tags: key:value,...` header to find calls in Logs; traces in the platform or over `/v3/traces` and `/v3/spans` (see the spec) |
+| `opper.embeddings` | `client.embeddings.create(...)` on `/v3/compat/embeddings` |
+| `opper.models` | `GET https://api.opper.ai/v3/models` (no key needed) |
+| images, audio, video, OCR, realtime | the dedicated endpoints in the `opper-multimodal` skill |
+| `opper.knowledge.*` | no provider-SDK equivalent: keep that code for now, or manage indexes with `opper indexes ...` (the `opper-cli` skill) |
+| `Agent`, `tool`, `Conversation`, `Hooks`, `mcp` | the user's agent framework on compat; table in [agents.md](agents.md) |
 
 ## From OpenRouter (OpenAI-compatible)
 

@@ -7,16 +7,16 @@ description: >
   "help me with Opper". Explore context and route to opper-mcp for
   agent-assisted setup, platform operations, and model tests; opper-cli for
   explicit CLI and shell workflows or launching coding agents through Opper;
-  opper-sdks for Python/TypeScript application code; opper-api for HTTP,
-  compat endpoints, and platform concepts; or opper-multimodal for media,
-  files, and realtime voice. Own setup, verification, and follow-up.
+  opper-api for application code (the OpenAI, Anthropic or Google SDKs and
+  agent frameworks on the compat endpoints), raw HTTP, and platform concepts;
+  or opper-multimodal for media, files, and realtime voice. Own setup, verification, and follow-up.
 category: router
 metadata:
-  version: "2026-10-09.2"
+  version: "2026-10-12"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-09.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-09.2. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 # Opper
@@ -74,7 +74,7 @@ Cross-reference findings against this decision table:
 |---|---|---|
 | Empty dir or no project files | **New / starter** | Compat chat (start small) |
 | Project files exist, no LLM imports | **New integration in existing app** | Compat chat; structured output via `response_format` |
-| `opperai` already in deps | **Existing Opper integration** — likely debug or extend | Already chosen; deepen current surface |
+| `opperai` already in deps | **Existing Opper integration** — likely debug or extend | The `opperai` SDK is no longer developed; answer the question, then offer the move to their provider SDK on `/v3/compat` |
 | OpenAI / Anthropic / Google / OpenRouter imports, no Opper | **Migration candidate** | `/v3/compat` — drop-in, zero code change |
 | User mentions image / audio / music / sound effect / video / OCR generation, or files | (any lane) | **Multimodal endpoints** → load `opper-multimodal` (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files`) |
 | User wants to produce a whole video (promo, explainer, trailer, animated short) | (any lane) | **Guide** → load `guides/video-production` (https://skills.opper.ai/guides/video-production/SKILL.md): open-source tools plus Opper media; it routes back to `opper-multimodal` for payloads |
@@ -101,7 +101,7 @@ Lead with one sentence: what you found + what you'd do next. Never an open-ended
 | New / starter | *"You're starting fresh. I'd suggest: (1) connect the Opper MCP server to set up a project and deliver a local application key privately, (2) one chat completion against `https://api.opper.ai/v3/compat` (curl or the OpenAI SDK), (3) find the call under Logs at platform.opper.ai. Sound good?"* |
 | New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) point your OpenAI/Anthropic SDK at `https://api.opper.ai/v3/compat`, (2) make one call against your simplest task, (3) find the call under Logs at platform.opper.ai. Sound good?"* |
 | MCP / platform operations | *"I'd use the Opper MCP server to inspect your project and carry out [task], then verify the result. Sound good?"* |
-| Existing Opper integration | Skip the proposal — read the existing code and answer the user's actual question. |
+| Existing Opper integration | Skip the proposal — read the existing code and answer the user's actual question. If it uses the `opperai` SDK, say once that Opper no longer develops it and offer to move it to the OpenAI / Anthropic / Google SDK on `/v3/compat` (`opper-api`, `references/migration.md`). |
 | Migration | *"You're using [OpenAI/Anthropic/Google]. Opper exposes a drop-in compat endpoint — point your existing SDK at `https://api.opper.ai/v3/compat` and your code keeps working. Want me to do that swap first, then we can explore native features?"* |
 | Media (image / audio / music / sound effects / video / OCR) | *"For generating [images/audio/music/sound effects/video] you'd use Opper's dedicated media endpoints (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`). I'll load the `opper-multimodal` skill and we'll make one call, then inspect the result + trace. Sound good?"* |
 | Realtime | *"For voice/realtime, Opper exposes `wss://api.opper.ai/v3/realtime` (covered by the `opper-multimodal` skill). I'd suggest following [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart). Sound good?"* |
@@ -110,6 +110,8 @@ Lead with one sentence: what you found + what you'd do next. Never an open-ended
 ### MCP is the front door for agents; compat is the application path
 
 When the user has no strong preference, connect the Opper MCP server using the live [connection instructions](https://opper.ai/mcp), then select a project and inspect model access. For a quick model test, use MCP's `call_model` with a runtime key ID; no raw secret needs to enter the conversation. For an application, follow `opper-mcp`'s private local key delivery, then make the **first application call against a compat endpoint** at `https://api.opper.ai/v3/compat` via curl or their existing provider SDK. Verify that actual application path even if an MCP model test already passed. Keep the CLI for explicit shell workflows, private file delivery, editor configuration, and `opper launch`.
+
+**Opper has no SDK of its own for new code.** From Python, TypeScript or any other language, use the provider SDK the user already knows (OpenAI, Anthropic, Google Gen AI) or their agent framework, with the base URL `https://api.opper.ai/v3/compat` and the Opper key. Don't suggest the `opperai` packages; Opper no longer develops them.
 
 Do **not** steer first calls at `opper call` / `/v3/call` — that surface is legacy and being sunset (see the `opper-api` skill's migration reference).
 
@@ -129,21 +131,19 @@ Fetch the chosen sub-skill verbatim and follow it. Never paraphrase — sub-skil
 # Primary (mirrors the opper-ai/opper-skills repo)
 curl -sL https://skills.opper.ai/opper-mcp/SKILL.md
 curl -sL https://skills.opper.ai/opper-cli/SKILL.md
-curl -sL https://skills.opper.ai/opper-sdks/SKILL.md
 curl -sL https://skills.opper.ai/opper-api/SKILL.md
 curl -sL https://skills.opper.ai/opper-multimodal/SKILL.md
 
 # Fallback if skills.opper.ai is unreachable
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-mcp/SKILL.md
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md
-curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-sdks/SKILL.md
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md
 curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md
 ```
 
 If the skill is already installed locally (under `.claude/skills/`, `~/.claude/skills/`, `.cursor/rules/`, etc.), load it through your agent's normal mechanism instead of fetching. A local copy starts with a version note; follow it, since it tells you when the copy is stale and the live one should be read instead.
 
-Sub-skills will often instruct you to fetch a deeper reference (e.g. `references/python.md`, `references/agents.md`). Follow those pointers — they exist because the parent skill is intentionally short.
+Sub-skills will often instruct you to fetch a deeper reference (e.g. `references/migration.md`, `references/agents.md`). Follow those pointers — they exist because the parent skill is intentionally short.
 
 ---
 
@@ -164,7 +164,7 @@ A setup isn't done until the user has seen it work. Run the **minimal** example 
 **If it doesn't work, read the actual error** — don't guess. Common causes:
 
 - Missing MCP permissions — use native OAuth and fresh browser consent for the required permissions; stop if consent is denied or canceled.
-- Wrong API key slot — CLI uses `~/.opper/config.json` slots; SDKs read `OPPER_API_KEY` first.
+- Wrong API key — the CLI uses `~/.opper/config.json` slots; application code passes the key to its provider SDK, usually from `OPPER_API_KEY`.
 - `402`: spending is blocked. Usually the balance is empty, or a premium model needs a card on file: add credit or a card. With a **Spend limit** rule (Control Plane), a budget was reached: raise it or wait for the period to reset. `GET /v3/me` says which, in `block_reason` (`balance_exhausted`, `project_spend_cap_hit`, `member_spend_cap_hit`, `org_spend_cap_hit`). Writing a rule on the Gateway plan returns `402` with `code: "plan_required"`.
 - `403` from a **Model access** rule: `permission_error` (`model_not_allowed` on `/v3/compat/responses`, `route_compliance_blocked` from a dynamic route). The message names the condition that failed; `GET /v3/models?include=policy` shows it before calling. Check the allowed models at [platform.opper.ai](https://platform.opper.ai) and pick one from there.
 - `403 entitlement_required`: the route (`azure-zdr/…`, `vertexai-zdr/…`) needs a signed agreement with Opper, with or without any rule. Use a route the organization can call, or ask support@opper.ai for access.
@@ -187,7 +187,7 @@ Once something works, suggest **one** natural next step — don't dump the whole
 | Any working integration, agent needs platform access | Connect MCP to inspect usage/traces and manage the project through discovered tools | [MCP connection instructions](https://opper.ai/mcp) |
 | Any working integration | See every call under **Logs** at [platform.opper.ai](https://platform.opper.ai); turn tracing on with a data retention rule to keep inputs, outputs and the trace tree | [control-plane/logs](https://docs.opper.ai/control-plane/logs) |
 | User wants their coding agent's own inference routed through Opper | `opper launch claude` (or `codex` / `opencode`) to route their coding agent through Opper | — |
-| Migrated from OpenAI/Anthropic | Stay on the provider SDK — add `response_format` for structured output and the `X-Opper-Name` header for named tracing; reach for `opperai` only for knowledge bases; build agents with their framework on compat (`opper-sdks` skill, `references/agents.md`) | — |
+| Migrated from OpenAI/Anthropic | Stay on the provider SDK — add `response_format` for structured output and the `X-Opper-Name` header for named tracing; build agents with their framework on compat (`opper-api` skill, `references/agents.md`) | — |
 
 ---
 
@@ -197,8 +197,7 @@ Once something works, suggest **one** natural next step — don't dump the whole
 |---|---|---|---|
 | `opper-mcp` | https://skills.opper.ai/opper-mcp/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-mcp/SKILL.md | Agent-assisted setup, platform operations, model tests, private application key delivery |
 | `opper-cli` | https://skills.opper.ai/opper-cli/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md | Terminal: login, calls, traces, indexes, `opper launch` |
-| `opper-sdks` | https://skills.opper.ai/opper-sdks/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-sdks/SKILL.md | Python/TS code using `opperai` or compat — calls, streaming, knowledge, building agents on Opper |
-| `opper-api` | https://skills.opper.ai/opper-api/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md | Raw HTTP, gateway concepts, `/v3/compat`, structured output, server-side tools, migration |
+| `opper-api` | https://skills.opper.ai/opper-api/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md | Application code on the OpenAI / Anthropic / Google SDKs or an agent framework via `/v3/compat`, raw HTTP, gateway concepts, structured output, server-side tools, building agents, migration |
 | `opper-multimodal` | https://skills.opper.ai/opper-multimodal/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md | Media generation (images, speech, transcription, music, sound effects, video, OCR), files, vision/PDF input, realtime voice |
 
 Install everything locally:
@@ -270,7 +269,6 @@ Model access covers every model type (text, embeddings, image, speech, transcrip
 | Pricing (fees, plans, free models) | https://opper.ai/pricing.md |
 | EU-hosted routes, route by route | https://opper.ai/models/eu |
 | Rules (spend, retention, model access, checks, routing) | https://docs.opper.ai/control-plane/rules/overview |
-| SDK source (Python + TS) | https://github.com/opper-ai/opper-sdks |
 | MCP connection instructions | https://opper.ai/mcp — client setup and native OAuth |
 | CLI source | https://github.com/opper-ai/cli |
 | This skill set on GitHub | https://github.com/opper-ai/opper-skills |

@@ -11,8 +11,7 @@ One philosophy: **point at the live source of truth, don't duplicate it.** Each 
 | [`opper`](./opper/) | **Entry point.** Discovers user intent, then routes to the right sub-skill. Owns setup, testing, and follow-up. | This repo |
 | [`opper-mcp`](./opper-mcp/) | **Preferred for agents.** Connect MCP, set up projects, manage rules, inspect usage/traces, and test models | [opper.ai/mcp](https://opper.ai/mcp) and connected MCP tool schemas |
 | [`opper-cli`](./opper-cli/) | The `opper` command-line tool: calling functions, indexes, traces, models, usage, config | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) and `opper --help` |
-| [`opper-sdks`](./opper-sdks/) | The unified `opperai` packages for Python and TypeScript, and building agents on Opper | [github.com/opper-ai/opper-sdks](https://github.com/opper-ai/opper-sdks) |
-| [`opper-api`](./opper-api/) | The Opper REST API, gateway and platform concepts, models, compat endpoints, server-side tools, migration | [docs.opper.ai](https://docs.opper.ai) and `https://api.opper.ai/v3/openapi.yaml` |
+| [`opper-api`](./opper-api/) | Application code on the OpenAI, Anthropic and Google SDKs (or any agent framework) through the compat endpoints, the REST API, gateway and platform concepts, models, server-side tools, migration | [docs.opper.ai](https://docs.opper.ai) and `https://api.opper.ai/v3/openapi.yaml` |
 | [`opper-multimodal`](./opper-multimodal/) | Media generation (images, audio, video, OCR), the `/v3/files` storage API, vision/PDF input, and realtime voice | [docs.opper.ai/build/multimodal](https://docs.opper.ai/build/multimodal/overview) and `https://api.opper.ai/v3/openapi.yaml` |
 
 ## Guides
@@ -30,9 +29,11 @@ curl -sL https://skills.opper.ai/guides/video-production/SKILL.md
 
 Start with `opper`. The entry skill figures out what you're trying to do and loads the right sub-skill, fetching it live from `https://skills.opper.ai/` if it isn't already installed locally.
 
-Prefer the [Opper MCP server](https://opper.ai/mcp) for agent-assisted setup and platform operations; keep SDK/API integrations for application inference and the CLI for explicit shell, private key delivery, editor, and agent launch workflows.
+Prefer the [Opper MCP server](https://opper.ai/mcp) for agent-assisted setup and platform operations; use the compat endpoints for application inference and the CLI for explicit shell, private key delivery, editor, and agent launch workflows.
 
-> **Coming from older skills?** The previous `opper-python-sdk` and `opper-node-sdk` skills have been folded into `opper-sdks`. The `opper-python-agents` and `opper-node-agents` skills are retired along with the discontinued Opper Agent SDK; for agents, see [`opper-sdks/references/agents.md`](./opper-sdks/references/agents.md).
+**Building on Opper from code?** Use the SDK you already know. Opper is drop-in compatible with the OpenAI, Anthropic and Google Gen AI SDKs and with agent frameworks built on them: point the base URL at `https://api.opper.ai/v3/compat` and use your Opper key. Opper doesn't maintain SDKs of its own.
+
+> **Coming from older skills?** `opper-sdks` (and before it `opper-python-sdk`, `opper-node-sdk`, `opper-python-agents` and `opper-node-agents`) is retired along with Opper's own SDKs. Its guidance now lives in [`opper-api`](./opper-api/): provider SDKs on compat, [building agents](./opper-api/references/agents.md), and [moving off `opperai`](./opper-api/references/migration.md).
 
 ## Agent-assisted setup (no install)
 
@@ -47,7 +48,6 @@ Or fetch a specific skill directly:
 ```bash
 curl -sL https://skills.opper.ai/opper-mcp/SKILL.md
 curl -sL https://skills.opper.ai/opper-cli/SKILL.md
-curl -sL https://skills.opper.ai/opper-sdks/SKILL.md
 curl -sL https://skills.opper.ai/opper-api/SKILL.md
 curl -sL https://skills.opper.ai/opper-multimodal/SKILL.md
 ```
@@ -71,16 +71,12 @@ Once a skill is installed, your agent will activate it automatically when you sa
 - "Export Opper usage to CSV from the terminal."
 - "Create an Opper index and add this markdown file to it."
 
-**`opper-sdks`**
-- "Make this Python script return structured output through Opper."
-- "Migrate this `opper.call` code to the compat chat completions endpoint."
-- "Wire up streaming with the TypeScript SDK."
-- "Build an Opper agent with a `get_weather` tool."
-- "Wrap this pipeline in an Opper trace so I can see the steps."
-
 **`opper-api`**
 - "What models does Opper support?"
+- "Point my OpenAI Python client at Opper and return structured output."
 - "Migrate this OpenRouter code to Opper."
+- "Move this `opperai` code to the OpenAI SDK."
+- "Build a tool-calling agent on Opper with the OpenAI Agents SDK."
 - "Show me the raw HTTP for a compat chat call with structured output."
 - "Add a server-side web search to my Opper chat call."
 
@@ -96,14 +92,13 @@ Once a skill is installed, your agent will activate it automatically when you sa
 ### Claude Code
 
 ```bash
-# All six skills (recommended — installs the opper router + sub-skills)
+# All five skills (recommended — installs the opper router + sub-skills)
 npx skills add opper-ai/opper-skills
 
 # Or pick what you need
 npx skills add opper-ai/opper-skills/opper
 npx skills add opper-ai/opper-skills/opper-mcp
 npx skills add opper-ai/opper-skills/opper-cli
-npx skills add opper-ai/opper-skills/opper-sdks
 npx skills add opper-ai/opper-skills/opper-api
 npx skills add opper-ai/opper-skills/opper-multimodal
 ```
@@ -117,10 +112,10 @@ git clone https://github.com/opper-ai/opper-skills.git
 
 # Project-local
 mkdir -p .claude/skills
-ln -s "$(pwd)/opper-skills/opper-sdks" .claude/skills/opper-sdks
+ln -s "$(pwd)/opper-skills/opper-api" .claude/skills/opper-api
 
 # User-global (Claude Code)
-ln -s "$(pwd)/opper-skills/opper-sdks" ~/.claude/skills/opper-sdks
+ln -s "$(pwd)/opper-skills/opper-api" ~/.claude/skills/opper-api
 ```
 
 ### Other agents

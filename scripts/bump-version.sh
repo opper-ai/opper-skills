@@ -9,7 +9,7 @@
 # A second bump on the same day becomes YYYY-MM-DD.2, then .3, and so on.
 #
 # Usage:
-#   scripts/bump-version.sh opper-api opper-sdks
+#   scripts/bump-version.sh opper-api opper-cli
 set -euo pipefail
 
 if [[ $# -eq 0 ]]; then

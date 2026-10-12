@@ -15,11 +15,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-09-23"
+  version: "2026-10-12"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-09-23.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-cli"` entry with 2026-09-23. If they differ, read https://skills.opper.ai/opper-cli/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-cli"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper-cli/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -127,4 +127,4 @@ Under the hood these all route to `/v3/compat/...` (see the `opper-api` skill).
 | Live argument and flag reference | `opper <command> --help` |
 | The platform behind the CLI (compat endpoints, models) | the `opper-api` skill |
 | Connecting an agent to Opper tools and testing models | the `opper-mcp` skill |
-| Building Opper into application code | the `opper-sdks` skill |
+| Building Opper into application code (the OpenAI / Anthropic / Google SDKs on `/v3/compat`) | the `opper-api` skill |

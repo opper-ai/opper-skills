@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-05"
+  version: "2026-10-12"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-05.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-05. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -260,8 +260,7 @@ The first client event is `session.start`. **Turn detection**: `server_vad` (aco
 | Images / audio / video / files / vision guides | [docs.opper.ai/build/multimodal](https://docs.opper.ai/build/multimodal/overview) |
 | Realtime quickstart & event protocol | [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart) |
 | Browsable model catalog (for user-facing recommendations) | [opper.ai/models](https://opper.ai/models) |
-| Text / chat, structured output, migration, server-side tools | the [`opper-api`](https://skills.opper.ai/opper-api/SKILL.md) skill |
-| Doing this from Python or TypeScript | the [`opper-sdks`](https://skills.opper.ai/opper-sdks/SKILL.md) skill |
+| Text / chat, structured output, agents, provider SDKs from code, migration, server-side tools | the [`opper-api`](https://skills.opper.ai/opper-api/SKILL.md) skill |
 | Agent-assisted setup, platform operations, and model tests | the `opper-mcp` skill |
 | Doing this from a terminal | the [`opper-cli`](https://skills.opper.ai/opper-cli/SKILL.md) skill |
 | Worked recipes in many languages | [github.com/opper-ai/opper-cookbook](https://github.com/opper-ai/opper-cookbook) |

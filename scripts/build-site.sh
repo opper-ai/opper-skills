@@ -8,6 +8,10 @@
 # metadata.version), and copies the router (opper/SKILL.md) to _site/index.md
 # so curl https://skills.opper.ai/ returns the router content.
 #
+# A retired skill keeps a short notice at its old URL: retired/<name>.md is
+# served as _site/<name>/SKILL.md and listed in versions.json as "retired",
+# so an installed copy's version check finds the notice instead of a 404.
+#
 # Deliberately dumb on purpose: no eval, no executing repo content, only
 # cp/find/grep/awk. See CONTRIBUTING.md / safety design for why.
 #
@@ -109,6 +113,18 @@ for f in "${SKILLS[@]}"; do
     cp -R "$dir/references" "$OUT/$dir/references"
   fi
   VERSIONS+="$sep\"$dir\": \"$(skill_version "$f")\""
+  sep=", "
+done
+
+for f in retired/*.md; do
+  name="$(basename "$f" .md)"
+  if [[ -e "$name/SKILL.md" ]]; then
+    echo "FATAL: $f retires $name, but $name/SKILL.md still exists." >&2
+    exit 1
+  fi
+  mkdir -p "$OUT/$name"
+  cp "$f" "$OUT/$name/SKILL.md"
+  VERSIONS+="$sep\"$name\": \"retired\""
   sep=", "
 done
 
