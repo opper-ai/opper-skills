@@ -196,7 +196,7 @@ Once something works, suggest **one** natural next step — don't dump the whole
 | Skill | Primary URL | Fallback (GitHub raw) | When to load |
 |---|---|---|---|
 | `opper-mcp` | https://skills.opper.ai/opper-mcp/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-mcp/SKILL.md | Agent-assisted setup, platform operations, model tests, private application key delivery |
-| `opper-cli` | https://skills.opper.ai/opper-cli/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md | Terminal: login, calls, traces, indexes, `opper launch` |
+| `opper-cli` | https://skills.opper.ai/opper-cli/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md | Terminal: login, traces, usage, models, `opper launch` |
 | `opper-api` | https://skills.opper.ai/opper-api/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md | Application code on the OpenAI / Anthropic / Google SDKs or an agent framework via `/v3/compat`, raw HTTP, gateway concepts, structured output, server-side tools, building agents, migration |
 | `opper-multimodal` | https://skills.opper.ai/opper-multimodal/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md | Media generation (images, speech, transcription, music, sound effects, video, OCR), files, vision/PDF input, realtime voice |
 

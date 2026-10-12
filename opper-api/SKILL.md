@@ -48,7 +48,6 @@ One gateway, one key. Pick the endpoint by what you're building — the routing,
 - **Media generation** (images, audio / TTS / STT, video, OCR), **files**, and **realtime voice**: a separate surface — switch to the **`opper-multimodal` skill**. Quick map: images `POST /v3/images`, audio `POST /v3/audio/{speech,transcriptions}`, video `POST /v3/videos` (async), OCR `POST /v3/ocr`, files `/v3/files`, realtime `wss://api.opper.ai/v3/realtime`.
 - **Roundtable** (fan one prompt out to several models, then consolidate or compare): **`POST /v3/roundtable`** (beta).
 - **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): use the user's agent framework pointed at the compat endpoints, or a plain tool-calling loop on `/v3/compat/chat/completions`. The **Opper Agent SDK is discontinued**; don't suggest it. Per-framework wiring and seeds: [references/agents.md](references/agents.md).
-- **Knowledge bases / RAG**: see "Knowledge bases" below — they live on `/v2/knowledge/...`.
 
 ## The live v3 spec is the source of truth
 
@@ -76,7 +75,7 @@ curl -s https://api.opper.ai/v3/models | jq '.models[] | {id, zdr: .compliance.z
 
 `compliance.zdr` is an object of five tri-state facts — `logging`, `moderation`, `caching`, `training`, `subprocessors` — each `true` (content is held / reaches that pipeline), `false` (it is not), or `null` (not established). There is no summary string; derive what you need. "ZDR by default" is `logging == false and moderation != true`. The same object sits on the `opper` block of `/v3/compat/models` items and, with a key, on the route object (`?include=route`, `/v3/providers?include=routes`).
 
-Same pattern answers any "where is X" question — grep the spec, follow the schema to the endpoint, call it. (Knowledge bases live on a separate v2 surface — see "Knowledge bases" below.)
+Same pattern answers any "where is X" question — grep the spec, follow the schema to the endpoint, call it.
 
 ## Authenticate
 
@@ -259,10 +258,6 @@ Authoritative field reference: the `CanonicalWebSearchTool` schema in the spec (
 
 The v3 spec also covers tracing (`/v3/spans`, `/v3/traces`), generations, files (`/v3/files`), built-in web tools, and async artifacts (`/v3/artifacts/{id}/status`). Fetch the spec for shapes; this skill won't enumerate them — they change.
 
-## Knowledge bases — on the v2 surface
-
-Knowledge bases (indexes) live at `/v2/knowledge/...`, served from the same host with the same Bearer auth. They are **not** in `/v3/openapi.yaml`, and the v2 surface no longer publishes a spec. Manage them from the terminal with `opper indexes ...` (the `opper-cli` skill). Code that uses the `opperai` SDK's `opper.knowledge.*` keeps working against the same routes, but that SDK is no longer developed.
-
 ## Migration — from another gateway, or from Opper's own `/call`
 
 Moving from OpenRouter, OpenAI, Anthropic, or similar: see [references/migration.md](references/migration.md). Recap: point the base URL at `https://api.opper.ai/v3/compat` and use your Opper API key.
@@ -283,7 +278,7 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 - **A bare model name is a pool, not a provider.** `"model": "kimi-k3"` routes to any provider serving it; `"tensorx/moonshotai/kimi-k3"` pins one; `"my-alias"` uses your own ordered list; `"dynamic/my-route"` runs a deployed graph. The response `model` field just echoes what you sent, so only the trace (`span.meta.model`) reveals which one ran — see [references/model-routing.md](references/model-routing.md).
 - **Server-side web search is portable** — one `{"type": "opper:web_search"}` tool entry works on every model; native provider shapes also forward verbatim.
 - **Media / files / realtime are not in this skill** — they're dedicated endpoints documented in `opper-multimodal`. Don't improvise their shapes here.
-- **Knowledge is v2, not v3.** Don't reach for `/v3/knowledge/...` — it does not exist.
+- **Knowledge bases are being sunset.** Don't build on `/v2/knowledge`, `opper.knowledge.*` or `opper indexes`; for retrieval, use a vector store of the user's choice (embeddings from `/v3/compat/embeddings` if they want them through Opper).
 - **The spec is the most up-to-date reference; the docs and this skill follow it.** This file rots; the spec doesn't.
 
 ## Where to look next
