@@ -20,10 +20,13 @@ Guides are community recipes: how we combine Opper with other tools to make some
 
 | Guide | What it covers |
 |---|---|
+| [`decision-models`](./guides/decision-models/) | Designing games, bots and apps around decision models, learned on Opper's decision benchmarks: when a model is the right tool, writing the state and options, what to precompute, real-time timing and fallbacks, warm-up, testing every model, and measuring fairly with seeds and baselines |
 | [`video-production`](./guides/video-production/) | Making videos with open-source tools (HyperFrames, GSAP, FFmpeg) and Opper media: brief and cue file, images, clips, voice, music, sound effects, captions, mixing and a measured review loop |
 
 ```bash
+npx skills add opper-ai/opper-skills/guides/decision-models
 npx skills add opper-ai/opper-skills/guides/video-production
+curl -sL https://skills.opper.ai/guides/decision-models/SKILL.md
 curl -sL https://skills.opper.ai/guides/video-production/SKILL.md
 ```
 

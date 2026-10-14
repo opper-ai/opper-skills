@@ -4,8 +4,8 @@ description: >
   Use Opper from application code and over HTTP, and as the source of truth for
   Opper platform concepts: the gateway, control plane, models, the OpenAI /
   Anthropic / Google / OpenResponses-compatible endpoints under /v3/compat,
-  structured output, server-side tools (web search), roundtable, streaming,
-  tracing, and building agents. Use whenever the user writes code against
+  structured output, decision models (System One, Decisions), server-side
+  tools (web search), roundtable, streaming, tracing, and building agents. Use whenever the user writes code against
   Opper in any language (the OpenAI, Anthropic or Google Gen AI SDK, or an
   agent framework, pointed at /v3/compat), asks about Opper concepts, models,
   endpoints or raw HTTP, or migrates from OpenAI / OpenRouter / Anthropic, off
@@ -16,11 +16,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-12"
+  version: "2026-10-14"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-14.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-14. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -45,6 +45,7 @@ One gateway, one key. Pick the endpoint by what you're building — the routing,
 - **Text generation / chat / migrating from OpenAI, Anthropic, Google, or OpenResponses**: the compat endpoints under **`/v3/compat/...`**. Point your SDK's base URL there, keep your code, swap the key. This is the main path. See [references/compatibility.md](references/compatibility.md) and [references/migration.md](references/migration.md).
 - **Structured output** (typed JSON out of a model): the standard **`response_format: {type: "json_schema"}`** on any compat chat endpoint — no separate endpoint.
 - **Still on Opper's own `/call`** (`POST /v3/call`, or the `opperai` SDK's `opper.call`)? It's **being sunset** — migrate to a compat chat endpoint with `response_format`. The field-by-field mapping, and the rest of the `opperai` SDK, are in [references/migration.md](references/migration.md).
+- **Decision models** (a choice, yes/no or score with probabilities instead of text: game moves, routing, triage, classification): `POST /v3/compat/v1/systemone` (System One) or `POST /v3/compat/decisions` (OpenAI Decisions). Decision models answer only there, not on chat completions. Wire format, model discovery (`GET /v3/models?type=evaluation`) and errors: [references/decision-models.md](references/decision-models.md). For designing the questions and the loop around them, the guide [`guides/decision-models`](https://skills.opper.ai/guides/decision-models/SKILL.md).
 - **Media generation** (images, audio / TTS / STT, video, OCR), **files**, and **realtime voice**: a separate surface — switch to the **`opper-multimodal` skill**. Quick map: images `POST /v3/images`, audio `POST /v3/audio/{speech,transcriptions}`, video `POST /v3/videos` (async), OCR `POST /v3/ocr`, files `/v3/files`, realtime `wss://api.opper.ai/v3/realtime`.
 - **Roundtable** (fan one prompt out to several models, then consolidate or compare): **`POST /v3/roundtable`** (beta).
 - **Building an agent** (multi-step reasoning, tool use, multi-agent, MCP): use the user's agent framework pointed at the compat endpoints, or a plain tool-calling loop on `/v3/compat/chat/completions`. The **Opper Agent SDK is discontinued**; don't suggest it. Per-framework wiring and seeds: [references/agents.md](references/agents.md).
@@ -299,5 +300,6 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 | Migrating from OpenRouter / OpenAI / Anthropic / Opper's legacy `/call` | [references/migration.md](references/migration.md) |
 | Model routing — pools, pins, org aliases, dynamic routes, failover | [references/model-routing.md](references/model-routing.md) |
 | Building agents (frameworks, a plain tool loop, migrating off the Agent SDK) | [references/agents.md](references/agents.md) |
+| Decision models: System One and Decisions endpoints, question types, model discovery, errors | [references/decision-models.md](references/decision-models.md) |
 | Agent-assisted setup, platform operations, and model tests | the `opper-mcp` skill |
 | Calling the API from a terminal | the `opper-cli` skill |
