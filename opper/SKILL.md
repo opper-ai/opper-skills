@@ -9,14 +9,15 @@ description: >
   explicit CLI and shell workflows or launching coding agents through Opper;
   opper-api for application code (the OpenAI, Anthropic or Google SDKs and
   agent frameworks on the compat endpoints), raw HTTP, and platform concepts;
-  or opper-multimodal for media, files, and realtime voice. Own setup, verification, and follow-up.
+  or opper-multimodal for media, files, and realtime voice; guides cover
+  video production and games or bots on decision models. Own setup, verification, and follow-up.
 category: router
 metadata:
-  version: "2026-10-12"
+  version: "2026-10-14"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-14.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-14. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 # Opper
@@ -78,6 +79,7 @@ Cross-reference findings against this decision table:
 | OpenAI / Anthropic / Google / OpenRouter imports, no Opper | **Migration candidate** | `/v3/compat` — drop-in, zero code change |
 | User mentions image / audio / music / sound effect / video / OCR generation, or files | (any lane) | **Multimodal endpoints** → load `opper-multimodal` (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files`) |
 | User wants to produce a whole video (promo, explainer, trailer, animated short) | (any lane) | **Guide** → load `guides/video-production` (https://skills.opper.ai/guides/video-production/SKILL.md): open-source tools plus Opper media; it routes back to `opper-multimodal` for payloads |
+| User wants a model to pick moves or options in a game, NPC, bot or agent loop, or mentions decision models / System One | (any lane) | **Guide** → load `guides/decision-models` (https://skills.opper.ai/guides/decision-models/SKILL.md): how to design questions, timing, fallbacks and benchmarks for decision models; it routes to `opper-api` → `references/decision-models.md` for payloads |
 | User mentions voice / two-way audio | (any lane) | **Realtime** → load `opper-multimodal` (`wss://api.opper.ai/v3/realtime`) |
 | User wants their agent to set up/manage Opper or test models | (any lane) | **MCP** → load `opper-mcp` |
 | User explicitly wants CLI/shell workflows or to route their coding agent's own inference through Opper | (any lane) | **CLI** (`opper login`, `opper launch`) |
