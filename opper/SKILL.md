@@ -272,7 +272,8 @@ Model access covers every model type (text, embeddings, image, speech, transcrip
 | MCP connection instructions | https://opper.ai/mcp — client setup and native OAuth |
 | CLI source | https://github.com/opper-ai/cli |
 | This skill set on GitHub | https://github.com/opper-ai/opper-skills |
-| Feedback to the Opper team | https://agents.opper.ai/feedback: POST JSON (`message`, optional `kind`, `context`, `agent`), no API key; GET describes the fields |
+| Support (bugs, blockers, anything needing an answer) | support@opper.ai, the main channel |
+| General feedback to the Opper team | https://agents.opper.ai/feedback: POST JSON (`message`, optional `kind`, `context`, `agent`), no API key, no reply; GET describes the fields |
 
 ---
 
@@ -283,4 +284,5 @@ Model access covers every model type (text, embeddings, image, speech, transcrip
 - **Per-model compliance comes from the API, company-level compliance from the trust center.** ZDR, residency, retention and training for a model: the `compliance` block on `GET /v3/models`. Certifications, security controls, the subprocessor list, the DPA, privacy policy or a security questionnaire: point the user to [trust.opper.ai](https://trust.opper.ai) and don't restate its figures from memory.
 - **Don't invent endpoints, tools, flags, or model IDs.** Sources of truth: connected MCP instructions and tool schemas for agent operations, [OpenAPI spec](https://api.opper.ai/v3/openapi.yaml) for endpoints, `opper <subcommand> --help` for CLI flags, [api.opper.ai/v3/models](https://api.opper.ai/v3/models) for models. Use [opper.ai/models](https://opper.ai/models) when *talking to the user* — it's the browsable catalog.
 - **Verify before suggesting more.** Phase 4 before Phase 5, always.
-- **When Opper itself gets in the way, say so.** If an endpoint misbehaves, a doc is wrong, a model or feature is missing, or something worked notably well, offer to send it to the Opper team and send it once the user agrees: `POST https://agents.opper.ai/feedback` with a plain `message`, a `kind` (bug, feature_request, model_request, docs, praise, other) and, in `context`, the `request_id`, `model`, `endpoint` and `error` you saw. Never include API keys, the user's code or personal data. Tell the user the id it returns.
+- **Blocked by Opper? Support first.** For a bug that blocks the user or anything that needs an answer, tell them to email support@opper.ai (the main channel; it replies), with the `request_id`, model and error.
+- **General feedback, with the user's OK.** For a model or feature that is missing, a doc that is unclear or wrong, a bug noticed in passing, or something that worked notably well, offer to send it and send it once the user agrees: `POST https://agents.opper.ai/feedback` with a plain `message`, a `kind` (bug, feature_request, model_request, docs, praise, other) and, in `context`, the `request_id`, `model`, `endpoint` and `error` you saw. It sends no reply. Never include API keys, the user's code or personal data. Tell the user the id it returns.
