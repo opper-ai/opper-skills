@@ -16,11 +16,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-12"
+  version: "2026-10-20"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-20.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-10-20. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -248,7 +248,7 @@ Send one `input` to several `models` in parallel and bring the answers back toge
 
 Run web search server-side (billed per search under `usage.opper.cost.tools`):
 
-- **Portable** — add `{"type": "opper:web_search"}` to `tools[]` on any compat chat endpoint above. One entry that works on every model and returns that endpoint's native citation artifacts, so client code doesn't branch per provider. The `engine` field controls routing: `auto` (default; the model's native provider search where supported, else Opper's engine), `native` (require native, 400 otherwise), `opper` (always Opper's engine), or pin a backend with `jina` / `exa`. Other knobs: `max_results`, `max_uses`, `search_context_size` (`very_low` → `full`), `allowed_domains` / `excluded_domains`, `country`, `freshness`. Beta.
+- **Portable** — add `{"type": "opper:web_search"}` to `tools[]` on any compat chat endpoint above. One entry that works on every model and returns that endpoint's native citation artifacts, so client code doesn't branch per provider. The `engine` field controls routing: `auto` (default; the model's native provider search where supported, else Opper's engine), `native` (require native, 400 otherwise), `opper` (always Opper's engine), or pin a backend with `jina` / `exa` / `linkup` / `searchbase`. Other knobs: `max_results`, `max_uses`, `search_context_size` (`very_low` → `full`), `allowed_domains` / `excluded_domains`, `country`, `freshness`. Beta.
 - **Native** — a provider's own shape (`web_search_20250305`, `{type:"web_search"}`, `{googleSearch:{}}`) forwards verbatim to the routed provider.
 - **Standalone** — `POST /v3/tools/web/search` runs one search directly, no model and no agentic loop.
 
