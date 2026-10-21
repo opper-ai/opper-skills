@@ -8,13 +8,13 @@ description: >
   for explicit CLI or shell workflows and launching an agent's own inference
   through Opper; use opper-api for application integration.
 metadata:
-  version: "2026-10-12"
+  version: "2026-10-21"
   category: sub-skill
   parent: opper
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-mcp"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper-mcp/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-21.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-mcp"` entry with 2026-10-21. If they differ, read https://skills.opper.ai/opper-mcp/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -59,3 +59,7 @@ opper keys create --project <uuid> --name <name> --output <env-file>
 Load `opper-cli` for installation and run `opper keys create --help` for current options, including `--mcp-url` when using a configured server. This command requests its own browser consent and writes the key privately. Preserve existing environment files; do not read the resulting file or print the key in the conversation. Do not set `return_secret: true` unless the user explicitly needs a raw secret and the client can deliver it privately.
 
 Disconnecting OAuth does not revoke runtime keys. Delete disposable test keys separately when no longer needed. After the user disconnects, reconnect only on a new request.
+
+## Send feedback to the Opper team
+
+`send_feedback` needs no account connection. If something was missing, unclear or wrong along the way (a model, a doc, an error you could not explain), offer to send it and call the tool once the user agrees, with a plain `message`, a `kind` (bug, feature_request, model_request, docs, praise, other) and, in `context`, the model, endpoint and error you saw. It sends no reply. Never include API keys, the user's code or personal data. Tell the user the id it returns.

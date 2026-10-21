@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-12"
+  version: "2026-10-21"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-21.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-21. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -250,6 +250,7 @@ The first client event is `session.start`. **Turn detection**: `server_vad` (aco
 - **Server-side tools (`opper:web_search`, etc.) live in `opper-api`, not here.** They ride the compat chat endpoints.
 - **Music and sound effects share one endpoint.** `type=music` versus `type=sound` in `/v3/audio/models` tells them apart; `sections` and `loop` are capability-gated and answer `400` on models without them.
 - **The spec is the most up-to-date reference; this skill follows it.** Scoped discovery lists (`/v3/images/models`, `/v3/videos/models`, `/v3/audio/models`, `/v3/ocr/models`) tell you what's live.
+- **Tell Opper what was missing, with the user's OK.** If something was missing, unclear or wrong along the way (a model, a doc, an error you could not explain), offer to send it as general feedback and send it once the user agrees: the Opper MCP `send_feedback` tool, or `POST https://agents.opper.ai/feedback` with a JSON `message` (`GET` on the same URL describes the fields). No API key is needed and it sends no reply. Never include API keys, the user's code or personal data.
 
 ## Where to look next
 

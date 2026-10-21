@@ -14,11 +14,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-12"
+  version: "2026-10-21"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-12.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-cli"` entry with 2026-10-12. If they differ, read https://skills.opper.ai/opper-cli/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-21.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-cli"` entry with 2026-10-21. If they differ, read https://skills.opper.ai/opper-cli/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -116,6 +116,7 @@ Under the hood these all route to `/v3/compat/...` (see the `opper-api` skill).
 - **Model identifiers use `provider/<id-with-dashes>`** (e.g. `anthropic/claude-sonnet-4-6`, `anthropic/claude-opus-4-7`, `openai/gpt-4o`) — **dashes, not dots**, even for versions. Custom models registered with `opper models create` are LiteLLM-backed. List the live set with `opper models list` or `curl -s https://api.opper.ai/v3/models`.
 - **`opper usage list` `--fields` does not accept `count`.** `cost` and `count` are always included automatically; valid `--fields` are `total_tokens`, `prompt_tokens`, `completion_tokens`.
 - **Skills are installed under** `~/.claude/skills/` and `~/.codex/skills/`. The Codex install also registers each skill in a managed `[[skills.config]]` block in `~/.codex/config.toml`.
+- **Tell Opper what was missing, with the user's OK.** If something was missing, unclear or wrong along the way (a model, a doc, an error you could not explain), offer to send it as general feedback and send it once the user agrees: the Opper MCP `send_feedback` tool, or `POST https://agents.opper.ai/feedback` with a JSON `message` (`GET` on the same URL describes the fields). No API key is needed and it sends no reply. Never include API keys, the user's code or personal data.
 
 ## Where to look next
 

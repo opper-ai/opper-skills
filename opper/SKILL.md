@@ -12,11 +12,11 @@ description: >
   or opper-multimodal for media, files, and realtime voice. Own setup, verification, and follow-up.
 category: router
 metadata:
-  version: "2026-10-20"
+  version: "2026-10-21"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-20.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-20. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-21.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-21. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 # Opper
@@ -188,6 +188,9 @@ Once something works, suggest **one** natural next step — don't dump the whole
 | Any working integration | See every call under **Logs** at [platform.opper.ai](https://platform.opper.ai); turn tracing on with a data retention rule to keep inputs, outputs and the trace tree | [control-plane/logs](https://docs.opper.ai/control-plane/logs) |
 | User wants their coding agent's own inference routed through Opper | `opper launch claude` (or `codex` / `opencode`) to route their coding agent through Opper | — |
 | Migrated from OpenAI/Anthropic | Stay on the provider SDK — add `response_format` for structured output and the `X-Opper-Name` header for named tracing; build agents with their framework on compat (`opper-api` skill, `references/agents.md`) | — |
+
+
+**Close the loop.** If anything along the way was missing, unclear or wrong (a model, a doc, an error you could not explain), offer to send it to the Opper team as general feedback, and send it once the user agrees (see the last ground rule).
 
 ---
 
