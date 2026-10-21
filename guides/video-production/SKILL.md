@@ -13,11 +13,11 @@ description: >
   "make a video".
 category: guide
 metadata:
-  version: "2026-10-06"
+  version: "2026-10-21"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-06.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-10-06. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-21.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-10-21. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > **A guide, not an Opper API skill.** It shares how we make videos with open-source tools (HyperFrames, GSAP, FFmpeg) and Opper for the media; the method and tool choices are suggestions. For Opper itself, start at [`opper`](https://skills.opper.ai/); request fields live in [`opper-multimodal`](https://skills.opper.ai/opper-multimodal/SKILL.md) and `https://api.opper.ai/v3/openapi.yaml`.
@@ -45,8 +45,10 @@ One cue file (`cues.json`) ties the layers together: the page and the mix both r
 | **[FFmpeg](https://ffmpeg.org)** | Trims, rescales and re-times generated clips to the film's size and frame rate; filters and EQs sound; loudness normalisation to a target (for example -14 LUFS) and limiting; joins the silent render with the mix; encodes for delivery; pulls frames, contact sheets and loudness readings for review | A command line tool: keep the recipes in the film's scripts, not in your head |
 | **Python: numpy, soundfile, [librosa](https://librosa.org)** | The mix as code: each effect placed at its cue time with a gain, music ducked or cut with gain curves. librosa measures tempo, beats, onsets and loudness per second, which is how scores are chosen and effects are checked | Decode and encode through FFmpeg |
 | **[Playwright](https://playwright.dev)** | Pixel-exact captures of your real site and app, for explainers that must show the true product | Capture public or demo data only |
+| **[earshot](https://github.com/Leonxlnx/earshot)** (open source) | Listening for the agent: a timeline of the mix with the measured beat grid and sync to your cue frames, an annotated sheet PNG, a scorecard against professional launch films, ranking of takes. See [listening and diagrams](references/listening-and-diagrams.md) | CPU only, 1.1 GB of models. Judges measurable things, not taste |
+| **[Manim](https://www.manim.community)** (Community) | Diagram layers: racing bars, counters, graphs, equations, rendered as a transparent `.mov` to overlay | Python timing (`run_time`), not the cue file: read cues into the scene. Needs Cairo and Pango, and TTF fonts |
 
-Other renderers fit other teams: [Remotion](https://www.remotion.dev) for React (check its company licence), [Motion Canvas](https://motioncanvas.io) and [Manim](https://www.manim.community) for diagram and maths explainers, [Blender](https://www.blender.org) for real 3D. The rules below hold for any of them.
+Other renderers fit other teams: [Remotion](https://www.remotion.dev) for React (check its company licence), [Motion Canvas](https://motioncanvas.io) for diagram and maths explainers, [Blender](https://www.blender.org) for real 3D. The rules below hold for any of them.
 
 ## 1. Ask, then plan
 
@@ -134,7 +136,7 @@ What we recommend in 2026-09 (check the lists; newer may exist): `openai/gpt-ima
 - **One instrument palette in every section; vary intensity, not instruments.** Changing instruments between sections gives an abrupt genre switch. This was the single biggest music improvement.
 - Describe each section in `prompt` (and `styles`); words to be sung go only in `lyrics`. Put section boundaries on the phrase grid (at 120 BPM, multiples of 2 or 4 s); other boundaries get moved.
 - **Do breakdowns, drops and silences in the mix,** not in the prompt. Models often ignore "drums out here".
-- Generate 3 or 4, measure all (beats, loudness per second), listen to the survivors, and cue the picture to the measured track.
+- Generate 3 or 4, measure all (beats, loudness per second), listen to the survivors, and cue the picture to the measured track. **The tempo you asked for is not the tempo you get:** asked for "128 BPM, keeps accelerating", `music_v2_5` returned a steady 113 BPM. Cuts placed on the assumed 128 grid hit the beat less often than random edits; on the measured beats, 70%.
 - Send a `seed` with your `sections` and note it next to each take, so the one you choose can be rendered again. A changed section can still change the whole track, so measure any retake again. On ElevenLabs a seed works only with sections. Sound effects take no seed: generate a few takes and pick one.
 - Timbre is the weak point: generated orchestral strings and piano often sound synthetic. Light, plucked and electronic palettes hold up better.
 
@@ -181,14 +183,16 @@ Any code renderer works if **every frame is a pure function of time**: frame *n*
 - **Audio first:** lock and measure the score, write beats and hits into `cues.json`, then animate to them.
 - Duck the music 8 to 12 dB around each action and 10 to 12 LU under narration.
 - **Measure effect lift:** compare the mix with a music-only render in the 80 ms after each cue (1.5 to 8 kHz band). Under a few dB is inaudible, whatever a listener model says.
-- Master with two-pass loudness normalisation to -14 LUFS, then a limiter at about -1.5 dBTP. Always export a music-only stem.
+- Master with two-pass loudness normalisation to -14 LUFS, then a limiter at about -1.5 dBTP (one pass landed at -12.3 on a short, dynamic mix). Always export a music-only stem.
+- Keep the mix stereo: give every input a layout (`aformat=channel_layouts=stereo`) before mixing, or mono voice files can collapse the whole mix to mono. Pan effects toward where their motion enters.
 
 ## 5. Review loop
 
 1. **Checks on every render:** loudness and true peak; frames that differ sharply from both neighbours (glitches, a layer one frame early); near-frozen time; single-colour frames; cut and hit sync within 1 to 2 frames.
-2. **Look yourself:** contact sheets at 2 to 4 fps plus every frame of each transition.
-3. **A fresh critic each round:** a new agent with only the render, the brief and the facts, returning ranked defects and SHIP or ONE MORE PASS. It catches what the builder cannot: blank cut frames, a fruit for an orb, a highlight on the wrong code line, an invented failover shown as "a real call". **On a film the owner already approved, its findings are proposals, not fixes:** show them and let the owner choose. A critic checks its own rubric, not whether the film got better; applying every fix to an approved brand film (cutting a scale shot for pace, a colour wash, a code overlay patching the story beat) passed the critic and made the film worse.
-4. **A human watches last.** They catch what nobody measured (a camera that "jumps", tools whose sounds do not match). Measured is not judged; say which is which.
+2. **Listen with earshot:** `timeline` and `sheet` with your cue file, then `critique`. Never tell anyone how the audio sounds without a reading behind it. Method, and what it caught on a promo a human had already liked: [listening and diagrams](references/listening-and-diagrams.md).
+3. **Look yourself:** contact sheets at 2 to 4 fps plus every frame of each transition.
+4. **A fresh critic each round:** a new agent with only the render, the brief and the facts, returning ranked defects and SHIP or ONE MORE PASS. It catches what the builder cannot: blank cut frames, a fruit for an orb, a highlight on the wrong code line, an invented failover shown as "a real call". **On a film the owner already approved, its findings are proposals, not fixes:** show them and let the owner choose. A critic checks its own rubric, not whether the film got better; applying every fix to an approved brand film (cutting a scale shot for pace, a colour wash, a code overlay patching the story beat) passed the critic and made the film worse.
+5. **A human watches last.** They catch what nobody measured (a camera that "jumps", tools whose sounds do not match). Measured is not judged; say which is which.
 
 ## 6. Delivery and honesty
 
