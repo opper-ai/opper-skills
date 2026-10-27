@@ -94,7 +94,7 @@ curl -s https://api.opper.ai/v3/batches \
 - `custom_id`: 1 to 64 letters, digits, `-` or `_`. Limits: 50,000 requests and 100 MiB per batch (413 over either; split it).
 - Not supported: `stream: true`, `callback_url` (both 400), and cancel.
 - Reading: `GET /v3/batches/{id}` returns `results` inline once ended; `GET /v3/batches/{id}/results?cursor=&limit=` pages them (follow `next_cursor`); `GET /v3/batches?after=` lists the project's batches. `DELETE /v3/batches/{id}` removes a finished batch and its results (409 while running).
-- **Data handling:** batches are **not zero data retention**. The provider holds the content while the batch runs (OpenAI and Anthropic keep batch data outside ZDR), and batches run in the US only for now. Opper keeps results 7 days (24 hours for projects with retention 0). An org whose rules exclude this gets a 404 at submit. Don't batch data that must stay ZDR or in the EU.
+- **Data handling:** batches are **not zero data retention**. The provider holds the content while the batch runs (OpenAI and Anthropic keep batch data outside ZDR), and batches run in the US only for now. Opper keeps results 7 days (24 hours for projects with retention 0). A model with no batch endpoint gets a 404 at submit; an org whose rules exclude its batch endpoints gets a 403. Don't batch data that must stay ZDR or in the EU.
 - The OpenAI SDK's files-based `client.batches` (JSONL upload, `input_file_id`) does **not** work against it; call `/v3/batches` over plain HTTP. List batchable models with `GET /v3/models?service_tier=batch`.
 
 ## Where to look next
