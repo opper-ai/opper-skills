@@ -78,7 +78,7 @@ See the `opper-api` SKILL.md for the full endpoint map.
 
 ## Batches: bulk, non-urgent work at about half price
 
-For work nobody waits on (evals, backfills, classification, embedding a corpus), use `POST /v3/batches` instead of looping over the compat endpoints. It takes OpenRouter's batch shape, runs on the provider's own batch API, and costs about half the synchronous price, billed once when the batch finishes. Results usually arrive within minutes, at most 24 hours.
+For work nobody waits on (evals, backfills, classification), use `POST /v3/batches` instead of looping over the compat endpoints. It runs on the provider's own batch API and costs about half the synchronous price, billed once when the batch finishes. Results arrive within 24 hours.
 
 ```bash
 curl -s https://api.opper.ai/v3/batches \
