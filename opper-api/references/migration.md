@@ -133,6 +133,8 @@ resp = client.chat.completions.create(
 
 That's it. Verify the model identifier with `curl -s https://api.opper.ai/v3/models` — provider-side names sometimes differ between gateways. OpenRouter's `models` fallback array works unchanged: same shape, at most 10 entries.
 
+OpenRouter batches (`POST /api/v1/batches`) map to `POST /v3/batches` with the same body (`endpoint`, `model`, `provider.only`, `completion_window`, `requests: [{custom_id, body}]`). Differences: no `callback_url` (poll instead), US only, not ZDR. Details: [compatibility.md](compatibility.md#batches-bulk-non-urgent-work-at-about-half-price).
+
 ## From OpenAI
 
 Same code change as OpenRouter — point `base_url` at `https://api.opper.ai/v3/compat`. The OpenAI SDK appends `/chat/completions`, `/responses`, `/embeddings`, all of which exist on the compat tree. Use Opper's `provider/model` identifier form.

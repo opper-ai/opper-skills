@@ -71,9 +71,31 @@ Everything is on the gateway, not a separate API:
 - **Structured output** — add `response_format: {type: "json_schema", json_schema: {...}}` to a compat chat call; the model returns schema-validated JSON.
 - **Vision / PDF input** — send `image_url` / `file` content parts to a model whose capabilities include `vision` / `pdf`.
 - **Media generation** — dedicated endpoints: `POST /v3/images`, `POST /v3/audio/speech`, `POST /v3/audio/transcriptions`, `POST /v3/videos`.
+- **Bulk, non-urgent jobs**: `POST /v3/batches` at about half price; see "Batches" below.
 - **Multi-model fall-back** — define a Route alias in the platform that maps one name to an ordered backup chain.
 
 See the `opper-api` SKILL.md for the full endpoint map.
+
+## Batches: bulk, non-urgent work at about half price
+
+For work nobody waits on (evals, backfills, classification, embedding a corpus), use `POST /v3/batches` instead of looping over the compat endpoints. It takes OpenRouter's batch shape, runs on the provider's own batch API, and costs about half the synchronous price, billed once when the batch finishes. Results usually arrive within minutes, at most 24 hours.
+
+```bash
+curl -s https://api.opper.ai/v3/batches \
+  -H "Authorization: Bearer $OPPER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"endpoint": "/v1/chat/completions", "model": "openai/gpt-5.4-mini",
+       "completion_window": "24h", "metadata": {"job": "nightly-eval"},
+       "requests": [{"custom_id": "row-1", "body": {"messages": [{"role": "user", "content": "Hello"}]}}]}'
+# 202 with the batch object; poll GET /v3/batches/{id} until status is completed, expired or cancelled
+```
+
+- `endpoint`: `/v1/chat/completions`, `/v1/responses` or `/v1/embeddings` for OpenAI models; `/v1/messages` for Claude (each `body` is a normal Anthropic Messages body, minus `model`). Bodies pass through untranslated, so the body must match the model's provider. One `model` per batch; `provider.only` pins a batch endpoint.
+- `custom_id`: 1 to 64 letters, digits, `-` or `_`. Limits: 50,000 requests and 100 MiB per batch (413 over either; split it).
+- Not supported: `stream: true`, `callback_url` (both 400), and cancel.
+- Reading: `GET /v3/batches/{id}` returns `results` inline once ended; `GET /v3/batches/{id}/results?cursor=&limit=` pages them (follow `next_cursor`); `GET /v3/batches?after=` lists the project's batches. `DELETE /v3/batches/{id}` removes a finished batch and its results (409 while running).
+- **Data handling:** batches are **not zero data retention**. The provider holds the content while the batch runs (OpenAI and Anthropic keep batch data outside ZDR), and batches run in the US only for now. Opper keeps results 7 days (24 hours for projects with retention 0). An org whose rules exclude this gets a 404 at submit. Don't batch data that must stay ZDR or in the EU.
+- The OpenAI SDK's files-based `client.batches` (JSONL upload, `input_file_id`) does **not** work against it; call `/v3/batches` over plain HTTP. List batchable models with `GET /v3/models?service_tier=batch`.
 
 ## Where to look next
 
