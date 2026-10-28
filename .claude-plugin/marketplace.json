@@ -1,0 +1,14 @@
+{
+  "name": "opper-ai",
+  "description": "Opper's Agent Skills for Claude Code",
+  "owner": {
+    "name": "Opper"
+  },
+  "plugins": [
+    {
+      "name": "opper",
+      "source": "./",
+      "description": "Agent Skills for building on Opper, the EU-hosted AI gateway: connecting an agent through MCP, the opper CLI, application code on the OpenAI, Anthropic and Google SDKs through the compat endpoints, and media, files and realtime voice."
+    }
+  ]
+}

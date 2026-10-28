@@ -1,0 +1,13 @@
+{
+  "name": "opper",
+  "description": "Agent Skills for building on Opper, the EU-hosted AI gateway: connecting an agent through MCP, the opper CLI, application code on the OpenAI, Anthropic and Google SDKs through the compat endpoints, and media, files and realtime voice.",
+  "author": {
+    "name": "Opper"
+  },
+  "homepage": "https://skills.opper.ai",
+  "repository": "https://github.com/opper-ai/opper-skills",
+  "license": "MIT",
+  "keywords": ["opper", "ai-gateway", "llm", "mcp", "cli", "openai-compatible", "multimodal", "agents"],
+  "skills": ["opper", "opper-api", "opper-cli", "opper-mcp", "opper-multimodal"],
+  "logo": "assets/opper-logo.svg"
+}

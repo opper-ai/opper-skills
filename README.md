@@ -102,6 +102,31 @@ npx skills add opper-ai/opper-skills/opper-api
 npx skills add opper-ai/opper-skills/opper-multimodal
 ```
 
+Or install the five skills as a Claude Code plugin from this repo's marketplace:
+
+```
+/plugin marketplace add opper-ai/opper-skills
+/plugin install opper@opper-ai
+```
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/opper-ai/opper-skills
+```
+
+The extension loads `GEMINI.md`, a short index that points Gemini at the right skill.
+
+### Cursor
+
+The repo ships a Cursor plugin manifest in `.cursor-plugin/`. Until it is listed in the Cursor marketplace, copy the folders into your project:
+
+```bash
+git clone https://github.com/opper-ai/opper-skills.git
+mkdir -p .cursor/skills
+cp -r opper-skills/opper opper-skills/opper-* .cursor/skills/
+```
+
 ### Manual install
 
 A skill is just a folder with a `SKILL.md` placed under your agent's skills directory. Copy or symlink:

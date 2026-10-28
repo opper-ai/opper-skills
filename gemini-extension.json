@@ -1,0 +1,6 @@
+{
+  "name": "opper",
+  "version": "1.0.0",
+  "description": "Agent Skills for building on Opper, the EU-hosted AI gateway: connecting an agent through MCP, the opper CLI, application code on the OpenAI, Anthropic and Google SDKs through the compat endpoints, and media, files and realtime voice.",
+  "contextFileName": "GEMINI.md"
+}
