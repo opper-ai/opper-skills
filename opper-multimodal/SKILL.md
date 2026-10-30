@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-21"
+  version: "2026-10-30"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-21.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-21. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-30.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-30. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -102,7 +102,7 @@ curl -s -X POST https://api.opper.ai/v3/audio/transcriptions \
 # → { "text": "...", "language": "en", "duration": 12.3, "segments": [...], "usage": {...} }
 ```
 
-`GET /v3/audio/models?type=tts` lists each speech model's `voices`, `default_voice`, and `max_length`; `?type=stt` lists each transcription model's `languages`, `formats`, whether it supports `diarize` (speaker labels — rejected if the model can't do it), and whether it supports `stream`.
+`GET /v3/audio/models?type=tts` lists each speech model's `voices`, `default_voice`, and `max_length`; `?type=stt` lists each transcription model's `languages`, `formats`, whether it supports `diarize` (speaker labels — rejected if the model can't do it), whether it supports `stream`, and under `params.stt.parameters` the provider settings it takes in `parameters`, each with a description. Read that list instead of guessing provider keys. Add `include=editorial` for each model's `short_description` and `long_description`.
 
 **Brand and product names in transcripts**: pass them as key terms through `parameters` on models that take them (for example `"parameters": {"keyterms": ["Opper"]}` on `elevenlabs/scribe_v2`, which otherwise wrote "Opper" as "OPA").
 
@@ -235,7 +235,9 @@ curl -s -X POST https://api.opper.ai/v3/realtime-sessions \
 # → { "ticket": "...", "expires_at": "..." }
 ```
 
-The first client event is `session.start`. **Turn detection**: `server_vad` (acoustic), `semantic_vad` (model-based, OpenAI only), or `none` (client-driven). **Providers** differ in capability — OpenAI (`gpt-realtime-2`, vision variant; semantic VAD, image input, tools), Gemini Live (video-frame input, tools), xAI Voice (audio/text, `server_vad` only), ElevenLabs (conversational voice). Discover live realtime models with `GET /v3/models?type=realtime`.
+The first client event is `session.start`. **Turn detection**: `server_vad` (acoustic), `semantic_vad` (model-based; only on models that support it), or `none` (client-driven). **Providers** differ in capability — OpenAI (`gpt-realtime-2`, vision variant; semantic VAD, image input, tools), Gemini Live (video-frame input, tools), xAI Voice (audio/text, `server_vad` only), ElevenLabs (conversational voice). Discover live realtime models with `GET /v3/models?type=realtime`; each model's `params.realtime` lists what its session config takes: `parameters` (provider settings for `config.parameters`, each with a description; any other key fails `session.start`), `languages`, `input_audio_formats` (`g711_ulaw` / `g711_alaw` for 8 kHz phone audio where listed), and `diarize` / `semantic_vad` when supported.
+
+**Live transcription (speech-to-text)** runs on the same WebSocket: realtime models whose `output_modalities` is `transcription` take audio and send no audio back. Expect `transcript.partial` (the whole hypothesis so far: replace the pending line, don't append), `transcript.committed` per final segment, and, with `semantic_vad`, turn events for voice agents (`speech.started`, `speech.eager_end` to start drafting a reply, `speech.stopped` to send it). Some models put per-word timings on `transcript.committed` when asked through `config.parameters`. Event details: [realtime protocol](https://docs.opper.ai/build/realtime/protocol).
 
 **Caps & billing**: sessions are bounded by per-project concurrency, max duration, and idle timeout; usage flushes every ~30 s with synchronous balance enforcement (a `402` ends the session when the balance runs out). Full event protocol, examples, and billing mechanics: [realtime quickstart](https://docs.opper.ai/build/realtime/quickstart).
 
