@@ -69,7 +69,7 @@ A shared contract across `/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`:
 
 - **`model` and the prompt/input are owned by Opper.** A small set of high-level params is normalized (e.g. `size`, `aspect_ratio`, `quality`, `voice`, `format`). Everything you put in **`parameters`** is forwarded **verbatim** to the provider — that's the escape hatch for provider-specific knobs.
 - **Nothing is stored unless you ask.** Send `store: true` to save the output to [Files](https://docs.opper.ai/build/multimodal/files) and get a reusable **`file_id`** back; the default is `false`.
-- **Reuse media without re-uploading** by passing a `file_id` (from a previous generation or a `POST /v3/files` upload) anywhere a media source is accepted — `image` / `mask` / `reference_images` on images, `image` / `video` / `reference_images` on videos, `audio` on transcriptions, `document` on OCR.
+- **Reuse media without re-uploading** by passing a `file_id` (from a previous generation or a `POST /v3/files` upload) anywhere a media source is accepted — `image` / `mask` / `reference_images` on images, `image` / `last_image` / `video` / `reference_images` / `reference_videos` / `audio` on videos, `audio` on transcriptions, `document` on OCR.
 - **Everything is traced and billed** like any other call — visible at [platform.opper.ai](https://platform.opper.ai).
 
 ### Images — `POST /v3/images`
@@ -82,7 +82,9 @@ curl -s -X POST https://api.opper.ai/v3/images \
 # → { "data": [{ "url" | "b64_json", "file_id": "file_..." }], "usage": {...} }
 ```
 
-**Which model**: start with `openai/gpt-image-2.5-sunburst` or `openai/gpt-image-2.5-flare`, then check `GET /v3/images/models` for what is live. Probe the size you get back: some models reach higher resolutions through another knob (Gemini image models give 2K with `quality: "high"` and refuse a `resolution` field).
+**Which model**: start with `openai/gpt-image-2.5-sunburst` or `openai/gpt-image-2.5-flare`, then check `GET /v3/images/models` for what is live. Ids are provider-prefixed: the same model can be listed once per provider (`openai/gpt-image-2.5-flare` and `azure:global/gpt-image-2.5-flare`), and a bare name answers `400` naming the ids that serve it.
+
+**Size and quality**: read `params.image` on the model. GPT Image takes `quality` (`low`, `medium`, `high`, and on 2.5 `xhigh`, `max`) and any `size` as `WxH` pixels within `size_constraints`, not only the listed `sizes`: 1K is `1024x1536`, 2K `2048x2048`, 4K `3840x2160` or `2160x3840`. A `"2K"` string is refused. Gemini image models (`vertexai/gemini-3-pro-image`) take `aspect_ratio` plus `quality`: the default gives about 1K, `high` 2K and `4k` 4K, and they refuse a `resolution` field. Token-billed models report the charge in `usage.cost`.
 
 **Edit / variations**: pass a source `image` (and optional `mask` or `reference_images`). **Slow models**: send `"async": true` to get a `202` + `status_url` instead of blocking; poll it like video below.
 
@@ -156,22 +158,40 @@ curl -s -X POST https://api.opper.ai/v3/audio/generations \
 
 Video is **always async**: submit, get a `202` with a `status_url`, then poll until it resolves to a download URL + `file_id`.
 
-**Which model**: start with Gemini Omni (`gemini-omni-1.1-flash`), Wan 3 (`wan3.0`, `wan3.0-prime`), Seedance 2.5 (`seedance-2.5`) or Kling 3 (`kling-3.0-pro`, image-to-video `kling-3.0-pro-i2v`). Bare names are pooled across the providers that serve them; a provider-prefixed id (for example `fal/seedance-2.5`, `bytedance:ap/seedance-2.5`) pins one. Check `GET /v3/videos/models` for what is live for your key.
+**Which model**: start with Gemini Omni (`gemini/gemini-omni-1.1-flash`), Seedance 2.5 (`bytedance:ap/seedance-2.5`, `fal/seedance-2.5`), Kling 3 (`fal/kling-3.0-pro`, image-to-video `fal/kling-3.0-pro-i2v`, also on `tencent-video:sg/`) or Veo 3.1 (`vertexai/veo-3.1-fast-generate-001`). Ids are provider-prefixed, and each provider's row can differ in inputs, defaults and price, so pick the row whose `capabilities` fit the request. A bare name such as `seedance-2.5` answers `400` naming the ids that serve it. Check `GET /v3/videos/models` for what is live for your key.
 
 ```bash
 # 1. Submit
 curl -s -X POST https://api.opper.ai/v3/videos \
   -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
-  -d '{"model": "seedance-2.5", "prompt": "the balloon drifts at dawn"}'
+  -d '{"model": "bytedance:ap/seedance-2.5", "prompt": "the balloon drifts at dawn",
+       "seconds": 5, "resolution": "720p", "aspect_ratio": "9:16"}'
 # → 202 { "id": "...", "status_url": "https://api.opper.ai/v3/artifacts/{id}/status" }
 
 # 2. Poll
 curl -s -H "Authorization: Bearer $OPPER_API_KEY" \
   "https://api.opper.ai/v3/artifacts/{id}/status"
-# → { "status": "completed", "url": "...", "file_id": "file_..." }   (or "processing")
+# → { "status": "completed", "url": "...", "file_id": "file_...", "usage": { "cost": ..., "seconds": ... } }   (or "processing")
 ```
 
-Inspect each model's `capabilities` via `GET /v3/videos/models` to tell input modality apart: `video_generation` is text-to-video, `image_to_video` needs a source `image`, `video_editing` is video-to-video. `params.video` lists accepted `aspect_ratios`, `resolutions`, and `max_duration`.
+**Length, resolution and shape** are top-level and normalized: `seconds`, `resolution`, `aspect_ratio`. `params.video` on the model lists the accepted `aspect_ratios`, `resolutions` and `max_duration`, and `params.video.parameters` the provider knobs that go in `parameters`.
+
+**Inputs are gated by capability**, and a model without the capability answers `400`:
+
+| Input | Capability |
+|---|---|
+| `image` (first frame) | `image_to_video` |
+| `last_image` (ending frame, needs `image`) | `last_frame` |
+| `reference_images` (subject consistency) | `reference_images` |
+| `video` (edit, extend or re-animate a clip) | `video_editing`, `video_extension` or `reference_video` |
+| `reference_videos` (more source videos after `video`; Seedance takes 3 in all, cited in the prompt as video 1, 2, 3) | `reference_video` |
+| `audio` (the character speaks it; on `lip_sync` models the prompt is optional and the audio sets the length) | `audio_to_video` |
+
+**Audio**: Kling, Seedance and Veo render native audio, and it changes the price (`pricing.rates` carries an `audio` dimension or `price_per_second_audio`). Defaults differ by provider, so set `parameters.generate_audio` explicitly (`false` for a silent clip).
+
+**Seedance specifics**: for an edit or extension of a `video`, leave `seconds` and `aspect_ratio` out (the clip keeps the input's; ModelArk refuses explicit values). Seedance refuses image or video inputs that show a realistic person (`may contain real person`, or fal's `likenesses of real people`), including AI-generated ones; for people in a source image use Kling, Veo or Omni.
+
+**Pricing**: `pricing` on each model is per second, by resolution where it varies, and `usage.cost` on the completed poll is the charge.
 
 ### OCR — `POST /v3/ocr`
 
@@ -245,7 +265,7 @@ The first client event is `session.start`. **Turn detection**: `server_vad` (aco
 
 - **Video is the only always-async media endpoint.** `POST /v3/videos` returns `202` + `status_url`; poll `GET /v3/artifacts/{id}/status`. Images, audio, and OCR are synchronous, though `/v3/images` and `/v3/audio/generations` accept `"async": true` for slow models, returning the same poll shape.
 - **Generated media is not stored by default.** Send `store: true` when you want a reusable `file_id`; without it you get the bytes (or a URL) only.
-- **Pass `file_id`, don't re-upload.** Any media source field (`image`, `mask`, `reference_images`, `audio`, `video`, `document`) accepts a `file_id` from a prior generation or a `/v3/files` upload.
+- **Pass `file_id`, don't re-upload.** Any media source field (`image`, `mask`, `reference_images`, `reference_videos`, `audio`, `video`, `document`) accepts a `file_id` from a prior generation or a `/v3/files` upload.
 - **`parameters` is a verbatim passthrough.** Top-level fields are normalized across providers; anything provider-specific goes in `parameters` untouched.
 - **Vision/PDF *input* is not a media endpoint** — it's content parts on a compat chat call to a `vision`/`pdf`-capable model. Media *generation* uses the dedicated endpoints here.
 - **Realtime browser clients use a ticket, never the API key.** Mint it from `/v3/realtime-sessions`; the key stays server-side.
