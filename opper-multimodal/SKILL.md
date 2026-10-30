@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-30.2"
+  version: "2026-10-30.3"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-30.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-30.2. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-30.3.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-30.3. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -189,7 +189,7 @@ curl -s -H "Authorization: Bearer $OPPER_API_KEY" \
 
 **Audio**: Kling, Seedance and Veo render native audio, and it changes the price (`pricing.rates` carries an `audio` dimension or `price_per_second_audio`). Defaults differ by provider, so set `parameters.generate_audio` explicitly (`false` for a silent clip).
 
-**Seedance specifics**: for an edit or extension of a `video`, leave `seconds` and `aspect_ratio` out (the clip keeps the input's; ModelArk refuses explicit values). Seedance refuses image or video inputs that show a realistic person (`may contain real person`, or fal's `likenesses of real people`), including AI-generated ones; for people in a source image use Kling, Veo or Omni.
+**Seedance specifics**: for an edit or extension of a `video`, leave `seconds` and `aspect_ratio` out (the clip keeps the input's; ModelArk refuses explicit values). Seedance refuses image or video inputs that show a realistic person (`may contain real person`, or fal's `likenesses of real people`), including AI-generated ones. On `bytedance:ap/` an image made with a `bytedance:ap/seedream-*` model through Opper passes (BytePlus trusts its own outputs for 30 days), so generate the character there; otherwise use Kling, Veo or Omni for people in a source image.
 
 **Pricing**: `pricing` on each model is per second, by resolution where it varies, and `usage.cost` on the completed poll is the charge.
 
