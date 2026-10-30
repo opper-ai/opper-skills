@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-30"
+  version: "2026-10-30.2"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-30.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-30. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-30.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-30.2. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -174,7 +174,7 @@ curl -s -H "Authorization: Bearer $OPPER_API_KEY" \
 # → { "status": "completed", "url": "...", "file_id": "file_...", "usage": { "cost": ..., "seconds": ... } }   (or "processing")
 ```
 
-**Length, resolution and shape** are top-level and normalized: `seconds`, `resolution`, `aspect_ratio`. `params.video` on the model lists the accepted `aspect_ratios`, `resolutions` and `max_duration`, and `params.video.parameters` the provider knobs that go in `parameters`.
+**Length, resolution and shape** are top-level and normalized: `seconds`, `resolution`, `aspect_ratio`. `params.video` on the model lists the accepted `aspect_ratios`, `resolutions` and `max_duration`, and `params.video.parameters` the provider knobs that go in `parameters`. A value outside those lists is a `400` naming what the model accepts, and lip-sync models refuse `seconds` and `aspect_ratio` (the clip follows the image and audio).
 
 **Inputs are gated by capability**, and a model without the capability answers `400`:
 

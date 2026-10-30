@@ -2,7 +2,7 @@
 name: opper-cli
 description: >
   Use the Opper CLI (`opper` command, npm package `@opperai/cli`) for terminal
-  work with Opper: signing in, calling functions, inspecting traces, tracking usage and costs, generating images,
+  work with Opper: signing in, calling functions, inspecting traces, tracking usage and costs, generating images and video,
   installing bundled skills, configuring AI code editors, and launching coding
   agents (Claude Code, OpenCode, Codex, Hermes, Pi) with their inference
   routed through Opper. Use this skill whenever the user mentions the `opper`
@@ -14,11 +14,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-21"
+  version: "2026-10-30"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-21.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-cli"` entry with 2026-10-21. If they differ, read https://skills.opper.ai/opper-cli/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-10-30.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-cli"` entry with 2026-10-30. If they differ, read https://skills.opper.ai/opper-cli/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -75,7 +75,8 @@ Run `opper` with no args for an interactive menu (Account · Agents · Skills ·
 | `models list/create/get/delete` | Built-in + custom (LiteLLM-backed) models. |
 | `traces list/get/delete` | Inspect execution traces. |
 | `usage list` | Token/cost analytics, optional CSV export. |
-| `image generate <prompt>` | Generate an image. |
+| `image generate <prompt>` | Generate or edit an image (`--size`, `--quality`, `--image` for an edit source). |
+| `video generate <prompt>` | Generate a video: submits, waits and saves it (`-m`, `--seconds`, `--resolution`, `--aspect-ratio`, `--image`, `--video`, `--no-audio`). |
 | `agents list` / `launch <agent>` | List and launch coding agents through Opper. |
 | `editors list/opencode/continue` | Wire AI code editors to Opper. |
 | `skills list/install/update/uninstall` | Install bundled Opper SKILL.md docs to `~/.claude/skills/` and `~/.codex/skills/`. |
