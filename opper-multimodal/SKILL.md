@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-10-30.3"
+  version: "2026-11-02"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-30.3.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-10-30.3. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-11-02.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-11-02. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -193,6 +193,52 @@ curl -s -H "Authorization: Bearer $OPPER_API_KEY" \
 
 **Pricing**: `pricing` on each model is per second, by resolution where it varies, and `usage.cost` on the completed poll is the charge.
 
+### Completion webhooks (instead of polling)
+
+For async jobs (`POST /v3/videos`, and `POST /v3/images` with `"async": true`), Opper can POST a signed event to your endpoint when the job ends. Recommend it for long video jobs, server-side pipelines and many parallel jobs; polling `status_url` stays fine for scripts and notebooks.
+
+- **Two ways to set it up.** Add `callback_url` to the request (that job only), or save a project default in the platform (**Settings > Webhooks**) or with `PATCH /v3/webhooks/settings {"default_url": "https://..."}` using an org admin's key. A saved default applies at once to every async job in the project without its own `callback_url`; the request's `callback_url` wins. A sync image request with `callback_url` is a `400`.
+- **URL rules**: public HTTPS on port 443, no localhost or private hosts. For local development, expose the receiver through a tunnel (e.g. `cloudflared` or `ngrok`).
+- **Events**: `video.completed`, `video.failed`, `image.completed`, `image.failed`, `webhook.test`. `data` is the status poll's object; `data.url` expires after an hour, so `GET status_url` for a fresh link.
+- **Signing** is [Standard Webhooks](https://www.standardwebhooks.com): headers `webhook-id` (`<generation id>:<event type>`, the same on every retry, so dedupe on it), `webhook-timestamp`, `webhook-signature`. Verify the **raw body** with the `standardwebhooks` library (npm / PyPI), which also rejects old timestamps. The `whsec_...` secret is per project: **Settings > Webhooks** or `GET /v3/webhooks/secret` with an admin's key (`POST /v3/webhooks/secret/rotate` to rotate).
+- **Delivery**: answer `2xx` within 10 s and do the work afterwards. Timeouts, network errors, `5xx`, `429` and `408` are retried for about 23 h (8 attempts); the status poll shows the delivery state under `webhook`.
+- **Test without a paid job**: `POST /v3/webhooks/test {"callback_url": "https://..."}` sends a signed `webhook.test` event.
+
+```ts
+// TypeScript (Express): npm i standardwebhooks express
+import express from "express";
+import { Webhook } from "standardwebhooks";
+const wh = new Webhook(process.env.OPPER_WEBHOOK_SECRET!); // whsec_...
+express().post("/webhooks/opper", express.raw({ type: "application/json" }), (req, res) => {
+  let event;
+  try { event = wh.verify(req.body.toString(), req.headers as Record<string, string>); }
+  catch { return res.sendStatus(400); }
+  res.sendStatus(204);                 // ack fast, then process (dedupe on webhook-id)
+  if (event.type === "video.completed") console.log(event.data.url);
+}).listen(3000);
+```
+
+```python
+# Python (FastAPI): pip install standardwebhooks fastapi
+import os
+from fastapi import FastAPI, Request, Response
+from standardwebhooks import Webhook
+wh, app = Webhook(os.environ["OPPER_WEBHOOK_SECRET"]), FastAPI()
+
+@app.post("/webhooks/opper")
+async def opper_webhook(request: Request):
+    try:
+        event = wh.verify(await request.body(), dict(request.headers))
+    except Exception:
+        return Response(status_code=400)
+    # dedupe on request.headers["webhook-id"]; hand slow work to a queue
+    if event["type"] == "video.completed":
+        print(event["data"]["url"])
+    return Response(status_code=204)
+```
+
+Full reference (payload fields, retry schedule, secret rotation): [docs.opper.ai/build/multimodal/webhooks](https://docs.opper.ai/build/multimodal/webhooks).
+
 ### OCR — `POST /v3/ocr`
 
 Turn a PDF or image into structured markdown. Billed **per page**.
@@ -263,7 +309,7 @@ The first client event is `session.start`. **Turn detection**: `server_vad` (aco
 
 ## Non-obvious gotchas
 
-- **Video is the only always-async media endpoint.** `POST /v3/videos` returns `202` + `status_url`; poll `GET /v3/artifacts/{id}/status`. Images, audio, and OCR are synchronous, though `/v3/images` and `/v3/audio/generations` accept `"async": true` for slow models, returning the same poll shape.
+- **Video is the only always-async media endpoint.** `POST /v3/videos` returns `202` + `status_url`; poll `GET /v3/artifacts/{id}/status`. Images, audio, and OCR are synchronous, though `/v3/images` and `/v3/audio/generations` accept `"async": true` for slow models, returning the same poll shape. Async video and image jobs can report through a signed webhook instead of polling (see Completion webhooks above).
 - **Generated media is not stored by default.** Send `store: true` when you want a reusable `file_id`; without it you get the bytes (or a URL) only.
 - **Pass `file_id`, don't re-upload.** Any media source field (`image`, `mask`, `reference_images`, `reference_videos`, `audio`, `video`, `document`) accepts a `file_id` from a prior generation or a `/v3/files` upload.
 - **`parameters` is a verbatim passthrough.** Top-level fields are normalized across providers; anything provider-specific goes in `parameters` untouched.
@@ -281,6 +327,7 @@ The first client event is `session.start`. **Turn detection**: `server_vad` (aco
 | Live, definitive endpoint shapes | `https://api.opper.ai/v3/openapi.yaml` |
 | Multimodality overview | [docs.opper.ai/build/multimodal/overview](https://docs.opper.ai/build/multimodal/overview) |
 | Images / audio / video / files / vision guides | [docs.opper.ai/build/multimodal](https://docs.opper.ai/build/multimodal/overview) |
+| Completion webhooks (signing, retries, settings) | [docs.opper.ai/build/multimodal/webhooks](https://docs.opper.ai/build/multimodal/webhooks) |
 | Realtime quickstart & event protocol | [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart) |
 | Browsable model catalog (for user-facing recommendations) | [opper.ai/models](https://opper.ai/models) |
 | Text / chat, structured output, agents, provider SDKs from code, migration, server-side tools | the [`opper-api`](https://skills.opper.ai/opper-api/SKILL.md) skill |
