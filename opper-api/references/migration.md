@@ -133,7 +133,7 @@ resp = client.chat.completions.create(
 
 That's it. Verify the model identifier with `curl -s https://api.opper.ai/v3/models` — provider-side names sometimes differ between gateways. OpenRouter's `models` fallback array works unchanged: same shape, at most 10 entries.
 
-OpenRouter batches (`POST /api/v1/batches`) map to `POST /v3/batches` with the same body (`endpoint`, `model`, `provider.only`, `completion_window`, `requests: [{custom_id, body}]`). Differences: no `callback_url` (poll instead), US only, not ZDR. Details: [compatibility.md](compatibility.md#batches-bulk-non-urgent-work-at-about-half-price).
+OpenRouter batches (`POST /api/v1/batches`) map to `POST /v3/batches` with the same body (`endpoint`, `model`, `provider.only`, `completion_window`, `requests: [{custom_id, body}]`). Differences: `callback_url` works with the same four events (`batch.completed`, `batch.failed`, `batch.cancelled`, `batch.expired`) but is signed with Standard Webhooks headers and the project's Opper secret, so swap OpenRouter's signature check for a Standard Webhooks library; US only, not ZDR. Details: [compatibility.md](compatibility.md#batches-bulk-non-urgent-work-at-about-half-price).
 
 ## From OpenAI
 
