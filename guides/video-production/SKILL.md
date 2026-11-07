@@ -13,11 +13,11 @@ description: >
   "make a video".
 category: guide
 metadata:
-  version: "2026-10-21"
+  version: "2026-11-07"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-21.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-10-21. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-11-07.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"guides/video-production"` entry with 2026-11-07. If they differ, read https://skills.opper.ai/guides/video-production/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > **A guide, not an Opper API skill.** It shares how we make videos with open-source tools (HyperFrames, GSAP, FFmpeg) and Opper for the media; the method and tool choices are suggestions. For Opper itself, start at [`opper`](https://skills.opper.ai/); request fields live in [`opper-multimodal`](https://skills.opper.ai/opper-multimodal/SKILL.md) and `https://api.opper.ai/v3/openapi.yaml`.
@@ -166,6 +166,17 @@ written as timed scripts and read before any spend, a model per shot from a shoo
 retimed onto beats, motivated transitions that reveal the next scene from its own first frame, a character animated
 over a code set (keyed off green), a code assist for the key moment, songs with lyrics and karaoke subtitles. **Read [references/generated-films.md](references/generated-films.md)**
 before planning one.
+
+### Music videos from a few stills
+
+A whole song can run on 8–15 stills, with all the motion done in code and no video model. The method:
+- stems give the beats and word times (`scribe_v2` on the vocal stem)
+- a full-length animatic goes in before any art, and a style bake-off before committing
+- each still is split into a plate and keyed actors, with two poses per character swapped on beats
+- motion is tied to words; lyrics get their own band, and in-scene text has a reading-time budget
+- with parallel agents, a shared kit is locked before fanning out
+
+**Read [references/music-video-from-stills.md](references/music-video-from-stills.md)** before planning one.
 
 ## 3. Assembly
 
