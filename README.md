@@ -109,6 +109,8 @@ Or install the five skills as a Claude Code plugin from this repo's marketplace:
 /plugin install opper@opper-ai
 ```
 
+The plugin also connects the [Opper MCP server](https://opper.ai/mcp) (`https://api.opper.ai/mcp`, declared in `.mcp.json`). Searching the model catalogue and reading guides work at once; anything that touches your account asks you to sign in through the browser first.
+
 ### Gemini CLI
 
 ```bash
@@ -119,7 +121,7 @@ The extension loads `GEMINI.md`, a short index that points Gemini at the right s
 
 ### Cursor
 
-The repo ships a Cursor plugin manifest in `.cursor-plugin/`. Until it is listed in the Cursor marketplace, copy the folders into your project:
+The repo ships a Cursor plugin manifest in `.cursor-plugin/`, with the Opper MCP server in `mcp.json`. Until it is listed in the Cursor marketplace, copy the folders into your project:
 
 ```bash
 git clone https://github.com/opper-ai/opper-skills.git
