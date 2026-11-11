@@ -127,7 +127,10 @@ The repo ships a Cursor plugin manifest in `.cursor-plugin/`, with the Opper MCP
 git clone https://github.com/opper-ai/opper-skills.git
 mkdir -p .cursor/skills
 cp -r opper-skills/opper opper-skills/opper-* .cursor/skills/
+cp opper-skills/mcp.json .cursor/mcp.json
 ```
+
+If you already have a `.cursor/mcp.json`, add the `opper` entry from `opper-skills/mcp.json` to it instead of copying the file. See [opper.ai/mcp](https://opper.ai/mcp) for signing in.
 
 ### Manual install
 
