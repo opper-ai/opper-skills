@@ -16,11 +16,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-11-10"
+  version: "2026-11-11"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-11-10.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-11-10. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-11-11.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-11-11. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -87,6 +87,24 @@ Authorization: Bearer $OPPER_API_KEY
 Server URL: `https://api.opper.ai` (the `/v3` or `/v2` prefix is part of each path). Use `Authorization: Bearer`; the OpenAI-shaped endpoints accept nothing else. The vendor-protocol compat routes also read that vendor's own header (`x-api-key` on the Anthropic Messages endpoints, `x-goog-api-key` on the Gemini ones), so the Anthropic and Google SDKs work with just their normal API key. Get a key at [platform.opper.ai](https://platform.opper.ai).
 
 A few endpoints have `security: []` and don't require a key: `/health`, `/v3/openapi.yaml`, `/v3/openapi.json`, `/v3/models`.
+
+### Allowed IPs on a key (`403 ip_not_allowed`)
+
+A runtime key can be limited to a list of public IPv4/IPv6 addresses and CIDR ranges ("Allowed IPs"). Empty list (the default) = any IP. It is per key, with no org or project setting, and management keys are not covered. Set it in the platform (Settings > API keys > Inference keys: the create dialog, or Edit on the key's Allowed IPs row), with `allowed_ips` on `POST /management/v1/projects/{uuid}/api-keys`, or `PATCH /management/v1/projects/{uuid}/api-keys/{id}` with `{"allowed_ips": [...]}` (`null` or `[]` clears; scope `apikeys:write`). Over MCP: `create_api_key` takes `allowed_ips`, `update_api_key` sets or clears it. Rules: at most 100 entries, public addresses only, no wider than /8 (IPv4) or /16 (IPv6), CIDR only (no `a-b` dash ranges). Keys from the CLI/agent sign-in flow cannot have a list.
+
+A call from an unlisted address gets `403` with `X-Opper-Error-Code: ip_not_allowed`:
+
+```json
+{"code": "ip_not_allowed", "error": "ip_not_allowed", "client_ip": "192.0.2.10",
+ "message": "This API key only accepts requests from its allowed IP addresses. This request came from 192.0.2.10."}
+```
+
+- **`client_ip` is the address to add.** It is the egress address Opper saw (after NAT/proxies). `X-Forwarded-For` sent by the client is ignored.
+- **IPv6 is the usual surprise.** The API is reachable over IPv6, so a host with IPv6 egress calls over it. List the IPv6 address/range too; `curl -4` / `curl -6 https://checkip.amazonaws.com` shows both.
+- **Not a key or auth bug.** Don't rotate the key or change headers; fix the list. A list change takes up to a minute to reach every server (revoking a key is still immediate).
+- **A rare `503 client_address_unavailable`** with `Retry-After` means the address could not be verified at that moment: retry.
+
+Docs: [docs.opper.ai/control-plane/api-key-allowed-ips](https://docs.opper.ai/control-plane/api-key-allowed-ips).
 
 ## Canonical example — a compat chat completion
 
@@ -275,6 +293,7 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 - **`/v3/call` is legacy and being sunset.** Never point a new integration at it, and don't use it in examples. Existing `/call` users (including the `opperai` SDK's `opper.call`) migrate to compat + `response_format` — see [references/migration.md](references/migration.md).
 - **Compat endpoints live under `/v3/compat/...`**, not at `/v3/...`. SDK migrations should point base URL at `https://api.opper.ai/v3/compat`.
 - **Auth is `Authorization: Bearer ...`** on the OpenAI-shaped endpoints (`x-api-key` there is a 401). The Anthropic Messages and Gemini compat routes also accept their SDK's own header (`x-api-key`, `x-goog-api-key`), so no header override is needed when migrating those SDKs.
+- **A `403` with `ip_not_allowed` is the key's Allowed IPs list**, not a bad key: add the body's `client_ip` (often an IPv6 address) to the list. See [Allowed IPs on a key](#allowed-ips-on-a-key-403-ip_not_allowed).
 - **Structured output is a parameter, not an endpoint** — use `response_format: {type: "json_schema"}` on a compat chat call.
 - **A bare model name is a pool, not a provider.** `"model": "kimi-k3"` routes to any provider serving it; `"tensorx/moonshotai/kimi-k3"` pins one; `"my-alias"` uses your own ordered list; `"dynamic/my-route"` runs a deployed graph. The response `model` field just echoes what you sent, so only the trace (`span.meta.model`) reveals which one ran — see [references/model-routing.md](references/model-routing.md).
 - **Server-side web search is portable** — one `{"type": "opper:web_search"}` tool entry works on every model; native provider shapes also forward verbatim.
