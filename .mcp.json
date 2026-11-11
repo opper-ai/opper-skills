@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "opper": {
+      "type": "http",
+      "url": "https://api.opper.ai/mcp"
+    }
+  }
+}
