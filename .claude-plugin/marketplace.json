@@ -8,7 +8,7 @@
     {
       "name": "opper",
       "source": "./",
-      "description": "Agent Skills for building on Opper, the EU-hosted AI gateway: connecting an agent through MCP, the opper CLI, application code on the OpenAI, Anthropic and Google SDKs through the compat endpoints, and media, files and realtime voice."
+      "description": "Agent Skills for building on Opper, the EU-hosted AI gateway: connecting an agent through MCP, the opper CLI, and application code on the OpenAI, Anthropic and Google SDKs through the compat endpoints."
     }
   ]
 }

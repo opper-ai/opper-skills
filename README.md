@@ -102,7 +102,7 @@ npx skills add opper-ai/opper-skills/opper-api
 npx skills add opper-ai/opper-skills/opper-multimodal
 ```
 
-Or install the five skills as a Claude Code plugin from this repo's marketplace:
+Or install the core skills as a Claude Code plugin from this repo's marketplace. The plugin leaves out `opper-multimodal` (media generation, which the Claude plugin directory does not list); add it with `npx skills add opper-ai/opper-skills/opper-multimodal`:
 
 ```
 /plugin marketplace add opper-ai/opper-skills
