@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-11-02"
+  version: "2026-11-13"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-11-02.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-11-02. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-11-13.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-11-13. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -156,9 +156,11 @@ curl -s -X POST https://api.opper.ai/v3/audio/generations \
 
 ### Video — `POST /v3/videos` (asynchronous)
 
-Video is **always async**: submit, get a `202` with a `status_url`, then poll until it resolves to a download URL + `file_id`.
+Video is **always async**: submit, get a `202` with a `status_url`, then poll until it resolves to a download URL (plus a `file_id` when the request sent `store: true`).
 
-**Which model**: start with Gemini Omni (`gemini/gemini-omni-1.1-flash`), Seedance 2.5 (`bytedance:ap/seedance-2.5`, `fal/seedance-2.5`), Kling 3 (`fal/kling-3.0-pro`, image-to-video `fal/kling-3.0-pro-i2v`, also on `tencent-video:sg/`) or Veo 3.1 (`vertexai/veo-3.1-fast-generate-001`). Ids are provider-prefixed, and each provider's row can differ in inputs, defaults and price, so pick the row whose `capabilities` fit the request. A bare name such as `seedance-2.5` answers `400` naming the ids that serve it. Check `GET /v3/videos/models` for what is live for your key.
+**How long, and how long it is kept**: a clip usually takes a few minutes, longer when the provider is busy. A timed-out job (`error_type: "timeout"`) is not charged. Poll every 10 s or so, or use a webhook. The result is deleted **24 hours after the job finishes** (1 hour on a zero-retention project), after which `status_url` answers `404`. The `url` itself lasts 1 hour; `GET status_url` again for a fresh one. To keep the clip, download it or send `store: true` (a `/v3/files` copy with a `file_id` that stays until deleted).
+
+**Which model**: start with Gemini Omni (`gemini/gemini-omni-1.1-flash`), Seedance 2.5 (`bytedance:ap/seedance-2.5`, `fal/seedance-2.5`), Kling 3 (`kling:sg/kling-3.0-pro`, image-to-video `kling:sg/kling-3.0-pro-i2v`, also on `tencent-video:sg/`) or Veo 3.1 (`vertexai/veo-3.1-fast-generate-001`). Ids are provider-prefixed, and each provider's row can differ in inputs, defaults and price, so pick the row whose `capabilities` fit the request. A bare name such as `seedance-2.5` answers `400` naming the ids that serve it. Check `GET /v3/videos/models` for what is live for your key.
 
 ```bash
 # 1. Submit
@@ -171,7 +173,7 @@ curl -s -X POST https://api.opper.ai/v3/videos \
 # 2. Poll
 curl -s -H "Authorization: Bearer $OPPER_API_KEY" \
   "https://api.opper.ai/v3/artifacts/{id}/status"
-# → { "status": "completed", "url": "...", "file_id": "file_...", "usage": { "cost": ..., "seconds": ... } }   (or "processing")
+# → { "status": "completed", "url": "...", "expires_at": "...", "usage": { "cost": ..., "seconds": ... } }   (or "processing"; "file_id" too with store: true)
 ```
 
 **Length, resolution and shape** are top-level and normalized: `seconds`, `resolution`, `aspect_ratio`. `params.video` on the model lists the accepted `aspect_ratios`, `resolutions` and `max_duration`, and `params.video.parameters` the provider knobs that go in `parameters`. A value outside those lists is a `400` naming what the model accepts, and lip-sync models refuse `seconds` and `aspect_ratio` (the clip follows the image and audio).
@@ -187,7 +189,9 @@ curl -s -H "Authorization: Bearer $OPPER_API_KEY" \
 | `reference_videos` (more source videos after `video`; Seedance takes 3 in all, cited in the prompt as video 1, 2, 3) | `reference_video` |
 | `audio` (the character speaks it; on `lip_sync` models the prompt is optional and the audio sets the length) | `audio_to_video` |
 
-**Audio**: Kling, Seedance and Veo render native audio, and it changes the price (`pricing.rates` carries an `audio` dimension or `price_per_second_audio`). Defaults differ by provider, so set `parameters.generate_audio` explicitly (`false` for a silent clip).
+**Audio**: a silent clip is cheaper only where the price shows it (`pricing.rates` carries an `audio` dimension, or the model has `price_per_second_audio`): Veo 3.1 / 3.1 Fast and Kling 2.6, 3.0 and O3. Seedance 2.x and Wan turn sound on or off at the same price. Kling 4.0, Gemini Omni and MiniMax H3 (incl. H3 Max / Max Turbo) always render sound, with no silent option. Defaults differ by provider, so set `parameters.generate_audio` explicitly on the models that take it (`false` for a silent clip).
+
+**Failures**: a request the model cannot take is a `400` at submit naming what it accepts. A job that fails later shows `status: "failed"` with `error` and `error_type` on the poll (and the `video.failed` webhook), and is not charged. `content_policy`: change the input, do not retry it as is. `provider_error`: fix the request if the message names an input, else retry once or try another provider of the model. `timeout`, `internal_error`: retry. `model_not_found`, `model_not_allowed`: pick another model. Treat an unknown `error_type` as `provider_error`.
 
 **Seedance specifics**: for an edit or extension of a `video`, leave `seconds` and `aspect_ratio` out (the clip keeps the input's; ModelArk refuses explicit values). Seedance refuses image or video inputs that show a realistic person (`may contain real person`, or fal's `likenesses of real people`), including AI-generated ones. On `bytedance:ap/` an image made with a `bytedance:ap/seedream-*` model through Opper passes (BytePlus trusts its own outputs for 30 days), so generate the character there; otherwise use Kling, Veo or Omni for people in a source image.
 
@@ -311,6 +315,13 @@ The first client event is `session.start`. **Turn detection**: `server_vad` (aco
 
 - **Video is the only always-async media endpoint.** `POST /v3/videos` returns `202` + `status_url`; poll `GET /v3/artifacts/{id}/status`. Images, audio, and OCR are synchronous, though `/v3/images` and `/v3/audio/generations` accept `"async": true` for slow models, returning the same poll shape. Async video and image jobs can report through a signed webhook instead of polling (see Completion webhooks above).
 - **Generated media is not stored by default.** Send `store: true` when you want a reusable `file_id`; without it you get the bytes (or a URL) only.
+- **Video jobs are long, and their results short-lived.** Usually a few minutes, sometimes longer. Results are deleted 24 h after the job finishes: download them or send `store: true`.
+- **Veo 3.1 takes `reference_images` only at `seconds: 8`.** Other lengths fail.
+- **Seedance (`bytedance:ap/`, `fal/`) clips are 4 s at least.** Shorter is refused.
+- **Some models always render sound** (Kling 4.0, Gemini Omni, MiniMax H3): there is no cheaper silent clip on them.
+- **VEED Fabric direct (`veed/fabric-1.0`) takes no prompt.** Leave `prompt` out and send the `image` and `audio`; a job with a prompt fails.
+- **Bursts: use webhooks, not polling.** Providers run a fixed number of jobs at once and queue the rest, so a burst finishes in waves. Set a `callback_url` (or the project default) and spread submits when you can. Inputs are fetched when the provider starts the job, maybe many minutes later, so pass a `file_id` rather than a short-lived URL.
+- **Back off on `429` using `Retry-After`.** A `429` means a provider or your organization is at capacity, not a bad request. Wait at least the `Retry-After` seconds, then retry with exponential backoff; never in a tight loop.
 - **Pass `file_id`, don't re-upload.** Any media source field (`image`, `mask`, `reference_images`, `reference_videos`, `audio`, `video`, `document`) accepts a `file_id` from a prior generation or a `/v3/files` upload.
 - **`parameters` is a verbatim passthrough.** Top-level fields are normalized across providers; anything provider-specific goes in `parameters` untouched.
 - **Vision/PDF *input* is not a media endpoint** — it's content parts on a compat chat call to a `vision`/`pdf`-capable model. Media *generation* uses the dedicated endpoints here.
