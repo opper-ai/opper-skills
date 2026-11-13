@@ -12,11 +12,11 @@ description: >
   or opper-multimodal for media, files, and realtime voice. Own setup, verification, and follow-up.
 category: router
 metadata:
-  version: "2026-10-27"
+  version: "2026-11-13"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-10-27.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-10-27. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-11-13.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper"` entry with 2026-11-13. If they differ, read https://skills.opper.ai/opper/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 # Opper
@@ -245,7 +245,7 @@ Structured output is a parameter (`response_format`), not a separate surface. Th
 |---|---|---|
 | **Spend limits** | Monthly organization budget, with caps per project, role, user or key. The call that crosses the limit completes; the next one gets a `402` | `comply` (budget) |
 | **Data retention** | Whether Opper stores traces and for how long: 1 to 30 days, or 0. Usage metadata is always recorded, content only with tracing on | `comply` (retention) |
-| **Model access** | Allowlist by provider, service route, inference and storage location, maker, country and model, and can require zero data retention. A blocked call is a `403`; the dashboard counts it under "blocked by policy" | `comply` (allowlist, zdr) |
+| **Model access** | Allowlist by provider, service route, inference and storage location, maker, country and model, and can require zero data retention. A blocked call is a `403`; the dashboard counts it under "blocked by policy" | `comply` (allowlist) |
 | **Checks** | Flag, redact or block content during the call; score answer quality after it. Fast checks (a decision model, about 0.2 s) flag or block; LLM checks can also redact. A check runs on Opper's recommended models, or on a model you pick plus fallbacks (`models`), each admitted by your model access rules | `guard`, `observe` (score) |
 | **Routing** | Provider order for pooled models: round robin by default, or cheapest, fastest, highest throughput or weighted | `route` (pool order) |
 | **Default model** | The model a call uses when it names none (Management API) | `route` |
