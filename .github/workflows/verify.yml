@@ -33,3 +33,8 @@ jobs:
 
       - name: Dry build
         run: bash scripts/build-site.sh --dry-run
+
+      # Builds the Claude plugin directory copy into a scratch folder, so a PR
+      # that would break it (a disallowed file, a frontmatter key) fails here.
+      - name: Claude plugin build
+        run: bash scripts/build-claude-plugin.sh "$RUNNER_TEMP/claude-plugin"

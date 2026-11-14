@@ -1,0 +1,53 @@
+name: Claude plugin branch
+
+# Builds the copy of the plugin that Claude's plugin directory installs
+# (scripts/build-claude-plugin.sh) and pushes it to the claude-plugin branch,
+# which the directory tracks. Runs only on pushes to main and by hand, never
+# on pull requests, so the write permission below is never given to code from
+# a fork. The branch is generated: never edit it by hand.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: claude-plugin-branch
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build the Claude plugin
+        run: bash scripts/build-claude-plugin.sh "$RUNNER_TEMP/claude-plugin"
+
+      - name: Push to the claude-plugin branch
+        env:
+          BUILD: ${{ runner.temp }}/claude-plugin
+          TREE: ${{ runner.temp }}/claude-plugin-branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin claude-plugin >/dev/null; then
+            git fetch --depth=1 origin claude-plugin:refs/remotes/origin/claude-plugin
+            git worktree add -B claude-plugin "$TREE" origin/claude-plugin
+          else
+            git worktree add --orphan -b claude-plugin "$TREE"
+          fi
+          find "$TREE" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -R "$BUILD"/. "$TREE"/
+          cd "$TREE"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "claude-plugin is already up to date."
+            exit 0
+          fi
+          git commit -q -m "Build from ${GITHUB_SHA::7}"
+          git push origin claude-plugin

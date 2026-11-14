@@ -111,6 +111,8 @@ Or install the five skills as a Claude Code plugin from this repo's marketplace:
 
 The plugin also connects the [Opper MCP server](https://opper.ai/mcp) (`https://api.opper.ai/mcp`, declared in `.mcp.json`). Searching the model catalogue and reading guides work at once; anything that touches your account asks you to sign in through the browser first.
 
+Claude's plugin directory installs a cleaned copy of this plugin from the `claude-plugin` branch, which CI rebuilds from `main` on every push (`scripts/build-claude-plugin.sh`). Change skills here; never edit that branch by hand.
+
 ### Gemini CLI
 
 ```bash

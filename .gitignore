@@ -3,3 +3,6 @@ _site/
 
 # macOS
 .DS_Store
+
+# Build output from scripts/build-claude-plugin.sh
+_claude-plugin/
