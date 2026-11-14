@@ -1,0 +1,122 @@
+---
+name: opper-cli
+description: >
+  Use the Opper CLI (`opper` command, npm package `@opperai/cli`) for terminal
+  work with Opper: signing in, calling functions, inspecting traces, tracking usage and costs, generating images and video,
+  installing bundled skills, configuring AI code editors, and launching coding
+  agents (Claude Code, OpenCode, Codex, Hermes, Pi) with their inference
+  routed through Opper. Use this skill whenever the user mentions the `opper`
+  command, the Opper CLI, opper-ai/cli, `@opperai/cli`, `opper launch`, or
+  explicitly wants shell commands, editor configuration, private local key
+  delivery, or agent launch workflows. Prefer opper-mcp for agent-assisted
+  setup, platform management, and model tests. For exact arguments, always
+  run `opper <subcommand> --help`; the help output is the authoritative reference.
+---
+
+> Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
+> Source: https://github.com/opper-ai/opper-skills/blob/main/opper-cli/SKILL.md
+
+# Opper CLI
+
+The official Opper CLI, distributed as the npm package **`@opperai/cli`**. Source: [github.com/opper-ai/cli](https://github.com/opper-ai/cli). Requires Node.js ≥ 20.12.
+
+The CLI is more than a thin wrapper over the API. It also **launches coding agents** (Claude Code, OpenCode, Codex, Hermes, Pi) with their model traffic routed through Opper, **installs bundled skills**, and **wires AI code editors** to Opper.
+
+For agent-assisted setup, platform operations, and model tests, prefer the `opper-mcp` skill. Connecting MCP provides Opper tools; `opper launch` routes the agent's own inference through Opper. The CLI also delivers application keys privately with `opper keys create --project <uuid> --name <name> --output <env-file>` — consult `opper keys create --help` and do not read or print the resulting secret.
+
+## Install
+
+```bash
+npm i -g @opperai/cli
+opper --version
+```
+
+## Authenticate
+
+```bash
+opper login    # OAuth device flow — recommended
+opper whoami   # confirm the active slot
+```
+
+State lives in `~/.opper/config.json` as a list of **slots** populated by the device flow. Pick a slot with `--key <slot>` on any command (default: `default`); inspect or remove slots with `opper config list/get/remove`.
+
+`opper login` handles authentication interactively in the browser, so no key needs to be typed or pasted into a command. For non-browser paths, see `opper config --help`.
+
+Resolution at request time: **`OPPER_API_KEY` env var > slot named by `--key` (or `default`)**.
+
+## Always use `--help` — it is the source of truth
+
+Subcommand surface area changes faster than this skill. Before guessing flags or argument order:
+
+```bash
+opper --help              # top-level command list, grouped by domain
+opper <command> --help    # subcommands and flags
+```
+
+Run `opper` with no args for an interactive menu (Account · Agents · Skills · Opper).
+
+## Top-level command groups
+
+| Group | What it does |
+|---|---|
+| `login` / `logout` / `whoami` | OAuth device flow + slot inspection. |
+| `config list/get/remove` | Inspect or remove auth slots (slots are created by `opper login`). |
+| `call <name> <instructions> [input]` | Run an Opper function. Stdin if `input` omitted; `--model`, `--stream`. **Legacy** — rides the `/v3/call` surface being sunset; don't build on it (see gotchas). |
+| `functions list/get/delete` | Manage saved functions. |
+| `indexes ...` | Knowledge bases. **Being sunset** with the knowledge base feature; don't start new work on them. |
+| `models list/create/get/delete` | Built-in + custom (LiteLLM-backed) models. |
+| `traces list/get/delete` | Inspect execution traces. |
+| `usage list` | Token/cost analytics, optional CSV export. |
+| `image generate <prompt>` | Generate or edit an image (`--size`, `--quality`, `--image` for an edit source). |
+| `video generate <prompt>` | Generate a video: submits, waits and saves it (`-m`, `--seconds`, `--resolution`, `--aspect-ratio`, `--image`, `--video`, `--no-audio`). |
+| `agents list` / `launch <agent>` | List and launch coding agents through Opper. |
+| `editors list/opencode/continue` | Wire AI code editors to Opper. |
+| `skills list/install/update/uninstall` | Install bundled Opper SKILL.md docs to `~/.claude/skills/` and `~/.codex/skills/`. |
+| `version` | Print CLI version (also `--version` / `-v`). |
+
+## Launching agents through Opper
+
+`opper launch <agent>` is the headline new feature. Anything after the agent name is forwarded to the agent's CLI verbatim. Each agent is wired in differently — fetch the live README at [github.com/opper-ai/cli](https://github.com/opper-ai/cli) for the current matrix.
+
+```bash
+opper agents list             # NAME / DISPLAY / KIND / STATE / CONFIG / COMMAND
+opper launch claude           # Claude Code (via ANTHROPIC_BASE_URL / ANTHROPIC_AUTH_TOKEN)
+opper launch opencode         # OpenCode
+opper launch codex            # OpenAI Codex
+opper launch hermes           # Hermes (isolated HERMES_HOME, leaving your existing ~/.hermes/ unchanged)
+opper launch pi               # Pi (pi.dev)
+opper launch <agent> --install  # also installs the upstream agent when it is not already present
+```
+
+Under the hood these all route to `/v3/compat/...` (see the `opper-api` skill).
+
+## Global flags
+
+| Flag | Description |
+|---|---|
+| `--key <slot>` | API key slot to use (default: `default`). |
+| `--debug` | Verbose diagnostic output. |
+| `--no-telemetry` | Disable anonymous telemetry. |
+| `--no-color` | Disable ANSI colors. |
+| `-v, --version` | Print CLI version. |
+| `-h, --help` | Show help (grouped by domain). |
+
+## Non-obvious gotchas
+
+- **`OPPER_API_KEY` env var beats `--key`.** When the env var is set, the `--key <slot>` flag has no effect. Unset it to use a slot.
+- **`opper call` rides the legacy `/v3/call` surface, which is being sunset.** Fine for a quick ad-hoc poke, but never the pattern to build on or copy into application code — that's a compat chat endpoint with `response_format` (see the `opper-api` skill and its `references/migration.md`).
+- **`opper call` argument order is `<function> <instructions> <input>`** — easy to flip.
+- **Model identifiers use `provider/<id-with-dashes>`** (e.g. `anthropic/claude-sonnet-4-6`, `anthropic/claude-opus-4-7`, `openai/gpt-4o`) — **dashes, not dots**, even for versions. Custom models registered with `opper models create` are LiteLLM-backed. List the live set with `opper models list` or `curl -s https://api.opper.ai/v3/models`.
+- **`opper usage list` `--fields` does not accept `count`.** `cost` and `count` are always included automatically; valid `--fields` are `total_tokens`, `prompt_tokens`, `completion_tokens`.
+- **Skills are installed under** `~/.claude/skills/` and `~/.codex/skills/`. The Codex install also registers each skill in a managed `[[skills.config]]` block in `~/.codex/config.toml`.
+- **Tell Opper what was missing, with the user's OK.** If something was missing, unclear or wrong along the way (a model, a doc, an error you could not explain), offer to send it as general feedback and send it once the user agrees: the Opper MCP `send_feedback` tool, or `POST https://agents.opper.ai/feedback` with a JSON `message` (`GET` on the same URL describes the fields). No API key is needed and it sends no reply. Never include API keys, the user's code or personal data.
+
+## Where to look next
+
+| For | Look at |
+|---|---|
+| Install, agents matrix, releases, license | [github.com/opper-ai/cli](https://github.com/opper-ai/cli) |
+| Live argument and flag reference | `opper <command> --help` |
+| The platform behind the CLI (compat endpoints, models) | the `opper-api` skill |
+| Connecting an agent to Opper tools and testing models | the `opper-mcp` skill |
+| Building Opper into application code (the OpenAI / Anthropic / Google SDKs on `/v3/compat`) | the `opper-api` skill |

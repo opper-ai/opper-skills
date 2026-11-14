@@ -1,0 +1,365 @@
+# Model routing — pools, pins, aliases and routes
+
+The `model` string on any compat call can be four different things. They all go
+through the same resolution pipeline, and they compose.
+
+| Form | Example | What it addresses |
+|---|---|---|
+| **Bare model name** — a *pool* | `"kimi-k3"` | Every provider Opper has for that model. Opper picks one; the rest are failover |
+| **Provider-qualified id** — a *pin* | `"tensorx/moonshotai/kimi-k3"` | Exactly that one provider row |
+| **Org alias** — your own list | `"my-flash"` | An ordered list of targets you defined: primary first, then fallbacks. Predates routes; still resolves |
+| **Dynamic route** — a deployed graph | `"dynamic/my-route"` | A routing graph you built: pools, fixed fallback order, classification, branching, versioned. **The way to build a named fallback chain you reuse** |
+
+None of these need special headers or flags — they're all just the `model`
+field.
+
+**There is no universally right answer.** Pin when you need determinism, pool
+when you want resilience, route when you want your own fallback chain or the
+decision depends on the request. Pick per use case:
+
+| You want | Use |
+|---|---|
+| Provider redundancy without thinking about it | **bare name** |
+| Reproducible evals / A/B runs, one provider every time | **pin** |
+| A guaranteed jurisdiction, price, or provider-specific behaviour | **pin** |
+| Your own fallback chain across providers *or* across models, named once and reused | **route** (a Model node with fallback edges, or a Pool node) |
+| A one-off fallback list on a single request | the **`models`** array next to `model` (at most 10, tried in order) |
+| A cheap model for easy prompts and an expensive one for hard ones | **route** |
+| An org already using a named list from before routes existed | **alias** (keep it; build new chains as routes) |
+| Versioning, rollback, and simulation of the routing decision itself | **route** |
+
+---
+
+## 1. Pools — the bare model name
+
+`GET /v3/models` returns one row per **provider**, not per model. Most models
+are served by several, and Opper groups them into a **pool** addressed by the
+bare name.
+
+```bash
+# Pooled — Opper routes it
+curl -s https://api.opper.ai/v3/compat/chat/completions \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -d '{"model":"gpt-oss-120b","messages":[{"role":"user","content":"hi"}]}'
+```
+
+Two fields tie the rows together:
+
+- **`model`** — the group key, and the bare name you call.
+- **`pooled`** — whether this row answers to that bare name.
+
+```bash
+# Who actually serves kimi-k3?
+curl -s "https://api.opper.ai/v3/models?limit=1000" | python3 -c '
+import json, sys
+for m in json.load(sys.stdin)["models"]:
+    if m.get("model") == "kimi-k3":
+        print(m["id"], "|", "pooled" if m.get("pooled") else "PINNED-ONLY", "|", m.get("region"))
+'
+```
+
+Roughly two thirds of model groups have a single provider, so for many models
+the bare name and the pinned id behave identically. The difference matters on
+the popular open-weight models, where a pool can be ten or more providers deep.
+
+### How Opper picks a member
+
+1. **Session affinity.** If the request carries an `X-Opper-Trace-Id`, that
+   trace sticks to whichever provider it first landed on. If you *don't* send
+   one, Opper derives an affinity key from your API key plus a **30-minute
+   window** — so an untraced burst deliberately pins to a single provider for
+   prompt-cache locality.
+2. **Round-robin.** With no affinity hit, a per-(org, project, model) counter
+   advances and picks the next member.
+3. **Fallback chain.** The members that weren't picked stay behind the chosen
+   one in order, and a retriable error falls through to the next. Pooling is
+   failover, not just load balancing.
+
+**This trips people up:** firing N identical requests with no trace id and
+seeing them all hit the same provider is step 1 working as designed, not broken
+round-robin. Send a unique `X-Opper-Trace-Id` per request to see the spread.
+
+Observed on `gpt-oss-120b` (13 providers), reading the `x-opper-cost` response
+header — providers price differently, so cost is a cheap proxy for "which one
+served me":
+
+```
+unique X-Opper-Trace-Id per call:   1.65e-5, 1.65e-5, 2.45e-5, 7.7e-6, 1.08e-5, 7.7e-6   <- spreading
+no trace id at all (same 30m):      1.08e-5, 1.08e-5, 1.08e-5, 1.08e-5                   <- pinned by affinity
+```
+
+### Why some rows are `pooled: false`
+
+A row is held out of the pool when landing there unexpectedly would surprise
+the caller — a materially smaller context window, a pricier latency-tuned
+variant of the same weights, or reduced capabilities versus its siblings.
+
+Those rows are **not** deprecated and **not** hidden. They're fully callable by
+their explicit id; they just never answer to the bare name.
+
+---
+
+## 2. Pins — the provider-qualified id
+
+```bash
+curl -s https://api.opper.ai/v3/compat/chat/completions \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -d '{"model":"groq/gpt-oss-120b","messages":[{"role":"user","content":"hi"}]}'
+```
+
+Use the `id` field from `/v3/models` verbatim. A pin is exact: no pool
+expansion, no failover. If that provider is down, the call fails — that's the
+trade you make for determinism.
+
+Pinning is the right call more often than "always pool" suggests. Providers
+serving *identical weights* still differ at the edges: whether remote
+`image_url`s are fetched or only inline base64 is accepted, whether
+`reasoning_effort` genuinely grades or is accepted-and-ignored, whether strict
+`json_schema` is enforced by guided decoding, what the context window is, and
+what it costs. Check the row's `capabilities`, `context_window` and
+`description` — and the `compliance` block (`residency`, `inference_location`,
+`storage_location`) when jurisdiction matters, since **pools mix regions**.
+
+---
+
+## 3. Aliases — your own named list
+
+An **org alias** is a name you define that expands to an ordered list of
+targets: the first is the primary, the rest are fallbacks tried in order.
+Aliases are org-scoped, so every project in the org can use them.
+
+**Aliases predate routes.** They still resolve on every call for orgs that use
+them, but new fallback chains should be built as a route (section 4): a route
+gives ranking, a per-attempt trace, and skips members a model access rule blocks
+instead of failing on them. Don't propose a new alias to a user who has none.
+
+```bash
+# List your aliases
+curl -s https://api.opper.ai/v2/models/aliases \
+  -H "Authorization: Bearer $OPPER_API_KEY"
+
+# Create one
+curl -s -X POST https://api.opper.ai/v2/models/aliases \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -d '{
+        "name": "my-flash",
+        "fallback_models": [
+          "tensorx/deepseek/deepseek-v4-flash",
+          "fireworks/deepseek-v4-flash",
+          "morph/morph-dsv4flash"
+        ],
+        "description": "EU primary, US fallbacks"
+      }'
+```
+
+Then just call it:
+
+```json
+{"model": "my-flash", "messages": [...]}
+```
+
+Create validates every entry in `fallback_models` against the catalog and
+rejects unknown names with a "did you mean …?" suggestion, so a typo fails at
+alias-creation time rather than at call time.
+
+Full CRUD is there too — `GET /v2/models/aliases/{id}`,
+`GET /v2/models/aliases/by-name/{name}`, `PATCH /v2/models/aliases/{id}`,
+`DELETE /v2/models/aliases/{id}`. Grep the spec for `ModelAlias` for the exact
+schemas, including the optional per-alias `options` object (routing knobs such
+as a first-token timeout).
+
+An alias gave you a **name for a list you can repoint without touching
+application code**. A route gives you the same, plus versioning and rollback,
+so that is where to point new work.
+
+Two constraints:
+
+- **Expansion is single-level.** An alias target is not re-resolved as another
+  alias — nesting them surfaces "model not found" rather than walking.
+- **Alias targets can be bare names.** A member that is a bare model name
+  expands into its own pool, so aliases and pools stack.
+
+---
+
+## 4. Dynamic routes — a deployed routing graph
+
+A **dynamic route** is the heavyweight option: a graph you build and deploy, with
+classifier nodes that inspect the request and branch, model nodes that call a
+model, per-node fallback edges, and full version history.
+
+Call it by prefixing the route name with `dynamic/`:
+
+```json
+{"model": "dynamic/my-route", "messages": [...]}
+```
+
+Responses carry headers telling you exactly what the graph did:
+
+| Header | Means |
+|---|---|
+| `X-Opper-Route-Name` | Which route ran |
+| `X-Opper-Route-Version` / `-Version-UUID` | Which deployed version |
+| `X-Opper-Route-Model` | The model the route actually landed on |
+| `X-Opper-Route-Node` | Which node produced the answer |
+| `X-Opper-Route-Error` / `-Status` | Set when the route itself failed (e.g. `route_not_found`) |
+
+Two kinds of node answer a request:
+
+- A **Pool** node holds several models and re-ranks them per request on live
+  numbers (price, latency, throughput, or a blend). A member that a model access rule
+  blocks for the org is skipped silently; when nothing is left, the pool takes its
+  fallback edge, or fails with `403` when it has none.
+- A **Model** node calls one model. Its fallbacks are the fixed order you wrote
+  as edges. A model blocked by a model access rule here ends the route with `403`
+  and the code `route_compliance_blocked`; it does not take the fallback edge.
+
+Every model node in a graph is **required** to declare a fallback edge — to
+another node or to END — so a route can't be deployed with a dead end.
+
+### Calling vs managing — two different credentials
+
+**Calling a route needs nothing special.** `"model": "dynamic/my-route"` works
+with your ordinary project API key, exactly like any other model string. This is
+the part your application does, and it is not gated.
+
+**Managing** routes — create, edit the draft, deploy, roll back — is separate,
+and there are three ways in:
+
+| Path | Credential | Who uses it |
+|---|---|---|
+| Platform UI → open a project → *Models* → *New route* | your normal login session | **the usual way**: a visual graph builder; no key to mint |
+| The Opper MCP (`https://api.opper.ai/mcp`), tools `create_dynamic_route` / `deploy_dynamic_route` / `simulate_dynamic_route` | a one-time browser consent; pick **Build and manage** (the default is read only) | a coding agent building routes for you; see the `opper-mcp` skill |
+| `/management/v1/dynamic-routes` | a **Management API Key** (`op-mak-...`) with `dynamic_routes:read` / `dynamic_routes:write` scopes | programmatic / CI management |
+
+A project API key (`op-...`) is **not** accepted on the management endpoints —
+that's a deliberate privilege split, not an oversight. Management API Keys are
+minted from the platform UI (*Settings → API keys → Management keys*) behind a
+human approval flow, and are available on **every plan**. The API gates features,
+not the key: dynamic routes, projects and runtime keys work on any plan, while
+writing a Control Plane rule (`guard`, `observe`, `route`, `comply`) on a plan
+without it answers `402` with `code: "plan_required"`. A `403` here always means
+a missing scope (`required_scope` names it). Organizations without a card are
+capped at 60 requests per minute and 3 active management keys.
+
+So: no, you don't need a management key to *use* routes, and you don't need one
+to *build* them in the UI either. You need one only to manage them over HTTP.
+
+```
+GET|POST   /management/v1/dynamic-routes
+GET|DELETE /management/v1/dynamic-routes/{name}
+PUT        /management/v1/dynamic-routes/{name}/draft
+POST       /management/v1/dynamic-routes/{name}/deploy
+POST       /management/v1/dynamic-routes/{name}/simulate
+GET        /management/v1/dynamic-routes/{name}/versions
+GET        /management/v1/dynamic-routes/{name}/versions/{n}
+POST       /management/v1/dynamic-routes/{name}/versions/{n}/rollback
+POST       /management/v1/dynamic-routes/{name}/versions/{n}/restore-to-draft
+```
+
+The same key also manages **Control Plane rules** (spend limits, data retention, model access, checks, routing; API kinds `comply`, `guard`, `observe`, `route`)
+with the `controls:read` / `controls:write` scopes:
+
+```
+GET|POST     /management/v1/controls/rules
+PATCH|DELETE /management/v1/controls/rules/{uuid}
+```
+
+All of these are in the public spec (grep it for `management/v1`) and on
+[docs.opper.ai/control-plane/management-api](https://docs.opper.ai/control-plane/management-api),
+which has a create → simulate → deploy walkthrough and a rules example. The
+graph body is the same JSON the platform's route builder saves, so the easiest
+way to get a valid one is to build a route in the UI and `GET` it.
+
+Aliases are *not* valid targets inside a route graph — model nodes resolve
+canonical model names and pinned ids only. (Aliases themselves have no such
+split: `/v2/models/aliases` takes an ordinary project API key.)
+
+---
+
+## How the four compose
+
+One pipeline, applied in order:
+
+1. **Auto-classify** — only when `model` is empty.
+2. **Alias expansion** — one level; produces the ordered member list.
+3. **Registry exact match** — a pinned `provider/model-id`.
+4. **Deprecated → successor** — a retired row transparently walks to its
+   replacement.
+5. **Pool expansion** — a bare name becomes its pooled providers, ordered by
+   affinity then round-robin.
+6. **Explicit fallback** appended.
+7. **Credential binding, allowlist filter, final ordering** (BYOK first).
+
+So an alias resolving to `[kimi-k3, gpt-oss-120b]` expands each of those into
+its own pool, producing one flat ordered plan with failover between every
+entry. Routes are handled separately, ahead of this: `dynamic/<name>` runs the
+graph, and each model node resolves through steps 3–5 with alias expansion
+disabled.
+
+Pinning short-circuits steps 2, 4 and 5 — a pin is literal by design. Explicit
+fallback (step 6) is honoured even when pinned.
+
+---
+
+## Which model actually served the request?
+
+**Not the response body.** The `model` field echoes the string you sent — send
+`gpt-oss-120b`, an alias name, or a `dynamic/` route and you get that same
+string back, whichever provider ran it.
+
+Read the **trace** instead. `span.meta.model` carries the resolved
+`provider/provider_model_id`:
+
+```bash
+TID=$(uuidgen)
+curl -s -o /dev/null https://api.opper.ai/v3/compat/chat/completions \
+  -H "Authorization: Bearer $OPPER_API_KEY" -H "Content-Type: application/json" \
+  -H "X-Opper-Trace-Id: $TID" \
+  -d '{"model":"gpt-oss-120b","messages":[{"role":"user","content":"hi"}],"max_tokens":1}'
+
+curl -s -H "Authorization: Bearer $OPPER_API_KEY" "https://api.opper.ai/v3/traces/$TID" \
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["spans"][0]["meta"]["model"])'
+# -> fireworks/accounts/fireworks/models/gpt-oss-120b
+```
+
+For routes, the `X-Opper-Route-Model` response header answers it without a
+trace lookup. The `x-opper-cost` header is the quick-and-dirty version when you
+only need to tell members apart rather than name them.
+
+---
+
+## Behaviours worth knowing
+
+- **No route-all fallback.** Pool routing uses the declared pooled set only. A
+  model group with zero pooled members does not route at all rather than
+  quietly fanning out to every provider.
+- **Retired rows are excluded** from pools immediately. If *every* member of a
+  group is retired, the error names the successor model.
+- **Model access rules filter the pool.** A model access rule (for
+  example an allowlist, or "EU inference and storage") removes members before selection, so a
+  pool can be effectively smaller than `/v3/models` suggests. A thinned pool is
+  silent. An emptied pool is a **403 `permission_error`**: `model "X" has no
+  allowed members under the current model allowlist`. A restricted-provider row
+  the org has no agreement for is a **403 `entitlement_required`**. Both count
+  as errors on the platform dashboard ("blocked by policy").
+- **Ask before you call.** `GET /v3/models?include=policy` (needs an API key)
+  annotates every row with `policy.allowed`, `policy.blocked_by`
+  (`org` / `project` / `entitlement`) and `policy.reason`, the same sentence the
+  403 would carry. Use it to explain why a pool went empty.
+- **The compat endpoints take a string `model`, never an array.** Sending an
+  array is a 400 (`cannot unmarshal array into ... type string`). A per-request
+  fallback chain goes in the separate `models` array instead (OpenRouter shape:
+  primary in `model`, the rest in `models`, at most 10, not together with
+  `dynamic/<name>`). `meta.routing.attempts` and the `X-Opper-Served-Model`
+  header show what answered. Unknown ids are rejected up front (404
+  `model_not_found`) and don't fall through.
+
+## Checking your assumptions
+
+The catalog moves weekly. Never hardcode a pool's membership — re-read
+`GET /v3/models` and group by the `model` field. And grep the live spec for
+anything this page doesn't answer:
+
+```bash
+curl -s https://api.opper.ai/v3/openapi.yaml | grep -n -iE "pooled|ModelAlias|management/v1|controls/rules"
+```

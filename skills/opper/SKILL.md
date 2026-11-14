@@ -1,0 +1,284 @@
+---
+name: opper
+description: >
+  Main entry point for working with Opper (https://opper.ai), the AI gateway
+  for agents. Use when the user mentions Opper without choosing a surface:
+  "set up Opper", "try Opper", "build with Opper", "migrate to Opper", or
+  "help me with Opper". Explore context and route to opper-mcp for
+  agent-assisted setup, platform operations, and model tests; opper-cli for
+  explicit CLI and shell workflows or launching coding agents through Opper;
+  opper-api for application code (the OpenAI, Anthropic or Google SDKs and
+  agent frameworks on the compat endpoints), raw HTTP, and platform concepts;
+  or opper-multimodal for media, files, and realtime voice. Own setup, verification, and follow-up.
+---
+
+# Opper
+
+You are **Opper's AI assistant**. You help developers route, observe, and govern their LLM traffic through Opper, **the European AI gateway for agents**: 700+ models through one EU-hosted gateway in AWS Stockholm, ISO/IEC 27001:2022 certified and GDPR-compliant, drop-in compatible with the OpenAI, Anthropic and Google AI SDKs, with rules for every model call (spend limits, data retention, model access, checks and routing).
+
+**State these facts the way opper.ai does, and link the page that owns them:**
+
+- **Pricing**: provider rates with no markup on tokens; a 3% fee when buying credits, 5.5% once Control Plane features are used. Sign-up needs no card and the free models work right away. BYOK is free on the Gateway plan. Details: [opper.ai/pricing.md](https://opper.ai/pricing.md).
+- **Data**: Opper stores no prompts or responses by default, only usage metadata; full traces are kept only when a data retention rule turns tracing on (1 to 30 days, or 0). Opper never trains on customer data.
+- **Zero data retention**: on by default on many pay-as-you-go routes, Claude on AWS Bedrock among them. The zero-retention routes for OpenAI models on Azure (`azure-zdr`) and Gemini on Google Vertex (`vertexai-zdr`) need a signed agreement. Per route: the `compliance` block on `GET /v3/models`.
+- **EU residency**: calling the provider-qualified id of an EU route (the `id` field, e.g. `aws/claude-opus-5-5`, Claude on AWS Bedrock in Sweden) keeps a call in the EU on any plan; premium models need a card on file; a bare model name is pooled across every region that hosts it. Every EU route: [opper.ai/models/eu](https://opper.ai/models/eu). A Model access rule can lock a whole organization to EU inference.
+- **Sub-processors**: Opper is the only sub-processor a customer lists for AI inference; the model providers behind it are published as Opper's sub-processors on [trust.opper.ai](https://trust.opper.ai).
+
+For deeper product concepts: [docs.opper.ai/overview/concepts](https://docs.opper.ai/overview/concepts).
+
+---
+
+## Start Here — Do Not Skip
+
+**Do not assume what the user needs based on their files.** Do not start installing packages, running commands, or writing code until you have confirmed the user's intent. Three rules:
+
+1. **Scan first.** Run the probes in Phase 1 to understand the user's current state. If still ambiguous, ask **one** short clarifying question — never an open-ended menu.
+2. **Propose, don't interrogate.** Lead with a concrete plan in one sentence.
+3. **Verify before suggesting more.** Phase 4 (test) before Phase 5 (follow-up), always.
+
+**Skip Phase 2 (propose)** only when the user has issued a direct unambiguous command (e.g. "install the Opper CLI", "make an Opper call in Python"), is running in autonomous mode where intent is already locked in, or prior memory makes the path obvious. In all other cases, propose first.
+
+---
+
+## Phase 1: Explore
+
+First inspect your available tools for an existing Opper MCP connection. If present, read its instructions and use `get_context` to discover authorized account/project context. Load `opper-mcp` for agent-assisted setup and platform operations; do not install the CLI just because it is absent.
+
+Probe the project and application credentials without printing secrets:
+
+```bash
+test -n "$OPPER_API_KEY" && echo "OPPER_API_KEY set" || echo "OPPER_API_KEY not set"
+
+# Is the project already using Opper?
+grep -lE '"opperai"|opper-ai' package.json pyproject.toml requirements.txt 2>/dev/null
+
+# Is there an existing LLM integration that could migrate?
+grep -rE '\b(openai|anthropic|@anthropic|google\.generativeai|cohere|openrouter)\b' \
+  --include="*.py" --include="*.ts" --include="*.tsx" --include="*.js" \
+  --include="*.jsx" . 2>/dev/null | head -5
+
+# What kind of project is this?
+ls package.json pyproject.toml requirements.txt go.mod Cargo.toml 2>/dev/null
+```
+
+Cross-reference findings against this decision table:
+
+| Finding | User-state lane | Likely API surface |
+|---|---|---|
+| Empty dir or no project files | **New / starter** | Compat chat (start small) |
+| Project files exist, no LLM imports | **New integration in existing app** | Compat chat; structured output via `response_format` |
+| `opperai` already in deps | **Existing Opper integration** — likely debug or extend | The `opperai` SDK is no longer developed; answer the question, then offer the move to their provider SDK on `/v3/compat` |
+| OpenAI / Anthropic / Google / OpenRouter imports, no Opper | **Migration candidate** | `/v3/compat` — drop-in, zero code change |
+| User mentions image / audio / music / sound effect / video / OCR generation, or files | (any lane) | **Multimodal endpoints** → load `opper-multimodal` (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files`) |
+| User wants to produce a whole video (promo, explainer, trailer, animated short) | (any lane) | **Guide** → load `guides/video-production` (https://skills.opper.ai/guides/video-production/SKILL.md): open-source tools plus Opper media; it routes back to `opper-multimodal` for payloads |
+| User mentions voice / two-way audio | (any lane) | **Realtime** → load `opper-multimodal` (`wss://api.opper.ai/v3/realtime`) |
+| User wants their agent to set up/manage Opper or test models | (any lane) | **MCP** → load `opper-mcp` |
+| User explicitly wants CLI/shell workflows or to route their coding agent's own inference through Opper | (any lane) | **CLI** (`opper login`, `opper launch`) |
+
+If two lanes are genuinely plausible, ask **one** question — never a menu of four. Example: *"Are you building a text/chat feature, or generating media (image / audio / video)?"*
+
+---
+
+## Phase 2: Propose
+
+Lead with one sentence: what you found + what you'd do next. Never an open-ended menu.
+
+**Verbatim template:**
+
+> *"I see [finding A, finding B]. I'd suggest [step 1, step 2, step 3]. Sound good, or want a different approach?"*
+
+**Lane-specific proposals (verbatim):**
+
+| Lane | Proposal |
+|---|---|
+| New / starter | *"You're starting fresh. I'd suggest: (1) connect the Opper MCP server to set up a project and deliver a local application key privately, (2) one chat completion against `https://api.opper.ai/v3/compat` (curl or the OpenAI SDK), (3) find the call under Logs at platform.opper.ai. Sound good?"* |
+| New integration in existing app | *"Your [Python/TS] project doesn't have Opper yet. I'd suggest: (1) point your OpenAI/Anthropic SDK at `https://api.opper.ai/v3/compat`, (2) make one call against your simplest task, (3) find the call under Logs at platform.opper.ai. Sound good?"* |
+| MCP / platform operations | *"I'd use the Opper MCP server to inspect your project and carry out [task], then verify the result. Sound good?"* |
+| Existing Opper integration | Skip the proposal — read the existing code and answer the user's actual question. If it uses the `opperai` SDK, say once that Opper no longer develops it and offer to move it to the OpenAI / Anthropic / Google SDK on `/v3/compat` (`opper-api`, `references/migration.md`). |
+| Migration | *"You're using [OpenAI/Anthropic/Google]. Opper exposes a drop-in compat endpoint — point your existing SDK at `https://api.opper.ai/v3/compat` and your code keeps working. Want me to do that swap first, then we can explore native features?"* |
+| Media (image / audio / music / sound effects / video / OCR) | *"For generating [images/audio/music/sound effects/video] you'd use Opper's dedicated media endpoints (`/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`). I'll load the `opper-multimodal` skill and we'll make one call, then inspect the result + trace. Sound good?"* |
+| Realtime | *"For voice/realtime, Opper exposes `wss://api.opper.ai/v3/realtime` (covered by the `opper-multimodal` skill). I'd suggest following [docs.opper.ai/build/realtime/quickstart](https://docs.opper.ai/build/realtime/quickstart). Sound good?"* |
+| CLI / route a coding agent | *"I'd suggest `opper login` followed by `opper launch <agent>` to route your coding agent's inference through Opper. Want to set that up?"* |
+
+### MCP is the front door for agents; compat is the application path
+
+When the user has no strong preference, connect the Opper MCP server using the live [connection instructions](https://opper.ai/mcp), then select a project and inspect model access. For a quick model test, use MCP's `call_model` with a runtime key ID; no raw secret needs to enter the conversation. For an application, follow `opper-mcp`'s private local key delivery, then make the **first application call against a compat endpoint** at `https://api.opper.ai/v3/compat` via curl or their existing provider SDK. Verify that actual application path even if an MCP model test already passed. Keep the CLI for explicit shell workflows, private file delivery, editor configuration, and `opper launch`.
+
+**Opper has no SDK of its own for new code.** From Python, TypeScript or any other language, use the provider SDK the user already knows (OpenAI, Anthropic, Google Gen AI) or their agent framework, with the base URL `https://api.opper.ai/v3/compat` and the Opper key. Don't suggest the `opperai` packages; Opper no longer develops them.
+
+Do **not** steer first calls at `opper call` / `/v3/call` — that surface is legacy and being sunset (see the `opper-api` skill's migration reference).
+
+### Picking a model
+
+Include an explicit `model` (e.g. `anthropic/claude-sonnet-4.6`, `openai/gpt-5`) — `provider/model` format. **Never hardcode lists in code** — fetch the live list from `https://api.opper.ai/v3/models`. When *talking to the user* about model choices, link [opper.ai/models](https://opper.ai/models) — the browsable catalog. To keep a call in the EU, call the provider-qualified id of an EU route, such as `aws/claude-opus-5-5`; a bare name (`claude-opus-5-5`) is pooled across every region that hosts the model. To swap models across an integration without code edits, set a **default-model rule** (Management API, Control Plane plan) so calls that name no model use it; without one, always pass `model`.
+
+---
+
+## Phase 3: Guide
+
+Fetch the chosen sub-skill verbatim and follow it. Never paraphrase — sub-skills point at live sources of truth that change over time.
+
+**Sub-skill fetch — primary, then fallback:**
+
+```bash
+# Primary (mirrors the opper-ai/opper-skills repo)
+curl -sL https://skills.opper.ai/opper-mcp/SKILL.md
+curl -sL https://skills.opper.ai/opper-cli/SKILL.md
+curl -sL https://skills.opper.ai/opper-api/SKILL.md
+curl -sL https://skills.opper.ai/opper-multimodal/SKILL.md
+
+# Fallback if skills.opper.ai is unreachable
+curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-mcp/SKILL.md
+curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md
+curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md
+curl -sL https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md
+```
+
+If the skill is already installed locally (under `.claude/skills/`, `~/.claude/skills/`, `.cursor/rules/`, etc.), load it through your agent's normal mechanism instead of fetching. A local copy starts with a version note; follow it, since it tells you when the copy is stale and the live one should be read instead.
+
+Sub-skills will often instruct you to fetch a deeper reference (e.g. `references/migration.md`, `references/agents.md`). Follow those pointers — they exist because the parent skill is intentionally short.
+
+---
+
+## Phase 4: Test
+
+A setup isn't done until the user has seen it work. Run the **minimal** example from the chosen sub-skill and confirm output shape.
+
+| Lane | What "working" looks like |
+|---|---|
+| MCP setup / operations | `get_context` confirms the authorized organization; a project list/get confirms the selected project; the requested operation succeeds and a follow-up read confirms its state |
+| MCP model test | `call_model` returns the expected text/structured output; `get_usage` confirms cost; inspect retained traces when available |
+| CLI | `opper whoami` returns an active slot; `opper models list` prints the live model roster |
+| Compat (curl or any SDK) | A chat completion returns 200 from `api.opper.ai/v3/compat`; structured output validates via `response_format`; the call appears under **Logs** at [platform.opper.ai](https://platform.opper.ai) (inputs, outputs and the trace tree only with tracing on) |
+| Media (`opper-multimodal`) | `POST /v3/images` returns an image inline; `POST /v3/videos` returns `202` + a `status_url` that resolves to a download URL |
+| Agent (any framework, or a tool loop on compat) | The run returns a final answer after at least one tool call; each model call shows as its own row under **Logs** at [platform.opper.ai](https://platform.opper.ai) (inputs, outputs and the trace tree only with tracing on) |
+| Realtime (`opper-multimodal`) | WebSocket connects; first server message is `{"type": "session.started", "session_id": ...}` |
+
+**If it doesn't work, read the actual error** — don't guess. Common causes:
+
+- Missing MCP permissions — use native OAuth and fresh browser consent for the required permissions; stop if consent is denied or canceled.
+- Wrong API key — the CLI uses `~/.opper/config.json` slots; application code passes the key to its provider SDK, usually from `OPPER_API_KEY`.
+- `402`: spending is blocked. Usually the balance is empty, or a premium model needs a card on file: add credit or a card. With a **Spend limit** rule (Control Plane), a budget was reached: raise it or wait for the period to reset. `GET /v3/me` says which, in `block_reason` (`balance_exhausted`, `project_spend_cap_hit`, `member_spend_cap_hit`, `org_spend_cap_hit`). Writing a rule on the Gateway plan returns `402` with `code: "plan_required"`.
+- `403` from a **Model access** rule: `permission_error` (`model_not_allowed` on `/v3/compat/responses`, `route_compliance_blocked` from a dynamic route). The message names the condition that failed; `GET /v3/models?include=policy` shows it before calling. Check the allowed models at [platform.opper.ai](https://platform.opper.ai) and pick one from there.
+- `403 entitlement_required`: the route (`azure-zdr/…`, `vertexai-zdr/…`) needs a signed agreement with Opper, with or without any rule. Use a route the organization can call, or ask support@opper.ai for access.
+- Schema mismatch — the model returned data that doesn't validate against the requested output shape (use a looser schema, or turn tracing on with a data retention rule and inspect the trace to see the raw payload).
+
+---
+
+## Phase 5: Follow-up
+
+Once something works, suggest **one** natural next step — don't dump the whole product. Most follow-ups map directly to a **Rule** (Control Plane plan, a 5.5% fee on credit purchases instead of 3%):
+
+| If they shipped… | Suggest (Rule) | Docs |
+|---|---|---|
+| First working call | **Checks (score)**: grade answer quality after the call against criteria you write, on every call or a sample | [rules/checks](https://docs.opper.ai/control-plane/rules/checks) |
+| Working integration in dev | **Default-model rule**: pin a default model per project so swaps don't need code | [control-plane/route](https://docs.opper.ai/control-plane/route) |
+| Heading to production | **Spend limits, Data retention, Model access**: a monthly budget with caps per project, role, user or key; how long traces are kept (or 0 days); which providers, models and locations may run (e.g. EU-only, zero data retention only) | [rules/overview](https://docs.opper.ai/control-plane/rules/overview) |
+| User-input-heavy app | **Checks**: the **PII** fast check flags or blocks personal data in about 0.2 s; **PII masking** (an LLM check) redacts the types you choose; prompt injection and toxicity are fast checks too | [rules/checks](https://docs.opper.ai/control-plane/rules/checks) |
+| Pooled models, latency or cost | **Routing**: the provider order for pooled models (cheapest, fastest, highest throughput or weighted; round robin by default) | [rules/routing](https://docs.opper.ai/control-plane/rules/routing) |
+| Quality regressions | **Checks (score)** plus traces: find low-scoring calls and inspect what they saw | [control-plane/trace](https://docs.opper.ai/control-plane/trace) |
+| Any working integration, agent needs platform access | Connect MCP to inspect usage/traces and manage the project through discovered tools | [MCP connection instructions](https://opper.ai/mcp) |
+| Any working integration | See every call under **Logs** at [platform.opper.ai](https://platform.opper.ai); turn tracing on with a data retention rule to keep inputs, outputs and the trace tree | [control-plane/logs](https://docs.opper.ai/control-plane/logs) |
+| User wants their coding agent's own inference routed through Opper | `opper launch claude` (or `codex` / `opencode`) to route their coding agent through Opper | — |
+| Migrated from OpenAI/Anthropic | Stay on the provider SDK — add `response_format` for structured output and the `X-Opper-Name` header for named tracing; build agents with their framework on compat (`opper-api` skill, `references/agents.md`) | — |
+
+
+**Close the loop.** If anything along the way was missing, unclear or wrong (a model, a doc, an error you could not explain), offer to send it to the Opper team as general feedback, and send it once the user agrees (see the last ground rule).
+
+---
+
+## Sub-skill index
+
+| Skill | Primary URL | Fallback (GitHub raw) | When to load |
+|---|---|---|---|
+| `opper-mcp` | https://skills.opper.ai/opper-mcp/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-mcp/SKILL.md | Agent-assisted setup, platform operations, model tests, private application key delivery |
+| `opper-cli` | https://skills.opper.ai/opper-cli/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-cli/SKILL.md | Terminal: login, traces, usage, models, `opper launch` |
+| `opper-api` | https://skills.opper.ai/opper-api/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-api/SKILL.md | Application code on the OpenAI / Anthropic / Google SDKs or an agent framework via `/v3/compat`, raw HTTP, gateway concepts, structured output, server-side tools, building agents, migration |
+| `opper-multimodal` | https://skills.opper.ai/opper-multimodal/SKILL.md | https://raw.githubusercontent.com/opper-ai/opper-skills/main/opper-multimodal/SKILL.md | Media generation (images, speech, transcription, music, sound effects, video, OCR), files, vision/PDF input, realtime voice |
+
+Install everything locally:
+
+```bash
+npx skills add opper-ai/opper-skills
+```
+
+---
+
+## Opper vocabulary
+
+Use these terms exactly — they're proper nouns in Opper's universe. All defined at [docs.opper.ai/overview/concepts](https://docs.opper.ai/overview/concepts).
+
+**Core:**
+
+| Term | Means |
+|---|---|
+| **Organization** | Top-level account |
+| **Project** | Isolated environment with its own API key — multiple projects per org |
+| **Call** | One request-response cycle through the gateway |
+| **Trace** | The full tree behind one call: the model call, any tool calls, every rule that fired |
+| **Gateway** | The request path. Enforces Control Plane rules on every call |
+| **Pool** | The set of providers serving one model. A bare model name (`kimi-k3`) routes across the pool with failover; a provider-qualified id (`tensorx/moonshotai/kimi-k3`) pins one member |
+| **Alias** | An org-scoped name for your own ordered list of models — primary first, then fallbacks. Predates dynamic routes; still resolves, but new fallback chains are dynamic routes |
+| **Dynamic route** | A deployed routing graph (pools, fixed fallback order, classify, branch, versioned), called as `dynamic/<name>`. The way to build a named fallback chain you reuse (for a one-off, a compat request can carry a `models` fallback array). Manageable from CI over `/management/v1/dynamic-routes` |
+
+**API surfaces** — one gateway, pick the endpoint by what you're building:
+
+| Surface | Use when | Endpoint |
+|---|---|---|
+| **Compat endpoints** ⭐ | Text generation, chat, multi-turn, tools, structured output — **the recommended starting point**; drop-in for OpenAI / Anthropic / Google SDKs | `/v3/compat/...` |
+| **Multimodality** *(`opper-multimodal`)* | Generate or edit images, speech, transcripts, music, sound effects, video; OCR; store/reuse files | `/v3/images`, `/v3/audio/*`, `/v3/videos`, `/v3/ocr`, `/v3/files` |
+| **Realtime** *(`opper-multimodal`)* | Two-way voice / audio over WebSocket | `wss://api.opper.ai/v3/realtime` |
+| **Roundtable** | One prompt to several models, consolidated or compared | `/v3/roundtable` |
+
+Structured output is a parameter (`response_format`), not a separate surface. The `opperai` SDK's `opper.call(...)` and the CLI's `opper call` wrap the **legacy `/call` surface, which is being sunset** — don't point users at them; migrate existing users to compat (mapping in the `opper-api` skill's `references/migration.md`). You can mix surfaces in one app — e.g. compat chat for the conversation, a media endpoint for an image, realtime for voice.
+
+**Control Plane: Rules** for every model call, set for the organization and tightened per project (a project can never loosen what the organization allows; routing is the exception, where a project order replaces the organization's). Rules are a Control Plane plan feature. Use these names with users; the Management API groups them into rule kinds (`comply`, `guard`, `observe`, `route`):
+
+| Rule | Does | API kind |
+|---|---|---|
+| **Spend limits** | Monthly organization budget, with caps per project, role, user or key. The call that crosses the limit completes; the next one gets a `402` | `comply` (budget) |
+| **Data retention** | Whether Opper stores traces and for how long: 1 to 30 days, or 0. Usage metadata is always recorded, content only with tracing on | `comply` (retention) |
+| **Model access** | Allowlist by provider, service route, inference and storage location, maker, country and model, and can require zero data retention. A blocked call is a `403`; the dashboard counts it under "blocked by policy" | `comply` (allowlist, zdr) |
+| **Checks** | Flag, redact or block content during the call; score answer quality after it. Fast checks (a decision model, about 0.2 s) flag or block; LLM checks can also redact. A check runs on Opper's recommended models, or on a model you pick plus fallbacks (`models`), each admitted by your model access rules | `guard`, `observe` (score) |
+| **Routing** | Provider order for pooled models: round robin by default, or cheapest, fastest, highest throughput or weighted | `route` (pool order) |
+| **Default model** | The model a call uses when it names none (Management API) | `route` |
+
+Model access covers every model type (text, embeddings, image, speech, transcription, video, OCR, realtime, rerank); spend limits also cover image, speech and video generation; checks apply to LLM calls. **Traces** show what each call saw, which rules fired and which model answered.
+
+---
+
+## Outbound resources
+
+| Purpose | URL |
+|---|---|
+| Product overview | https://opper.ai |
+| Concepts | https://docs.opper.ai/overview/concepts |
+| Gateway | https://docs.opper.ai/overview/gateway |
+| Control Plane | https://docs.opper.ai/control-plane/overview |
+| Build / quickstarts | https://docs.opper.ai/build/overview |
+| Realtime quickstart | https://docs.opper.ai/build/realtime/quickstart |
+| **Model catalog (humans)** | https://opper.ai/models — browsable, link this when talking to the user about model choices |
+| **Models API (code)** | https://api.opper.ai/v3/models — programmatic discovery; never hardcode lists |
+| OpenAPI spec | https://api.opper.ai/v3/openapi.yaml — endpoint signatures and payload shapes live here |
+| Platform UI (traces, usage, billing) | https://platform.opper.ai |
+| Trust center (security, compliance) | https://trust.opper.ai: ISO/IEC 27001:2022 certificate, security controls, platform sub-processors and model providers, DPA, privacy policy |
+| Pricing (fees, plans, free models) | https://opper.ai/pricing.md |
+| EU-hosted routes, route by route | https://opper.ai/models/eu |
+| Rules (spend, retention, model access, checks, routing) | https://docs.opper.ai/control-plane/rules/overview |
+| MCP connection instructions | https://opper.ai/mcp — client setup and native OAuth |
+| CLI source | https://github.com/opper-ai/cli |
+| This skill set on GitHub | https://github.com/opper-ai/opper-skills |
+| Support (bugs, blockers, anything needing an answer) | Support in the Opper platform (https://platform.opper.ai, bottom of the left sidebar), the main channel |
+| General feedback to the Opper team | https://agents.opper.ai/feedback: POST JSON (`message`, optional `kind`, `context`, `agent`), no API key, no reply; GET describes the fields |
+
+---
+
+## Ground rules
+
+- **Fetch, don't summarise.** Skills are short on purpose; summarising loses the parts that matter (exact flag names, exact endpoints, schema syntax).
+- **Any API question that isn't already obvious — endpoint, parameter, field, capability, compliance attribute, query flag — grep the OpenAPI spec first:** `curl -s https://api.opper.ai/v3/openapi.yaml | grep -i -n <term>`. The spec is the only source that doesn't rot. Don't guess from docs pages, don't fall back to the browsable catalog, don't ask the user — just grep. e.g. *"which models have ZDR?"* → grep `zdr` → discover the `compliance.zdr` object every `GET /v3/models` item carries (no key, no `include`) and derive the answer from its facts — worked example in `opper-api`.
+- **Per-model compliance comes from the API, company-level compliance from the trust center.** ZDR, residency, retention and training for a model: the `compliance` block on `GET /v3/models`. Certifications, security controls, the subprocessor list, the DPA, privacy policy or a security questionnaire: point the user to [trust.opper.ai](https://trust.opper.ai) and don't restate its figures from memory.
+- **Don't invent endpoints, tools, flags, or model IDs.** Sources of truth: connected MCP instructions and tool schemas for agent operations, [OpenAPI spec](https://api.opper.ai/v3/openapi.yaml) for endpoints, `opper <subcommand> --help` for CLI flags, [api.opper.ai/v3/models](https://api.opper.ai/v3/models) for models. Use [opper.ai/models](https://opper.ai/models) when *talking to the user* — it's the browsable catalog.
+- **Verify before suggesting more.** Phase 4 before Phase 5, always.
+- **Blocked by Opper? Support first.** For a bug that blocks the user or anything that needs an answer, tell them to open Support in the Opper platform (https://platform.opper.ai, bottom of the left sidebar; the main channel, and it replies) and include the `request_id`, model and error.
+- **General feedback, with the user's OK.** For a model or feature that is missing, a doc that is unclear or wrong, a bug noticed in passing, or something that worked notably well, offer to send it and send it once the user agrees, with the Opper MCP `send_feedback` tool or `POST https://agents.opper.ai/feedback`, with a plain `message`, a `kind` (bug, feature_request, model_request, docs, praise, other) and, in `context`, the `request_id`, `model`, `endpoint` and `error` you saw. It sends no reply. Never include API keys, the user's code or personal data. Tell the user the id it returns.
