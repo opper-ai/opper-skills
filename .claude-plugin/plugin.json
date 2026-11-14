@@ -1,7 +1,7 @@
 {
   "name": "opper",
   "displayName": "Opper",
-  "description": "Agent Skills for building on Opper, the EU-hosted AI gateway: connecting an agent through MCP, the opper CLI, application code on the OpenAI, Anthropic and Google SDKs through the compat endpoints, and media, files and realtime voice.",
+  "description": "Agent Skills for building on Opper, the EU-hosted AI gateway: connecting an agent through MCP, the opper CLI, and application code on the OpenAI, Anthropic and Google SDKs through the compat endpoints.",
   "author": {
     "name": "Opper",
     "url": "https://opper.ai"
@@ -9,11 +9,11 @@
   "homepage": "https://skills.opper.ai",
   "repository": "https://github.com/opper-ai/opper-skills",
   "license": "MIT",
-  "keywords": ["opper", "ai-gateway", "llm", "mcp", "cli", "openai-compatible", "multimodal", "agents"],
-  "skills": ["./opper", "./opper-api", "./opper-cli", "./opper-mcp", "./opper-multimodal"],
+  "keywords": ["opper", "ai-gateway", "llm", "mcp", "cli", "openai-compatible", "agents"],
+  "skills": ["./opper", "./opper-api", "./opper-cli", "./opper-mcp"],
   "icon": "./assets/opper-logo.svg",
   "documentationUrl": "https://docs.opper.ai",
   "supportUrl": "https://opper.ai/contact",
-  "privacyPolicyUrl": "https://opper.ai/privacy",
-  "termsOfServiceUrl": "https://opper.ai/terms"
+  "privacyPolicyUrl": "https://opper.ai/privacy-policy",
+  "termsOfServiceUrl": "https://opper.ai/terms-of-service"
 }
