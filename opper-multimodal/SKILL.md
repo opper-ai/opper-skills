@@ -17,11 +17,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-11-14"
+  version: "2026-11-14.2"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-11-14.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-11-14. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-11-14.2.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-multimodal"` entry with 2026-11-14.2. If they differ, read https://skills.opper.ai/opper-multimodal/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -158,7 +158,7 @@ curl -s -X POST https://api.opper.ai/v3/audio/generations \
 
 Discover `audio_song_storage` (`store_song: true` returns a reusable `song.id`), `audio_upload` (`POST /v3/audio/songs` imports existing audio) and `audio_inpainting` (song references in `sections`). `store_song` and `store` are independent: the former saves an editing reference, the latter a downloadable `file_id`. Songs are bound to the creating organization, project and provider account. Use opaque Opper IDs, never raw provider song IDs or native `parameters.composition_plan` references.
 
-This example starts with an existing 30-second MP3, keeps all 30 seconds and generates the rest of a complete song. Conditioning guides the result using the source's voice and instruments; it does not guarantee an identical singer. The live provider probe did not establish waveform-identical kept audio, so do not claim lossless editing.
+This example starts with an existing 30-second MP3, keeps all 30 seconds and generates the rest of a complete song. Conditioning guides the result using the source's voice and instruments; it does not guarantee an identical singer. Opper forwards the source audio and delivers the provider's returned audio bytes unchanged, without splicing, re-encoding or normalization. The provider may change kept ranges' waveforms; do not promise lossless source preservation.
 
 ```python
 import base64, os, requests
@@ -194,7 +194,7 @@ else:
 ```
 
 - **Limits on ElevenLabs:** at most 30 sections and 600 seconds total. Kept sections take only `song`, `start_ms`, `end_ms`; generated sections take 3000..120000 `duration_ms`. Ranges span at least 50 ms and fit the source; `condition_on` spans at most 30000 ms. Up to 50 positive styles (including `prompt`) and 50 negative styles per generated section. `condition_on.strength`: `low`, `medium`, `high`, `xhigh`; `context_adherence`: `low`, `medium`, `high`. Longer generation still uses a conditioning excerpt of at most 30 seconds.
-- **Charges:** uploads and the complete composed output are billable, including kept sections. `usage.cost` is authoritative. At $0.15/minute, uploading 30 seconds costs $0.075; composing 10 new + 30 kept seconds costs $0.10. Check current model pricing. Do not assume a rejected upload is free or depend on an unverified copyright rejection code.
+- **Charges:** only successful song uploads are charged to customers. Under the current policy, Opper absorbs provider rejection fees, including copyright rejection fees. The complete composed output is billable, including kept sections. `usage.cost` is authoritative. At $0.15/minute, uploading 30 seconds costs $0.075; composing 10 new + 30 kept seconds costs $0.10. Check current model pricing; do not invent a copyright-specific error code.
 - **Lifetime:** positive project retention is required for upload, `store_song` and reuse; zero retention is refused. Song references expire with retention, including shorter current rules. A `store: true` Files copy follows its separate Files lifetime. `GET /v3/audio/songs` lists live references (`data`, `meta.total_count`); `GET /v3/audio/songs/{id}` returns `data` with metadata and a scrubbed plan.
 - **Deletion:** `DELETE /v3/audio/songs/{id}` revokes the Opper reference and removes its local plan; `data.provider_deleted` is `false`. ElevenLabs has no public song deletion API, and its upstream retention duration is unknown. Explain this before uploading; use only audio the user has permission to use.
 - **Long songs:** send `async: true` and poll `status_url`; completed status includes the saved `song` reference. A successful generation can have `store_song_skipped` when reference persistence fails, so check `song` before attempting another edit.
