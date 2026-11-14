@@ -158,7 +158,7 @@ curl -s -X POST https://api.opper.ai/v3/audio/generations \
 
 Discover `audio_song_storage` (`store_song: true` returns a reusable `song.id`), `audio_upload` (`POST /v3/audio/songs` imports existing audio) and `audio_inpainting` (song references in `sections`). `store_song` and `store` are independent: the former saves an editing reference, the latter a downloadable `file_id`. Songs are bound to the creating organization, project and provider account. Use opaque Opper IDs, never raw provider song IDs or native `parameters.composition_plan` references.
 
-This example starts with an existing 30-second MP3, keeps all 30 seconds and generates the rest of a complete song. Conditioning preserves guidance from the source's voice and instruments; it is not a guarantee of an identical singer.
+This example starts with an existing 30-second MP3, keeps all 30 seconds and generates the rest of a complete song. Conditioning guides the result using the source's voice and instruments; it does not guarantee an identical singer. The live provider probe did not establish waveform-identical kept audio, so do not claim lossless editing.
 
 ```python
 import base64, os, requests
