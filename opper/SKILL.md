@@ -250,6 +250,8 @@ Structured output is a parameter (`response_format`), not a separate surface. Th
 
 Model access covers every model type (text, embeddings, image, speech, transcription, video, OCR, realtime, rerank); spend limits also cover image, speech and video generation; checks apply to LLM calls. **Traces** show what each call saw, which rules fired and which model answered.
 
+**Zero data retention for a whole organization** (what the dashboard's Zero data retention preset sets) is two rules: a retention rule `{"type": "retention", "retention_days": 0}`, and an allowlist rule whose `allowlist.handling` is `{"training": ["no", "opt_in"], "logging": ["none"], "max_retention_days": 0}` (No training, No logging, No stored moderation). Add `"moderation": ["none"]` (No provider moderation) only once the provider agreement is signed.
+
 ---
 
 ## Outbound resources
