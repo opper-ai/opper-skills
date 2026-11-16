@@ -112,7 +112,6 @@ Opper no longer develops its own SDKs (`opperai` on PyPI and npm, and the older 
 | `opper.embeddings` | `client.embeddings.create(...)` on `/v3/compat/embeddings` |
 | `opper.models` | `GET https://api.opper.ai/v3/models` (no key needed) |
 | images, audio, video, OCR, realtime | the dedicated endpoints in the `opper-multimodal` skill |
-| `opper.knowledge.*` | knowledge bases are being sunset, with no replacement on Opper: move retrieval to a vector store of the user's choice; embeddings can still come from `/v3/compat/embeddings` |
 | `Agent`, `tool`, `Conversation`, `Hooks`, `mcp` | the user's agent framework on compat; table in [agents.md](agents.md) |
 
 ## From OpenRouter (OpenAI-compatible)

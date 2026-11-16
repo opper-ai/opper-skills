@@ -63,7 +63,6 @@ Run `opper` with no args for an interactive menu (Account · Agents · Skills ·
 | `config list/get/remove` | Inspect or remove auth slots (slots are created by `opper login`). |
 | `call <name> <instructions> [input]` | Run an Opper function. Stdin if `input` omitted; `--model`, `--stream`. **Legacy** — rides the `/v3/call` surface being sunset; don't build on it (see gotchas). |
 | `functions list/get/delete` | Manage saved functions. |
-| `indexes ...` | Knowledge bases. **Being sunset** with the knowledge base feature; don't start new work on them. |
 | `models list/create/get/delete` | Built-in + custom (LiteLLM-backed) models. |
 | `traces list/get/delete` | Inspect execution traces. |
 | `usage list` | Token/cost analytics, optional CSV export. |
