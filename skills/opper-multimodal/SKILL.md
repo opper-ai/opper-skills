@@ -8,7 +8,7 @@ description: >
   (wss://api.opper.ai/v3/realtime, browser tickets via /v3/realtime-sessions,
   function-scoped /v3/realtime/{name}). Use this skill whenever the user wants
   to generate or edit an image, do text-to-speech or speech-to-text, transcribe
-  audio, generate music or sound effects, generate video, run OCR on a PDF / image, upload or reuse media files,
+  audio, generate or edit music and sound effects, generate video, run OCR on a PDF / image, upload or reuse media files,
   send images / PDFs to a model, or build a voice / realtime app on Opper —
   even if they only say "Opper". For text / chat, structured output, migration,
   and server-side tools like web_search, use the `opper-api` skill instead. For
@@ -141,10 +141,55 @@ curl -s -X POST https://api.opper.ai/v3/audio/generations \
 ```
 
 - **Normalized fields**: `prompt` (required unless `sections` are sent), `duration_seconds` (not with `sections`, which set the length), `instrumental`, `format` (`mp3`, `wav`, `opus`, `pcm`; omit it for the model's native format), `seed`. A value a model cannot honor answers `400` naming its limit. On ElevenLabs, `seed` works on music only with `sections` (never with `prompt`), `instrumental` only with `prompt` (put "instrumental" in the section `styles` instead), and sound effects take no seed.
-- **Capability-gated fields answer `400`, never silently drop**: `sections` needs `audio_sections`, `loop` (seamless repeat, for ambience and hums) needs `audio_loop`. Find them with `GET /v3/audio/models?capability=audio_sections` or `?capability=audio_loop`. `parameters` is never gated: it goes to the provider as is.
-- **Sections**: each has `duration_ms` (required), `prompt` (what it should sound like; never sung), `styles`, `negative_styles`, and `lyrics` (words to sing; leave empty for instrumental). Boundaries tend to snap to the tempo's phrase grid (at 120 BPM, multiples of 2 or 4 s), so place them there and measure the result.
+- **Capability-gated fields answer `400`, never silently drop**: `sections` needs `audio_sections`, `loop` (seamless repeat, for ambience and hums) needs `audio_loop`. Find them with `GET /v3/audio/models?capability=audio_sections` or `?capability=audio_loop`. Provider settings go in `parameters`; shared-account song references must use the scoped normalized fields below.
+- **Sections**: generated sections require `duration_ms` and can include `prompt` (what it should sound like; never sung), `styles`, `negative_styles`, and `lyrics` (words to sing; leave empty for instrumental). Kept sections use a song range instead, as shown below. Boundaries tend to snap to the tempo's phrase grid (at 120 BPM, multiples of 2 or 4 s), so place them there and measure the result.
 - **Long tracks**: send `"async": true` to get a `202` + `status_url` and poll it like video.
 - **Response**: `audio.b64_json` (or `file_id` with `store: true`), `lyrics` when the provider writes any, and `usage.cost`.
+
+#### Upload, keep and condition a song
+
+Discover `audio_song_storage` (`store_song: true` returns a reusable `song.id`), `audio_upload` (`POST /v3/audio/songs` imports existing audio) and `audio_inpainting` (song references in `sections`). `store_song` and `store` are independent: the former saves an editing reference, the latter a downloadable `file_id`. Songs are bound to the creating organization, project and provider account. Use opaque Opper IDs, never raw provider song IDs or native `parameters.composition_plan` references.
+
+This example starts with an existing 30-second MP3, keeps all 30 seconds and generates the rest of a complete song. Conditioning guides the result using the source's voice and instruments; it does not guarantee an identical singer. Opper forwards the source audio and delivers the provider's returned audio bytes unchanged, without splicing, re-encoding or normalization. The provider may change kept ranges' waveforms; do not promise lossless source preservation.
+
+```python
+import base64, os, requests
+from pathlib import Path
+base = "https://api.opper.ai/v3"
+headers = {"Authorization": f"Bearer {os.environ['OPPER_API_KEY']}"}
+model = "elevenlabs/music_v2_5"
+audio = "data:audio/mpeg;base64," + base64.b64encode(Path("source-30s.mp3").read_bytes()).decode()
+upload = requests.post(f"{base}/audio/songs", headers=headers,
+    json={"model": model, "audio": audio, "extract_plan": True}, timeout=300)
+upload.raise_for_status()
+source = upload.json()["data"]["id"]  # Songs endpoints use meta/data envelopes
+condition = {"song": source, "start_ms": 0, "end_ms": 30000, "strength": "high"}
+r = requests.post(f"{base}/audio/generations", headers=headers, timeout=300, json={
+    "model": model, "store": True, "store_song": True,
+    "sections": [
+        {"song": source, "start_ms": 0, "end_ms": 30000},
+        {"duration_ms": 30000, "prompt": "A new verse, same warm vocals and acoustic guitar",
+         "lyrics": "We follow the river, we follow the light", "condition_on": condition, "context_adherence": "high"},
+        {"duration_ms": 30000, "prompt": "A fuller chorus, same vocal character and instruments",
+         "lyrics": "Here in the morning, the road opens wide", "condition_on": condition},
+        {"duration_ms": 15000, "prompt": "Instrumental acoustic guitar ending, resolving gently", "condition_on": condition},
+    ],
+})
+r.raise_for_status()
+output = r.json()  # Generation responses keep their existing plain shape
+Path("full-song.mp3").write_bytes(base64.b64decode(output["audio"]["b64_json"]))
+print(output["usage"])
+if output.get("song"):
+    print("Reusable song:", output["song"]["id"])
+else:
+    print("Song reference not saved:", output.get("store_song_skipped"))
+```
+
+- **Limits on ElevenLabs:** at most 30 sections and 600 seconds total. Kept sections take only `song`, `start_ms`, `end_ms`; generated sections take 3000..120000 `duration_ms`. Ranges span at least 50 ms and fit the source; `condition_on` spans at most 30000 ms. Up to 50 positive styles (including `prompt`) and 50 negative styles per generated section. `condition_on.strength`: `low`, `medium`, `high`, `xhigh`; `context_adherence`: `low`, `medium`, `high`. Longer generation still uses a conditioning excerpt of at most 30 seconds.
+- **Charges:** only successful song uploads are charged to customers. Under the current policy, Opper absorbs provider rejection fees, including copyright rejection fees. The complete composed output is billable, including kept sections. `usage.cost` is authoritative. At $0.15/minute, uploading 30 seconds costs $0.075; composing 10 new + 30 kept seconds costs $0.10. Check current model pricing; do not invent a copyright-specific error code.
+- **Lifetime:** positive project retention is required for upload, `store_song` and reuse; zero retention is refused. Song references expire with retention, including shorter current rules. A `store: true` Files copy follows its separate Files lifetime. `GET /v3/audio/songs` lists live references (`data`, `meta.total_count`); `GET /v3/audio/songs/{id}` returns `data` with metadata and a scrubbed plan.
+- **Deletion:** `DELETE /v3/audio/songs/{id}` revokes the Opper reference and removes its local plan; `data.provider_deleted` is `false`. ElevenLabs has no public song deletion API, and its upstream retention duration is unknown. Explain this before uploading; use only audio the user has permission to use.
+- **Long songs:** send `async: true` and poll `status_url`; completed status includes the saved `song` reference. A successful generation can have `store_song_skipped` when reference persistence fails, so check `song` before attempting another edit.
 
 ### Video — `POST /v3/videos` (asynchronous)
 
@@ -315,7 +360,7 @@ The first client event is `session.start`. **Turn detection**: `server_vad` (aco
 - **Bursts: use webhooks, not polling.** Providers run a fixed number of jobs at once and queue the rest, so a burst finishes in waves. Set a `callback_url` (or the project default) and spread submits when you can. Inputs are fetched when the provider starts the job, maybe many minutes later, so pass a `file_id` rather than a short-lived URL.
 - **Back off on `429` using `Retry-After`.** A `429` means a provider or your organization is at capacity, not a bad request. Wait at least the `Retry-After` seconds, then retry with exponential backoff; never in a tight loop.
 - **Pass `file_id`, don't re-upload.** Any media source field (`image`, `mask`, `reference_images`, `reference_videos`, `audio`, `video`, `document`) accepts a `file_id` from a prior generation or a `/v3/files` upload.
-- **`parameters` is a verbatim passthrough.** Top-level fields are normalized across providers; anything provider-specific goes in `parameters` untouched.
+- **Provider settings go in `parameters`.** Top-level fields are normalized across providers. Song resource references must use the scoped `song` and `condition_on` fields; raw provider song IDs are refused.
 - **Vision/PDF *input* is not a media endpoint** — it's content parts on a compat chat call to a `vision`/`pdf`-capable model. Media *generation* uses the dedicated endpoints here.
 - **Realtime browser clients use a ticket, never the API key.** Mint it from `/v3/realtime-sessions`; the key stays server-side.
 - **Server-side tools (`opper:web_search`, etc.) live in `opper-api`, not here.** They ride the compat chat endpoints.
