@@ -16,11 +16,11 @@ description: >
 category: sub-skill
 parent: opper
 metadata:
-  version: "2026-11-11"
+  version: "2026-11-16"
 ---
 
 <!-- version-check: removed from the copy served at skills.opper.ai -->
-> **Skill version 2026-11-11.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-11-11. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
+> **Skill version 2026-11-16.** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `"opper-api"` entry with 2026-11-16. If they differ, read https://skills.opper.ai/opper-api/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy.
 <!-- /version-check -->
 
 > Sub-skill of [`opper`](https://skills.opper.ai/) — start there for discovery and setup guidance.
@@ -298,7 +298,6 @@ For wiring Opper into Claude Code, Cursor, Copilot, Continue, etc., see the up-t
 - **A bare model name is a pool, not a provider.** `"model": "kimi-k3"` routes to any provider serving it; `"tensorx/moonshotai/kimi-k3"` pins one; `"my-alias"` uses your own ordered list; `"dynamic/my-route"` runs a deployed graph. The response `model` field just echoes what you sent, so only the trace (`span.meta.model`) reveals which one ran — see [references/model-routing.md](references/model-routing.md).
 - **Server-side web search is portable** — one `{"type": "opper:web_search"}` tool entry works on every model; native provider shapes also forward verbatim.
 - **Media / files / realtime are not in this skill** — they're dedicated endpoints documented in `opper-multimodal`. Don't improvise their shapes here.
-- **Knowledge bases are being sunset.** Don't build on `/v2/knowledge`, `opper.knowledge.*` or `opper indexes`; for retrieval, use a vector store of the user's choice (embeddings from `/v3/compat/embeddings` if they want them through Opper).
 - **The spec is the most up-to-date reference; the docs and this skill follow it.** This file rots; the spec doesn't.
 - **Tell Opper what was missing, with the user's OK.** If something was missing, unclear or wrong along the way (a model, a doc, an error you could not explain), offer to send it as general feedback and send it once the user agrees: the Opper MCP `send_feedback` tool, or `POST https://agents.opper.ai/feedback` with a JSON `message` (`GET` on the same URL describes the fields). No API key is needed and it sends no reply. Never include API keys, the user's code or personal data.
 
