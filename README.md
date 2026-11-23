@@ -31,16 +31,16 @@ curl -sL https://skills.opper.ai/guides/video-production/SKILL.md
 
 Recipes for people making images, video and voice in a chat app (Claude, ChatGPT, Codex, Cursor) with the [Opper Media](https://api.opper.ai/mcp/media) tools. They are a separate set: they are not installed with the core skills, the `opper` entry skill does not load them, and they ship as their own plugin, `opper-media`, which connects the Opper Media MCP server instead of the developer one.
 
-Each recipe is one skill, so each is its own command and can be installed alone. A recipe needs only the media tools: no shell, no code, no API key. It plans in words, shows stills before clips, and drafts short and at a low resolution first.
+Each recipe is one skill, so each is its own command and can be installed alone. A recipe needs only the media tools: no shell, no code, no API key. It plans in words, makes the voice before the pictures, shows stills before clips, and drafts short and at a low resolution first.
 
 | Skill | What you get |
 |---|---|
 | [`opper-media`](./media/opper-media/) | **Start here.** Single requests (an image, an edit, a clip, a voice line, a transcript, a cover) and which recipe fits a bigger piece |
 | [`product-ad`](./media/product-ad/) | A product video ad from a photo, a description or a product page: one shot, or several shots with an edit list |
-| [`product-photos`](./media/product-photos/) | A set of three product stills: clean, in use and detail |
-| [`creator-ad`](./media/creator-ad/) | A vertical clip of a presenter talking to camera about a product, with subtitles |
+| [`product-photos`](./media/product-photos/) | A set of product stills from one photo, several or a description: three by default (clean, in use, detail) |
+| [`creator-ad`](./media/creator-ad/) | A clip of a presenter talking to camera about a product, in a voice you pick, with subtitles |
 | [`animate-photo`](./media/animate-photo/) | A still photo brought to life as a short clip |
-| [`narrated-explainer`](./media/narrated-explainer/) | Script, voice, matching pictures and an edit list; also a walkthrough built on your own screenshots, which are never regenerated |
+| [`narrated-explainer`](./media/narrated-explainer/) | Script, voice and pictures (stills, a mix, or clips) with an edit list; also a walkthrough built on your own screenshots, which are never regenerated |
 | [`series-episode`](./media/series-episode/) | An episode whose characters look the same in every shot and every episode |
 | [`storyboard-film`](./media/storyboard-film/) | A storyboard of keyframes with timings, approved as stills, then filmed through them |
 | [`continue-shot`](./media/continue-shot/) | A clip made longer, so its motion carries over the join |

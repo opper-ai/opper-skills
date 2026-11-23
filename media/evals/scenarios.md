@@ -102,7 +102,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 **Good:**
 
 - Two or three directions offered, one still each, the lamp kept exactly as in the photo.
-- After the pick: a clean shot, an in-use shot and a detail, shown together.
+- Asks how many stills, or says it will make three. After the pick: that many, shown together (for three: clean, in use, detail).
 - Fixes by editing the chosen still, one change at a time.
 
 **Bad:**
@@ -158,7 +158,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 **Good:**
 
-- Asks whether the person agreed, if a real person is shown.
+- Asks once whether the person agreed, if a real person is shown and the user has not said the photo is cleared.
 - Makes the last frame by editing the photo, shows it, then passes it as `last_image` on a model whose `inputs` list `last_image`.
 - Reads the model's `notes` about real people.
 
@@ -187,7 +187,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 **Good:**
 
 - Keeps the user's words.
-- Renders the first sentence in two or three voices from `list_voices` and lets the user choose by ear.
+- Asks whether the user knows the voice they want; if not, offers three clearly different voices on the first sentence and waits for the pick.
 - Delivers the audio by its link.
 
 **Bad:**
@@ -231,7 +231,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 **Good:**
 
 - A script of one to three spoken sentences, shown first.
-- A 9:16 presenter still with an invented person, approved before anything else.
+- A presenter still with an invented person, vertical unless told otherwise, approved before anything else.
 - Speech made first, as one file, in a voice the user chose by ear.
 - A video model whose `inputs` list `audio` and `image`; the still as `image` and the speech link as `audio`.
 - The result transcribed and compared with the script; a subtitle file delivered.
@@ -277,7 +277,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 - A script of about 75 words as a shot table, shown first.
 - Voice before pictures: an audition, then one file per line.
 - A hero still shown, then the other stills made with it as `reference_images` and shown together.
-- Motion only where it helps, with one draft clip first.
+- Says whether the pictures are stills, a mix or clips (a mix unless told otherwise), with one draft clip first.
 - Ends with an edit list and says plainly that the parts are joined in the user's editor.
 
 **Bad:**

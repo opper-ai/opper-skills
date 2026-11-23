@@ -6,7 +6,7 @@ Worked examples that chain the media skills. Each one starts from what a person 
 
 **Say:** "Here is a photo of my new backpack. I need pictures for the shop and a short ad for Instagram."
 
-1. `product-photos`: two or three directions, a pick, then the set of three (clean, in use, detail).
+1. `product-photos`: two or three directions, a pick, then the set: three by default (clean, in use, detail), or as many as you ask for.
 2. `product-ad`: the chosen still becomes the hero frame; one shot for a reel, or a shot list for a longer ad.
 3. `voiceover`: one line over the ad, in a voice picked by ear.
 
@@ -14,12 +14,12 @@ Worked examples that chain the media skills. Each one starts from what a person 
 
 ## 2. A creator-style clip with subtitles
 
-**Say:** "Make a clip of someone recommending my tea, ten seconds, vertical."
+**Say:** "Make a clip of someone recommending my tea, ten seconds, for Instagram."
 
 1. `creator-ad`: the script, an invented presenter holding the product, a voice, then the talking clip.
 2. The same skill transcribes the result, checks the line and gives a subtitle file.
 
-**You end with:** one vertical clip with speech, and its subtitles.
+**You end with:** one clip with speech, in the shape of the place it runs, and its subtitles.
 
 ## 3. An explainer for a feature
 
@@ -65,7 +65,7 @@ Worked examples that chain the media skills. Each one starts from what a person 
 
 ## What the examples share
 
-- A plan in words comes first, then stills, then clips. Stills are quick to change; clips are not.
+- A plan in words comes first, then the voice if there is one, then stills, then clips. Stills are quick to change; clips are not.
 - A draft is short and low resolution, so you see the idea sooner.
 - The same sentence describes a product or a character in every prompt.
 - Words, logos and interface text are added in your editor, never generated.
