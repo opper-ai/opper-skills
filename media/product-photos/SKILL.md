@@ -30,7 +30,7 @@ Ask for a required one the user has not given.
 ## Steps
 
 1. **Brief.** Ask only what is missing: where the pictures go (that sets the shape) and the look. Offer two or three directions, such as clean studio, in use at home, or bold graphic colour, and recommend one.
-2. **One still per direction** with `generate_image`. From a product photo, pick an image model with `image_edit` in `can` and pass the photo as `reference_images`; say the product stays exactly as in the photo: same shape, colours, label and logo. Describe the surface, background, light and camera plainly, with colours as hex values or as light. The user picks a direction.
+2. **One still per direction** with `generate_image`. From a product photo, pick an image model with `image_edit` in `can` and pass the photo as `reference_images`; say the product stays exactly as in the photo: same shape, colours, label and logo. Describe the surface, background, light and camera plainly, with colours as hex values or as light. Wait for the user to pick a direction.
 3. **Fix by editing,** one change at a time: pass the chosen still as `image` ("same image, identical product; the only change: ...") instead of generating a new one.
 4. **The set of three,** in the chosen look: a clean shot on a plain background, the product in use, and a close detail. Make each with the product photo and the chosen still as `reference_images`, so product and look hold across the set. Show the three together.
 5. **Finals.** Raise `quality` or resolution for the ones the user keeps.
@@ -40,7 +40,7 @@ Ask for a required one the user has not given.
 
 - **Models come from the list.** Call `list_media_models` (with `type`, or `search` for a name, maker or task) and read a model's row before using it: `can` (what it does), `inputs` (the files a video model takes), `takes` (lengths, resolutions, shapes, `parameters`) and `notes` (what it refuses or always does). Start from a recommended model. Never assume a model id, a length or a limit.
 - **Draft first.** Shortest length, lowest resolution, one or two stills, so the user sees the idea sooner. Raise quality once they like it.
-- **Before a long or high-resolution video,** say in one line which model, length and resolution you are about to use, then go.
+- **Before a long or high-resolution video,** say in one line which model, length and resolution you are about to use, and wait for the user's go. A short draft needs no such stop.
 - **Shape.** Pass `aspect_ratio` where the model lists `aspect_ratios`, or a `size` of that shape where it lists `sizes`. A clip made from an image takes the image's shape: make the still in the final shape and leave `aspect_ratio` out of the video call.
 - **Show every result** by its `url` as soon as it lands. While a job is `processing`, say so and follow it with `get_media_job`. If a call times out with no answer, look in `list_media_jobs` before trying again: the job may have run. A link works until its `expires_at`.
 - **You cannot watch a clip.** You see stills, not video or sound, so ask the user to check what matters in each clip and say what to look for.
@@ -49,4 +49,4 @@ Ask for a required one the user has not given.
 - **Sound.** If the model makes sound (`audio` in `can`), name only the sounds the scene makes, in order ("Diegetic sound only: ..."), with no music or instrument words. For a silent clip, look in `takes.parameters` for the model's sound switch; `notes` say when sound cannot be turned off.
 - **Joining.** These tools make stills, clips, voice and subtitle files. They do not join them. A piece of several parts ends as an ordered edit list for the user's video editor, so promise no finished film. An assistant that can run commands on the user's computer can assemble the file there.
 - **People.** Anyone shown or voiced must have agreed to it. `notes` say which models refuse real people.
-- **One change per retake.**
+- **The user decides.** Where a step says to wait, stop until the user answers. A render that worked is not approval. Change one thing per retake.

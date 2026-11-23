@@ -28,8 +28,8 @@ Ask for a required one the user has not given.
 
 ## Steps
 
-1. **Script.** Keep the user's words if they gave a script. Otherwise write one at about 2.5 words a second with a beat of silence at each end: warm, full sentences, punctuation as the direction, numbers written as they are said. Split it into lines that each land on a moment in the clip, with start times, and show it. If the clip already has speech to replace or translate, `transcribe_audio` (an stt model, `format` segments) gives its words with their times.
-2. **Voice.** Pick a speech model (`type` tts) and call `list_voices` with the language; if it has no voice that fits, try another model. Shortlist two or three voices that fit the tone and render the same real first line in each, so the user chooses by ear.
+1. **Script.** Keep the user's words if they gave a script. Otherwise write one at about 2.5 words a second with a beat of silence at each end: warm, full sentences, punctuation as the direction, numbers written as they are said. Split it into lines that each land on a moment in the clip, with start times, and wait for the user's OK on the script. If the clip already has speech to replace or translate, `transcribe_audio` (an stt model, `format` segments) gives its words with their times.
+2. **Voice.** Pick a speech model (`type` tts) and call `list_voices` with the language; if it has no voice that fits, try another model. Shortlist two or three voices that fit the tone and render the same real first line in each. Wait for the user to choose by ear.
 3. **Render one file per line** with `generate_speech` and the chosen voice, so one line can be redone on its own. Use a format from the model's `takes.formats` (mp3 where it is listed, unless the user's editor wants another). If a line runs past its slot, shorten the words; change `speed` only a little, as a last resort.
 4. **Deliver** the links in order with each line's start time, and say how to place them: on the clip's timeline at those times, with any music lowered under the voice.
 
@@ -37,7 +37,7 @@ Ask for a required one the user has not given.
 
 - **Models come from the list.** Call `list_media_models` (with `type`, or `search` for a name, maker or task) and read a model's row before using it: `can` (what it does), `inputs` (the files a video model takes), `takes` (lengths, resolutions, shapes, `parameters`) and `notes` (what it refuses or always does). Start from a recommended model. Never assume a model id, a length or a limit.
 - **Draft first.** Shortest length, lowest resolution, one or two stills, so the user sees the idea sooner. Raise quality once they like it.
-- **Before a long or high-resolution video,** say in one line which model, length and resolution you are about to use, then go.
+- **Before a long or high-resolution video,** say in one line which model, length and resolution you are about to use, and wait for the user's go. A short draft needs no such stop.
 - **Shape.** Pass `aspect_ratio` where the model lists `aspect_ratios`, or a `size` of that shape where it lists `sizes`. A clip made from an image takes the image's shape: make the still in the final shape and leave `aspect_ratio` out of the video call.
 - **Show every result** by its `url` as soon as it lands. While a job is `processing`, say so and follow it with `get_media_job`. If a call times out with no answer, look in `list_media_jobs` before trying again: the job may have run. A link works until its `expires_at`.
 - **You cannot watch a clip.** You see stills, not video or sound, so ask the user to check what matters in each clip and say what to look for.
@@ -46,4 +46,4 @@ Ask for a required one the user has not given.
 - **Sound.** If the model makes sound (`audio` in `can`), name only the sounds the scene makes, in order ("Diegetic sound only: ..."), with no music or instrument words. For a silent clip, look in `takes.parameters` for the model's sound switch; `notes` say when sound cannot be turned off.
 - **Joining.** These tools make stills, clips, voice and subtitle files. They do not join them. A piece of several parts ends as an ordered edit list for the user's video editor, so promise no finished film. An assistant that can run commands on the user's computer can assemble the file there.
 - **People.** Anyone shown or voiced must have agreed to it. `notes` say which models refuse real people.
-- **One change per retake.**
+- **The user decides.** Where a step says to wait, stop until the user answers. A render that worked is not approval. Change one thing per retake.
