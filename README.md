@@ -27,6 +27,41 @@ npx skills add opper-ai/opper-skills/guides/video-production
 curl -sL https://skills.opper.ai/guides/video-production/SKILL.md
 ```
 
+## Opper Media
+
+Recipes for people making images, video and voice in a chat app (Claude, ChatGPT, Codex, Cursor) with the [Opper Media](https://api.opper.ai/mcp/media) tools. They are a separate set: they are not installed with the core skills, the `opper` entry skill does not load them, and they ship as their own plugin, `opper-media`, which connects the Opper Media MCP server (`https://api.opper.ai/mcp/media`) instead of the developer one.
+
+Each recipe is one skill, so each is its own command and can be installed alone. A recipe needs only the media tools: no shell, no code, no API key. It states the price before any video and drafts short and at a low resolution first. Joining clips into one file is done in your video editor for now.
+
+| Recipe | What you get |
+|---|---|
+| [`product-ad`](./media/product-ad/) | A short product ad: a hero still, approved, then animated into one clip |
+| [`multi-shot-ad`](./media/multi-shot-ad/) | An ad of three to five shots: shot list, matching stills, a clip per shot, an edit list |
+| [`storyboard-film`](./media/storyboard-film/) | A storyboard of ordered keyframes with timings, approved as stills, then filmed through them |
+| [`continue-shot`](./media/continue-shot/) | A clip made longer by extending it, so its motion carries over the join |
+| [`series-episode`](./media/series-episode/) | An episode whose characters look the same in every shot and every episode |
+| [`product-walkthrough`](./media/product-walkthrough/) | A narrated walkthrough built on your real screenshots, which are never regenerated |
+| [`narrated-explainer`](./media/narrated-explainer/) | Script, voiceover, matching stills and a few animated shots |
+| [`animate-photo`](./media/animate-photo/) | A still photo brought to life as a short clip |
+| [`hero-shot`](./media/hero-shot/) | One striking still for a cover, thumbnail, post or banner |
+| [`voiceover`](./media/voiceover/) | Narration that fits a clip: script, a voice audition, one audio file per line |
+
+Install the plugin in Claude Code (the skills plus the Opper Media connection; you sign in through the browser on first use):
+
+```
+/plugin marketplace add opper-ai/opper-skills
+/plugin install opper-media@opper-ai
+```
+
+Or install the recipes alone, all of them or one, into any agent that reads Agent Skills, and add the connector yourself (`https://api.opper.ai/mcp/media`):
+
+```bash
+npx skills add opper-ai/opper-skills/media
+npx skills add opper-ai/opper-skills/media/product-ad
+```
+
+If you only add the connector and install nothing, you still get the recipes: the Opper Media server carries a copy of these files and offers them as prompts.
+
 Start with `opper`. The entry skill figures out what you're trying to do and loads the right sub-skill, fetching it live from `https://skills.opper.ai/` if it isn't already installed locally.
 
 Prefer the [Opper MCP server](https://opper.ai/mcp) for agent-assisted setup and platform operations; use the compat endpoints for application inference and the CLI for explicit shell, private key delivery, editor, and agent launch workflows.
@@ -123,7 +158,7 @@ The extension loads `GEMINI.md`, a short index that points Gemini at the right s
 
 ### Cursor
 
-The repo ships a Cursor plugin manifest in `.cursor-plugin/`, with the Opper MCP server in `mcp.json`. Until it is listed in the Cursor marketplace, copy the folders into your project:
+The repo ships a Cursor plugin manifest in `.cursor-plugin/`, with the Opper MCP server in `mcp.json` (and a second one for Opper Media in `media/.cursor-plugin/`, with `media/mcp.json`). Until it is listed in the Cursor marketplace, copy the folders into your project:
 
 ```bash
 git clone https://github.com/opper-ai/opper-skills.git
@@ -200,6 +235,8 @@ The hook runs `scripts/validate-skills.sh`, which checks that each `SKILL.md`:
 - keeps the body under 500 lines
 - has a date `metadata.version` that matches its version note
 
+Media skills (`media/<name>/`) are checked a little differently. They carry no version note and no link that asks an assistant to fetch anything, because a copy is built into the Opper Media MCP server and each recipe must stand on its own. Each needs a `# Title`, an `## Inputs` list with at least one `- **Name** (required): ...` line and a `## Steps` list (the server builds its prompts from them), and the `## Rules for every step` section must be identical in all of them.
+
 Run it manually any time:
 
 ```bash
@@ -215,7 +252,7 @@ bash scripts/bump-version.sh opper-api      # sets today's date; a second bump t
 bash scripts/check-versions.sh origin/main  # what CI runs on pull requests
 ```
 
-`bump-version.sh` rewrites both places the version lives (the frontmatter and the version note) and adds the note to a new skill. Don't edit either by hand; `validate-skills.sh` fails if they disagree.
+`bump-version.sh` rewrites both places the version lives (the frontmatter and the version note) and adds the note to a new skill. Don't edit either by hand; `validate-skills.sh` fails if they disagree. For a media skill (`bash scripts/bump-version.sh media/product-ad`) it sets the frontmatter version only.
 
 ### Build the static site locally
 

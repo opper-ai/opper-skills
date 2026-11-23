@@ -1,0 +1,18 @@
+{
+  "name": "opper-media",
+  "displayName": "Opper Media",
+  "description": "Make images, video and speech in chat with Opper: the Opper Media tools plus step-by-step recipes for product ads, multi-shot ads, storyboards, series episodes, explainers, product walkthroughs, covers and voiceovers. A draft first, and the price before any video.",
+  "author": {
+    "name": "Opper",
+    "url": "https://opper.ai"
+  },
+  "homepage": "https://skills.opper.ai",
+  "repository": "https://github.com/opper-ai/opper-skills",
+  "license": "MIT",
+  "keywords": ["opper", "images", "video", "speech", "voiceover", "ads", "storyboard"],
+  "skills": "./",
+  "documentationUrl": "https://docs.opper.ai",
+  "supportUrl": "https://opper.ai/contact",
+  "privacyPolicyUrl": "https://opper.ai/privacy",
+  "termsOfServiceUrl": "https://opper.ai/terms"
+}

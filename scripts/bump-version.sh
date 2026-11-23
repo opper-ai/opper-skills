@@ -8,8 +8,12 @@
 # This script rewrites both, and inserts the block if a skill has none yet.
 # A second bump on the same day becomes YYYY-MM-DD.2, then .3, and so on.
 #
+# Media skills (media/<name>) get the frontmatter version only. They never
+# carry the version-check block: a copy is built into the Opper Media MCP
+# server and they must not ask an assistant to fetch anything.
+#
 # Usage:
-#   scripts/bump-version.sh opper-api opper-cli
+#   scripts/bump-version.sh opper-api opper-cli media/product-ad
 set -euo pipefail
 
 if [[ $# -eq 0 ]]; then
@@ -38,7 +42,9 @@ for arg in "$@"; do
   fi
 
   tmp="$(mktemp)"
-  awk -v name="$skill" -v ver="$next" '
+  block=1
+  [[ "$skill" == media/* ]] && block=0
+  awk -v name="$skill" -v ver="$next" -v with_block="$block" '
     function block() {
       print "<!-- version-check: removed from the copy served at skills.opper.ai -->"
       print "> **Skill version " ver ".** This is a locally installed copy and may be out of date. Once per session, fetch https://skills.opper.ai/versions.json and compare its `\"" name "\"` entry with " ver ". If they differ, read https://skills.opper.ai/" name "/SKILL.md and follow that instead of this copy for the rest of the session, and tell the user once that their installed Opper skills are out of date (update with `npx skills update`, or `git pull` in a manual clone). Do not edit the installed files. If the fetch fails, continue with this copy."
@@ -51,7 +57,7 @@ for arg in "$@"; do
     fm && in_meta && !/^  / { in_meta = 0 }
     fm && /^---$/ {
       if (!wrote) { print "metadata:"; print "  version: \"" ver "\"" }
-      print; print ""; block()
+      print; if (with_block) { print ""; block() }
       fm = 0; lead = 1; next
     }
     fm { print; next }

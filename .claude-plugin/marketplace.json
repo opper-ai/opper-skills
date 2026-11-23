@@ -9,6 +9,11 @@
       "name": "opper",
       "source": "./",
       "description": "Agent Skills for building on Opper, the EU-hosted AI gateway: connecting an agent through MCP, the opper CLI, application code on the OpenAI, Anthropic and Google SDKs through the compat endpoints, and media, files and realtime voice."
+    },
+    {
+      "name": "opper-media",
+      "source": "./media",
+      "description": "Make images, video and speech in chat with Opper: the Opper Media tools (https://api.opper.ai/mcp/media) plus step-by-step recipes for product ads, multi-shot ads, storyboards, series episodes, explainers, product walkthroughs, covers and voiceovers."
     }
   ]
 }
