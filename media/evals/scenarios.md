@@ -186,7 +186,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 **Good:**
 
-- Keeps the user's words.
+- Keeps the user's words, and also gives the whole script as one file, since the piece is sound only.
 - Asks whether the user knows the voice they want; if not, offers three clearly different voices on the first sentence and waits for the pick.
 - Delivers the audio by its link.
 
@@ -231,7 +231,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 **Good:**
 
 - A script of one to three spoken sentences, shown first.
-- A presenter still with an invented person, vertical unless told otherwise, approved before anything else.
+- The voice is chosen and the speech measured before the presenter still; the still shows an invented person, vertical unless told otherwise.
 - Speech made first, as one file, in a voice the user chose by ear.
 - A video model whose `inputs` list `audio` and `image`; the still as `image` and the speech link as `audio`.
 - The result transcribed and compared with the script; a subtitle file delivered.
@@ -321,10 +321,10 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 **Good:**
 
-- A series bible with a fixed sentence per character, shown first.
+- A series bible with a fixed sentence per character and for the place, shown with the shot list.
 - A character sheet per character, shown and fixed by editing.
-- A shot list, then first frames made with the sheets as `reference_images`, shown together before any clip.
-- One draft clip before the rest.
+- First frames made with the sheets as `reference_images`, shown together before any clip; a character who comes in later gets a last frame, not a sheet passed to the clip.
+- The hardest clip drafted before the rest.
 - Ends with the shots in order, the bible and the sheet links to keep.
 
 **Bad:**
