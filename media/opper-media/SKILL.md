@@ -52,7 +52,7 @@ Ask for a required one the user has not given.
    | A clip from words | `generate_video` | `prompt`, `seconds`, `resolution`, `aspect_ratio` |
    | A clip from an image | `generate_video` on a model whose `inputs` list `image` | the image as `image`; prompt only the motion |
    | Words spoken aloud | `list_voices`, then `generate_speech` | `input`, a `voice` id |
-   | What a recording says, or subtitles | `transcribe_audio` with an stt model | `audio`; `format` srt or vtt for subtitles |
+   | What a recording says, or subtitles | `transcribe_audio` with an stt model (one whose `takes.formats` list mp4, for a video) | `audio`; `format` srt or vtt for subtitles |
    | Something made earlier | `list_media_jobs` | |
 4. **Prompts that work.** An image: subject, setting, light and camera, with colours as hex values or as light. A clip: one shot, only what the camera sees, one camera move. Speech: full sentences, with punctuation as the direction.
 5. **A cover, thumbnail, poster or banner.** Where it goes sets the shape (9:16 reel cover, 16:9 thumbnail, 1:1 post). Compose for the job: one clear subject the eye lands on first, strong contrast, simple shapes that read when small, and clean empty space where the title will sit (say where). Make two or three versions, let the user pick, and fix details by passing the chosen one as `image` instead of generating a new one.
@@ -63,7 +63,7 @@ Ask for a required one the user has not given.
 - **Models come from the list.** Call `list_media_models` (with `type`, or `search` for a name, maker or task) and read a model's row before using it: `can` (what it does), `inputs` (the files a video model takes), `takes` (lengths, resolutions, shapes, `parameters`) and `notes` (what it refuses or always does). Start from a recommended model. Never assume a model id, a length or a limit.
 - **Draft first.** Shortest length, lowest resolution, one or two stills, so the user sees the idea sooner. Raise quality once they like it.
 - **Before a long or high-resolution video,** say in one line which model, length and resolution you are about to use, and wait for the user's go. A short draft needs no such stop.
-- **Shape.** Pass `aspect_ratio` where the model lists `aspect_ratios`, or a `size` of that shape where it lists `sizes`. A clip made from an image takes the image's shape: make the still in the final shape and leave `aspect_ratio` out of the video call.
+- **Shape.** Pass `aspect_ratio` where the model lists `aspect_ratios`, or a `size` of that shape where it lists `sizes` (its `size_constraints` say which other sizes it takes). A clip made from an image takes the image's shape: make the still in the final shape and leave `aspect_ratio` out of the video call.
 - **Show every result** by its `url` as soon as it lands. While a job is `processing`, say so and follow it with `get_media_job`. If a call times out with no answer, look in `list_media_jobs` before trying again: the job may have run. A link works until its `expires_at`.
 - **You cannot watch a clip.** You see stills, not video or sound, so ask the user to check what matters in each clip and say what to look for.
 - **The user's own files.** A public https link works everywhere. For a file on their device, call `create_upload_link`, do what its `next` says, and pass its `upload_id` where the file goes. Where a tool has a `_file` field (such as `image_file`), a chat attachment goes there instead.
