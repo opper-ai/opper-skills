@@ -1,0 +1,11 @@
+interface:
+  display_name: "Continue a shot"
+  short_description: "Make a clip longer"
+  default_prompt: "Continue my last clip for a few more seconds: the kite dips, loops once and climbs again."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "opper-media"
+      description: "Opper Media: image, video, speech and transcription tools"
+      transport: "streamable_http"
+      url: "https://api.opper.ai/mcp/media-chatgpt"

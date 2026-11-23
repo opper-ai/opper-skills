@@ -1,0 +1,11 @@
+interface:
+  display_name: "Product photos"
+  short_description: "Three stills of your product"
+  default_prompt: "Turn the photo I attached into a clean studio product shot on white marble."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "opper-media"
+      description: "Opper Media: image, video, speech and transcription tools"
+      transport: "streamable_http"
+      url: "https://api.opper.ai/mcp/media-chatgpt"

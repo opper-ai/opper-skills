@@ -29,24 +29,26 @@ curl -sL https://skills.opper.ai/guides/video-production/SKILL.md
 
 ## Opper Media
 
-Recipes for people making images, video and voice in a chat app (Claude, ChatGPT, Codex, Cursor) with the [Opper Media](https://api.opper.ai/mcp/media) tools. They are a separate set: they are not installed with the core skills, the `opper` entry skill does not load them, and they ship as their own plugin, `opper-media`, which connects the Opper Media MCP server (`https://api.opper.ai/mcp/media`) instead of the developer one.
+Recipes for people making images, video and voice in a chat app (Claude, ChatGPT, Codex, Cursor) with the [Opper Media](https://api.opper.ai/mcp/media) tools. They are a separate set: they are not installed with the core skills, the `opper` entry skill does not load them, and they ship as their own plugin, `opper-media`, which connects the Opper Media MCP server instead of the developer one.
 
-Each recipe is one skill, so each is its own command and can be installed alone. A recipe needs only the media tools: no shell, no code, no API key. It states the price before any video and drafts short and at a low resolution first. Joining clips into one file is done in your video editor for now.
+Each recipe is one skill, so each is its own command and can be installed alone. A recipe needs only the media tools: no shell, no code, no API key. It plans in words, shows stills before clips, and drafts short and at a low resolution first.
 
-| Recipe | What you get |
+| Skill | What you get |
 |---|---|
-| [`product-ad`](./media/product-ad/) | A short product ad: a hero still, approved, then animated into one clip |
-| [`multi-shot-ad`](./media/multi-shot-ad/) | An ad of three to five shots: shot list, matching stills, a clip per shot, an edit list |
-| [`storyboard-film`](./media/storyboard-film/) | A storyboard of ordered keyframes with timings, approved as stills, then filmed through them |
-| [`continue-shot`](./media/continue-shot/) | A clip made longer by extending it, so its motion carries over the join |
-| [`series-episode`](./media/series-episode/) | An episode whose characters look the same in every shot and every episode |
-| [`product-walkthrough`](./media/product-walkthrough/) | A narrated walkthrough built on your real screenshots, which are never regenerated |
-| [`narrated-explainer`](./media/narrated-explainer/) | Script, voiceover, matching stills and a few animated shots |
+| [`opper-media`](./media/opper-media/) | **Start here.** Single requests (an image, an edit, a clip, a voice line, a transcript, a cover) and which recipe fits a bigger piece |
+| [`product-ad`](./media/product-ad/) | A product video ad from a photo, a description or a product page: one shot, or several shots with an edit list |
+| [`product-photos`](./media/product-photos/) | A set of three product stills: clean, in use and detail |
+| [`creator-ad`](./media/creator-ad/) | A vertical clip of a presenter talking to camera about a product, with subtitles |
 | [`animate-photo`](./media/animate-photo/) | A still photo brought to life as a short clip |
-| [`hero-shot`](./media/hero-shot/) | One striking still for a cover, thumbnail, post or banner |
-| [`voiceover`](./media/voiceover/) | Narration that fits a clip: script, a voice audition, one audio file per line |
+| [`narrated-explainer`](./media/narrated-explainer/) | Script, voice, matching pictures and an edit list; also a walkthrough built on your own screenshots, which are never regenerated |
+| [`series-episode`](./media/series-episode/) | An episode whose characters look the same in every shot and every episode |
+| [`storyboard-film`](./media/storyboard-film/) | A storyboard of keyframes with timings, approved as stills, then filmed through them |
+| [`continue-shot`](./media/continue-shot/) | A clip made longer, so its motion carries over the join |
+| [`voiceover`](./media/voiceover/) | A voice picked by ear, and one audio file per line |
 
-Install the plugin in Claude Code (the skills plus the Opper Media connection; you sign in through the browser on first use):
+Nothing joins clips yet. `animate-photo`, `creator-ad`, `continue-shot`, `product-photos`, `voiceover` and a one-shot `product-ad` or one-clip `storyboard-film` end in finished files. `narrated-explainer`, `series-episode` and a `product-ad` of several shots end in an edit list for your video editor, and say so.
+
+Install the plugin in Claude Code (the skills plus the connection; you sign in through the browser on first use):
 
 ```
 /plugin marketplace add opper-ai/opper-skills
@@ -60,7 +62,14 @@ npx skills add opper-ai/opper-skills/media
 npx skills add opper-ai/opper-skills/media/product-ad
 ```
 
-If you only add the connector and install nothing, you still get the recipes: the Opper Media server carries a copy of these files and offers them as prompts.
+If you only add the connector and install nothing, you still get the recipes: the Opper Media server carries a copy of these files, lists them, and returns one on request.
+
+Also in [`media/`](./media/):
+
+- [`COOKBOOK.md`](./media/COOKBOOK.md): worked examples that chain the skills.
+- [`INSTALL_FOR_AGENTS.md`](./media/INSTALL_FOR_AGENTS.md): setup steps an assistant can follow for its user.
+- [`evals/`](./media/evals/): written scenarios, three per skill, and how to run a round.
+- ChatGPT and Codex: `bash scripts/build-chatgpt-plugin.sh` writes the package ChatGPT takes into `_chatgpt-plugin/` (the listing in `media/.chatgpt-plugin/plugin.json`, the ChatGPT media server, each skill with its `agents/openai.yaml`).
 
 Start with `opper`. The entry skill figures out what you're trying to do and loads the right sub-skill, fetching it live from `https://skills.opper.ai/` if it isn't already installed locally.
 
@@ -235,7 +244,7 @@ The hook runs `scripts/validate-skills.sh`, which checks that each `SKILL.md`:
 - keeps the body under 500 lines
 - has a date `metadata.version` that matches its version note
 
-Media skills (`media/<name>/`) are checked a little differently. They carry no version note and no link that asks an assistant to fetch anything, because a copy is built into the Opper Media MCP server and each recipe must stand on its own. Each needs a `# Title`, an `## Inputs` list with at least one `- **Name** (required): ...` line and a `## Steps` list (the server builds its prompts from them), and the `## Rules for every step` section must be identical in all of them.
+Media skills (`media/<name>/`) are checked a little differently. They carry no version note and no link that asks an assistant to fetch anything, because a copy is built into the Opper Media MCP server and each recipe must stand on its own. Each needs a `# Title`, a `**Not for:**` line, an `## Inputs` list with at least one `- **Name** (required): ...` line and a `## Steps` list (the server builds its prompts from them), an `agents/openai.yaml`, and a section in `media/evals/scenarios.md`. The `## Rules for every step` section must be identical in all of them. They say nothing about what things cost and name no other product. `scripts/build-chatgpt-plugin.sh` checks the ChatGPT listing's limits.
 
 Run it manually any time:
 

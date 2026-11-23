@@ -113,7 +113,10 @@ done
 # They ship as the opper-media plugin and a copy is built into the Opper Media
 # MCP server, so each one stands alone: it tells the assistant to fetch nothing
 # (no version-check block, no skills.opper.ai link) and repeats the same rules
-# as every other media skill.
+# as every other media skill. They say nothing about what things cost (the
+# user sees that in their Opper account) and name no other product.
+MEDIA_FORBIDDEN='pric|cost|\$|credit|funds|wallet|top up|top-up|billing|purchase|upgrade|cheap|higgsfield|runway'
+
 rules_of() { awk '/^## Rules for every step$/{on=1} on{print}' "$1"; }
 first_rules=""
 for skill_file in "$REPO_ROOT"/media/*/SKILL.md; do
@@ -125,6 +128,23 @@ for skill_file in "$REPO_ROOT"/media/*/SKILL.md; do
   fi
   if grep -q '—' "$skill_file"; then
     echo "ERROR: media/$name/SKILL.md has an em dash"
+    errors=$((errors + 1))
+  fi
+  if hits="$(grep -inE "$MEDIA_FORBIDDEN" "$skill_file" "$REPO_ROOT/media/$name/agents/openai.yaml" 2>/dev/null)"; then
+    echo "ERROR: media/$name talks about money or names another product:"
+    echo "$hits" | cut -c1-160
+    errors=$((errors + 1))
+  fi
+  if ! grep -q '^\*\*Not for:\*\* ' "$skill_file"; then
+    echo "ERROR: media/$name/SKILL.md needs a '**Not for:** ...' line under its summary, naming the neighbouring skill"
+    errors=$((errors + 1))
+  fi
+  if [ ! -f "$REPO_ROOT/media/$name/agents/openai.yaml" ]; then
+    echo "ERROR: media/$name/agents/openai.yaml is missing (display name, short description and starter prompt for ChatGPT and Codex)"
+    errors=$((errors + 1))
+  fi
+  if [ "$(grep -c "^## \`$name\`\$" "$REPO_ROOT/media/evals/scenarios.md")" -ne 1 ]; then
+    echo "ERROR: media/evals/scenarios.md has no section for $name (each skill keeps at least three scenarios)"
     errors=$((errors + 1))
   fi
   if ! grep -q '^# ' "$skill_file" || ! grep -q '^## Inputs$' "$skill_file" || ! grep -q '^## Steps$' "$skill_file" \

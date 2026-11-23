@@ -1,0 +1,11 @@
+interface:
+  display_name: "Opper Media"
+  short_description: "Images, video and voice"
+  default_prompt: "Make a 5-second video of a paper boat drifting down a rainy street at night."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "opper-media"
+      description: "Opper Media: image, video, speech and transcription tools"
+      transport: "streamable_http"
+      url: "https://api.opper.ai/mcp/media-chatgpt"

@@ -1,0 +1,11 @@
+interface:
+  display_name: "Animate my photo"
+  short_description: "Bring a still photo to life"
+  default_prompt: "Animate my photo: a slow push-in, her hair moving in the wind."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "opper-media"
+      description: "Opper Media: image, video, speech and transcription tools"
+      transport: "streamable_http"
+      url: "https://api.opper.ai/mcp/media-chatgpt"

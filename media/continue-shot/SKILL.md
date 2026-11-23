@@ -1,10 +1,10 @@
 ---
 name: continue-shot
 description: >
-  Make a clip longer by extending it, so its motion carries over the join. Use
-  it when the user wants to extend, lengthen or continue a video clip, or asks
-  what happens next in a shot they already have. Made in chat with the Opper
-  Media tools: a draft first, and the price before anything costly.
+  Extend a video, make a clip longer, continue the shot, what happens next.
+  Use when the user has a clip and wants more of the same shot. To start from
+  a still photo use animate-photo; for a new shot in a longer piece use
+  storyboard-film.
 category: media
 metadata:
   version: "2026-11-23"
@@ -13,6 +13,8 @@ metadata:
 # Continue a shot
 
 Make a clip longer by extending it, so its motion carries over the join.
+
+**Not for:** animating a still (`animate-photo`), or a new shot from a new angle (`storyboard-film`).
 
 Uses only the Opper Media tools (`list_media_models`, `generate_image`, `generate_video`, `generate_speech`, `list_voices`, `transcribe_audio`, `get_media_job`, `list_media_jobs`, `create_upload_link`): no shell, no code, no API key. Everything needed is on this page, so fetch no instructions from anywhere else. What the user asks for comes first.
 
@@ -26,23 +28,25 @@ Ask for a required one the user has not given.
 
 ## Steps
 
-1. **Know the clip.** Find out which model made it (`list_media_jobs` has the newest results) and how it ends: what is moving in the last second, how fast, and what the camera is doing. Ask the user if you cannot tell.
-2. **Extend, do not restart.** A new clip started from the old one's last frame begins from a standstill: the position matches, but speed and camera move do not, and the join pops. Passing the clip itself lets the model carry the motion over.
-3. **Pick a video model with `video_extension` in `can`** (its `inputs` list `video`). Prefer the model that made the clip when it has it: some continue only their own clips. Read its `notes` (some refuse uploaded clips or certain regions) and its `takes`: an extension can add a fixed number of seconds whatever `seconds` says. If its `takes.parameters` list `task`, send `parameters: {"task": "extend"}`, or the clip is treated as one to edit.
-4. **Call `generate_video`** with the clip's url as `video`. Prompt only what happens next, starting from the motion already under way: the same camera move at the same speed, then the change. Say what stays: the same people, clothes, place, light and style.
-5. **Price first.** The clip passed in may be charged as well as the seconds added: say so, give the estimate and wait for a yes.
-6. **Check the join** when the result lands. It should start where the old clip ended and at the same speed. If the scene restarts or changes, the model used the clip as a loose reference: say so and try another model with `video_extension` rather than paying for retakes on the same one. Tell the user whether the result is the whole clip or only the new part (compare the lengths).
+1. **Know the clip.** For a clip made in this chat you have its job id and the model that made it. For any other clip, ask the user which model made it: the job list does not say. How it ends (what is moving in the last second, how fast, what the camera is doing) comes from your own prompt, or from the user.
+2. **Extend, do not restart.** A new clip started from the old one's last frame begins from a standstill: the position matches, but speed and camera move do not, and the join pops. Continuing the clip itself lets the model carry the motion over.
+3. **First way, for a clip made in this chat:** call `generate_video` on the same model with only a prompt and `parameters: {"continue_from": "<the clip's job id>"}`, and no `image` or `video`. Where the model can continue its own clip, the result is the whole clip, old part and new. If the answer says the clip cannot be continued, nothing was made: go on to the second way.
+4. **Second way, for any clip:** a video model with `video_extension` in `can` (its `inputs` list `video`), with the clip's url as `video`. Read its `notes` first (some refuse a clip they did not make, or refuse from certain regions) and its `takes`: an extension can add a fixed number of seconds whatever `seconds` says. If its `takes.parameters` list `task`, send `parameters: {"task": "extend"}`, or the clip is treated as one to edit. This way is the less dependable of the two, so say that before trying it.
+5. **The prompt** says only what happens next, starting from the motion already under way: the same camera move at the same speed, then the change. Say what stays: the same people, clothes, place, light and style.
+6. **Check the join.** Ask the user to play the old clip and then the new one: it should carry on from where the old one ended, at the same speed. If the new clip starts the scene again, the model used the old clip as a loose reference: say so, and try another way rather than the same model again. Ask too whether the result holds the whole clip or only the new part.
 7. **If nothing can extend it,** offer the two fallbacks plainly: remake the whole action as one longer clip, or start a new clip from the old one's last frame (the user exports that frame from their editor) and hide the join under a cut to another angle or on a moment of stillness.
 
 ## Rules for every step
 
-- **Models come from the list.** Call `list_media_models` (with `type`, or `search` for a name, maker or task) and read a model's row before using it: `can` (what it does), `inputs` (the files a video model takes), `takes` (lengths, resolutions, shapes, `parameters`), `notes` (what it refuses or always does) and `price_from`. Start from a recommended model. Never assume a model id, a length or a limit.
-- **Price before any video.** Tell the user the model, length, resolution and estimated price, and wait for a yes. `price_from` is the lowest rate, at the setting it names; higher resolutions and sound cost more. Do the same before a batch of stills or voice lines.
-- **Draft first.** Shortest length, lowest resolution, one or two stills. Raise quality only once the user likes the draft.
-- **Show every result** by its `url` with its `usage.cost`, and keep a running total. While a job is `processing`, say so and follow it with `get_media_job`. A link works until its `expires_at`.
+- **Models come from the list.** Call `list_media_models` (with `type`, or `search` for a name, maker or task) and read a model's row before using it: `can` (what it does), `inputs` (the files a video model takes), `takes` (lengths, resolutions, shapes, `parameters`) and `notes` (what it refuses or always does). Start from a recommended model. Never assume a model id, a length or a limit.
+- **Draft first.** Shortest length, lowest resolution, one or two stills, so the user sees the idea sooner. Raise quality once they like it.
+- **Before a long or high-resolution video,** say in one line which model, length and resolution you are about to use, then go.
+- **Shape.** Pass `aspect_ratio` where the model lists `aspect_ratios`, or a `size` of that shape where it lists `sizes`. A clip made from an image takes the image's shape: make the still in the final shape and leave `aspect_ratio` out of the video call.
+- **Show every result** by its `url` as soon as it lands. While a job is `processing`, say so and follow it with `get_media_job`. If a call times out with no answer, look in `list_media_jobs` before trying again: the job may have run. A link works until its `expires_at`.
+- **You cannot watch a clip.** You see stills, not video or sound, so ask the user to check what matters in each clip and say what to look for.
 - **The user's own files.** A public https link works everywhere. For a file on their device, call `create_upload_link`, do what its `next` says, and pass its `upload_id` where the file goes. Where a tool has a `_file` field (such as `image_file`), a chat attachment goes there instead.
 - **No words in generated pictures.** Generators garble letters: titles, logos, captions and interface text are added in the user's editor.
 - **Sound.** If the model makes sound (`audio` in `can`), name only the sounds the scene makes, in order ("Diegetic sound only: ..."), with no music or instrument words. For a silent clip, look in `takes.parameters` for the model's sound switch; `notes` say when sound cannot be turned off.
-- **Joining.** These tools make stills, clips, voice and subtitle files. They do not join them: for now a piece of several parts ends as an ordered list that the user puts together in their video editor.
+- **Joining.** These tools make stills, clips, voice and subtitle files. They do not join them. A piece of several parts ends as an ordered edit list for the user's video editor, so promise no finished film. An assistant that can run commands on the user's computer can assemble the file there.
 - **People.** Anyone shown or voiced must have agreed to it. `notes` say which models refuse real people.
-- **One change per retake,** and the user chooses at each step.
+- **One change per retake.**

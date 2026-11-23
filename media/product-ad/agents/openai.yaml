@@ -1,0 +1,11 @@
+interface:
+  display_name: "Product ad"
+  short_description: "Product photo to video ad"
+  default_prompt: "Turn this product photo into a 10-second vertical ad for Instagram."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "opper-media"
+      description: "Opper Media: image, video, speech and transcription tools"
+      transport: "streamable_http"
+      url: "https://api.opper.ai/mcp/media-chatgpt"
