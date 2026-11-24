@@ -44,7 +44,7 @@ Each recipe is one skill, so each is its own command and can be installed alone.
 | [`series-episode`](./media/series-episode/) | An episode whose characters look the same in every shot and every episode |
 | [`storyboard-film`](./media/storyboard-film/) | A storyboard of keyframes with timings, approved as stills, then filmed through them |
 | [`continue-shot`](./media/continue-shot/) | A clip made longer, so its motion carries over the join |
-| [`voiceover`](./media/voiceover/) | A voice picked by ear, and one audio file per line |
+| [`voiceover`](./media/voiceover/) | A voice that suits the read, directed where it needs it, and one audio file per line |
 
 Nothing joins clips yet. `animate-photo`, `creator-ad`, `continue-shot`, `product-photos`, `voiceover`, a `product-ad` that fits in one clip and a one-clip `storyboard-film` end in finished files. `narrated-explainer`, `series-episode` and a `product-ad` made clip by clip end in an edit list for your video editor, and say so.
 

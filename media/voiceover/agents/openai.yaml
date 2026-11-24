@@ -1,7 +1,7 @@
 interface:
   display_name: "Voiceover"
   short_description: "A script in a voice you pick"
-  default_prompt: "Write and voice a 20-second radio ad for a bakery. Let me pick from three voices."
+  default_prompt: "Write and voice a 20-second radio ad for a bakery, warm and upbeat, in a woman's voice."
 dependencies:
   tools:
     - type: "mcp"

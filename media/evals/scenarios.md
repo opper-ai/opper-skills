@@ -1,6 +1,6 @@
 # Scenarios
 
-Three per skill: the plain case, a harder one, and a request that belongs to a neighbouring skill. How to run and score them is in [README.md](./README.md).
+At least three per skill: the plain case, a harder one, and a request that belongs to a neighbouring skill. How to run and score them is in [README.md](./README.md).
 
 ## `opper-media`
 
@@ -188,13 +188,16 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 **Good:**
 
 - Keeps the user's words, and also gives the whole script as one file, since the piece is sound only.
-- Asks whether the user knows the voice they want; if not, offers three clearly different voices on the first sentence and waits for the pick.
+- Asks one short question on the voice (man or woman, younger or older), since the read is given, then uses `fish/drama-3` with a cast voice id that fits.
+- Sends the text with no direction: a calm, plain read needs none.
+- After delivering, offers a second take: another voice, a stronger or lighter read, or the same line on the other model.
 - Delivers the audio by its link.
 
 **Bad:**
 
 - Rewrites the script unasked.
-- Picks a voice without an audition.
+- Searches a public voice library, or calls `list_voices` on the default model and stops when it comes back empty.
+- Adds one-word tags like `[calm]`.
 
 ### 14. Narration timed to a clip
 
@@ -203,7 +206,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 **Good:**
 
 - Writes about 50 words with start times per line and shows the script first.
-- Calls `list_voices` with the language; switches model if none fits.
+- Asks the one question on the read and the voice with the script; for a language the cast does not suit, calls `list_voices` with the language on the other model.
 - One file per line, in a format the model lists.
 
 **Bad:**
@@ -211,7 +214,24 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 - Writes far more words than 20 seconds hold.
 - Renders the whole script as one take without lines.
 
-### 15. Belongs to a neighbour
+### 15. An acted line
+
+**Request:** "A 10 second trailer line, dramatic, ending in a whisper: They said the lighthouse was empty. They were wrong."
+
+**Good:**
+
+- Asks only what is missing (man or woman, younger or older): the read is given.
+- Uses `fish/drama-3` with a cast voice id that fits a trailer, and says which model and voice.
+- Directs in plain language in square brackets before the words, with the whisper on the last words, and keeps the directions out of the script it shows.
+- Measures the take against 10 seconds, then offers a second take, among them the same line on the other model.
+
+**Bad:**
+
+- Sends the bare words and hopes for drama.
+- One-word tags like `[dramatic]`, or several directions stacked in one short line.
+- Reads the directions back as part of the script.
+
+### 16. Belongs to a neighbour
 
 **Request:** "Make a video of a woman saying this line to the camera."
 
@@ -225,7 +245,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 ## `creator-ad`
 
-### 16. An invented presenter
+### 17. An invented presenter
 
 **Request:** "A creator-style clip recommending my reusable water bottle, 10 seconds, vertical."
 
@@ -242,7 +262,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 - Relies on a video model to speak a line written in its prompt.
 - Uses a real person's face without asking about consent.
 
-### 17. A real person
+### 18. A real person
 
 **Request:** "Use my own photo as the presenter: https://example.com/me.jpg"
 
@@ -255,7 +275,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 - Goes ahead on a model whose notes say it refuses real people.
 
-### 18. Belongs to a neighbour
+### 19. Belongs to a neighbour
 
 **Request:** "A 15 second ad of my watch on a rotating stand, no people."
 
@@ -269,7 +289,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 ## `narrated-explainer`
 
-### 19. A topic
+### 20. A topic
 
 **Request:** "A 30 second explainer on how tides work, flat vector look."
 
@@ -287,7 +307,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 - Generates clips for every shot by default.
 - Puts labels or numbers into generated pictures.
 
-### 20. A walkthrough of screenshots
+### 21. A walkthrough of screenshots
 
 **Request:** "Make a walkthrough of my app from these five screenshots."
 
@@ -302,7 +322,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 - Restyles or animates a screenshot.
 - Describes a feature the screens do not show.
 
-### 21. Belongs to a neighbour
+### 22. Belongs to a neighbour
 
 **Request:** "Episode two of my cartoon about the two robots."
 
@@ -316,7 +336,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 ## `series-episode`
 
-### 22. A first episode
+### 23. A first episode
 
 **Request:** "Episode one of a claymation series about two rival bakers, four shots."
 
@@ -333,7 +353,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 - Describes a character in different words from one prompt to the next.
 - Promises one joined film.
 
-### 23. A next episode
+### 24. A next episode
 
 **Request:** "Here is my series bible and the sheet links. Make episode two."
 
@@ -346,7 +366,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 - Writes a new bible.
 
-### 24. Belongs to a neighbour
+### 25. Belongs to a neighbour
 
 **Request:** "One 6 second clip that goes from this first frame to this last frame."
 
@@ -360,7 +380,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 ## `storyboard-film`
 
-### 25. Three keyframes
+### 26. Three keyframes
 
 **Request:** "A 6 second film: a paper boat is set on a stream, drifts under a bridge, comes out into sunlight. Watercolour, 16:9."
 
@@ -376,7 +396,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 - Goes straight to video from the words.
 - Assumes a model takes middle frames without reading its row.
 
-### 26. Two keyframes
+### 27. Two keyframes
 
 **Request:** "From this first frame to this last frame in 4 seconds."
 
@@ -388,7 +408,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 - Regenerates the frames the user gave.
 
-### 27. Belongs to a neighbour
+### 28. Belongs to a neighbour
 
 **Request:** "Keep going with that clip, I want to see what happens next."
 
@@ -402,7 +422,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 ## `continue-shot`
 
-### 28. A clip made earlier in the chat
+### 29. A clip made earlier in the chat
 
 **Request:** "Continue that clip a few more seconds: the kite dips, loops and climbs again."
 
@@ -418,7 +438,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 - Starts a new clip from a still of the last frame without saying why.
 - Repeats the same model after it restarted the scene.
 
-### 29. Nothing can extend it
+### 30. Nothing can extend it
 
 **Request:** "Extend this clip from my phone: https://example.com/phone.mp4"
 
@@ -431,7 +451,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 - Claims the motion will carry over when the clip was used only as a reference.
 
-### 30. Belongs to a neighbour
+### 31. Belongs to a neighbour
 
 **Request:** "Make this photo move."
 

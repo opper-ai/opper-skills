@@ -8,7 +8,7 @@ Worked examples that chain the media skills. Each one starts from what a person 
 
 1. `product-photos`: two or three directions, a pick, then the set: three by default (clean, in use, detail), or as many as you ask for.
 2. `product-ad`: the chosen still becomes a reference for the ad, three or four shots in one clip.
-3. `voiceover`: one line over the ad, in a voice picked by ear.
+3. `voiceover`: one line over the ad, in a voice that suits the read.
 
 **You end with:** three stills, one clip (or an edit list for several shots) and the voice files.
 
