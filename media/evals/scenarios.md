@@ -48,32 +48,33 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 ## `product-ad`
 
-### 4. One shot from a photo
+### 4. From a photo
 
-**Request:** "Turn this product photo into a short ad for Instagram: https://example.com/mug.jpg"
+**Request:** "Turn this product photo into an ad for Instagram: https://example.com/mug.jpg"
 
 **Good:**
 
-- One message of questions at most, with two or three directions and a recommendation.
+- One message of questions at most: what must stay exact, the length, the sound, with two or three directions and a recommendation.
+- A shot list of three or four shots where something happens (an action, hands, the product in use), shown first.
 - A hero still made with the photo as `reference_images` on a model with `image_edit`, in 9:16, shown before any video.
-- A draft clip at the shortest length and lowest resolution, from the approved still as `image`.
-- Says what the editor adds: logo, headline, call to action.
+- The whole ad as one clip, with the photo and the hero still as `reference_images`, each shot with its seconds in the prompt.
+- The final at 720p on a model that takes `reference_images` and makes sound, named in one line, and a line of next steps after it (a take on another model among them).
 
 **Bad:**
 
-- Starts a video before the still is approved.
+- One slow push-in on a still product and nothing else.
+- Starts a video before the shot list and the still are approved.
 - Puts a headline or logo into the generated picture.
 - Talks about what anything costs without being asked.
 
-### 5. Several shots
+### 5. Longer than one clip
 
-**Request:** "A 15 second ad for my running shoes, three or four shots."
+**Request:** "A 45 second ad for my running shoes, with a shot that ends exactly on this packshot: https://example.com/shoe.jpg"
 
 **Good:**
 
-- Writes a shot list with seconds, job and one camera move per shot, and shows it first.
-- Fixed sentences for the product and the look, reused in every prompt.
-- All first frames shown together before any clip; one draft shot before the rest.
+- Says why it goes clip by clip: the length, and the frame a shot must end on.
+- All first frames shown together before any clip; the packshot as `last_image` on its shot.
 - Ends with an edit list and says the shots are joined in the user's editor.
 
 **Bad:**
@@ -145,7 +146,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 
 - A video model whose `inputs` list `image`; the photo passed as `image`.
 - A prompt that describes only motion and camera, one move, one shot.
-- A draft at the shortest length and lowest resolution first.
+- Asks the length with the motion (five seconds if the user leaves it open) and makes the clip at 720p.
 
 **Bad:**
 
@@ -159,7 +160,7 @@ Three per skill: the plain case, a harder one, and a request that belongs to a n
 **Good:**
 
 - Asks once whether the person agreed, if a real person is shown and the user has not said the photo is cleared.
-- Makes the last frame by editing the photo, shows it, then passes it as `last_image` on a model whose `inputs` list `last_image`.
+- Because the ending must be exact, makes the last frame by editing the photo, shows it, then passes it as `last_image` on a model whose `inputs` list `last_image`.
 - Reads the model's `notes` about real people.
 
 **Bad:**

@@ -36,7 +36,7 @@ Each recipe is one skill, so each is its own command and can be installed alone.
 | Skill | What you get |
 |---|---|
 | [`opper-media`](./media/opper-media/) | **Start here.** Single requests (an image, an edit, a clip, a voice line, a transcript, a cover) and which recipe fits a bigger piece |
-| [`product-ad`](./media/product-ad/) | A product video ad from a photo, a description or a product page: one shot, or several shots with an edit list |
+| [`product-ad`](./media/product-ad/) | A product video ad from a photo, a description or a product page: several shots in one clip, with action and sound |
 | [`product-photos`](./media/product-photos/) | A set of product stills from one photo, several or a description: three by default (clean, in use, detail) |
 | [`creator-ad`](./media/creator-ad/) | A clip of a presenter talking to camera about a product, in a voice you pick, with subtitles |
 | [`animate-photo`](./media/animate-photo/) | A still photo brought to life as a short clip |
@@ -46,7 +46,7 @@ Each recipe is one skill, so each is its own command and can be installed alone.
 | [`continue-shot`](./media/continue-shot/) | A clip made longer, so its motion carries over the join |
 | [`voiceover`](./media/voiceover/) | A voice picked by ear, and one audio file per line |
 
-Nothing joins clips yet. `animate-photo`, `creator-ad`, `continue-shot`, `product-photos`, `voiceover` and a one-shot `product-ad` or one-clip `storyboard-film` end in finished files. `narrated-explainer`, `series-episode` and a `product-ad` of several shots end in an edit list for your video editor, and say so.
+Nothing joins clips yet. `animate-photo`, `creator-ad`, `continue-shot`, `product-photos`, `voiceover`, a `product-ad` that fits in one clip and a one-clip `storyboard-film` end in finished files. `narrated-explainer`, `series-episode` and a `product-ad` made clip by clip end in an edit list for your video editor, and say so.
 
 Install the plugin in Claude Code (the skills plus the connection; you sign in through the browser on first use):
 
