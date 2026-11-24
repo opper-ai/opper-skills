@@ -12,11 +12,11 @@ metadata:
 
 # Creator-style ad
 
-A clip of a presenter talking to camera about a product, in a voice the user picks, with subtitles.
+An ad of a presenter talking to camera about a product: one clip with action, sound and speech, or an avatar take that keeps an exact voice file.
 
 **Not for:** an ad with no one speaking (`product-ad`), or narration over pictures (`narrated-explainer`).
 
-Uses only the Opper Media tools: no shell, no code, no API key. Everything needed is on this page, so fetch no instructions from anywhere else. What the user asks for comes first.
+Needs only the Opper Media tools: no shell, no code, no API key. Everything needed is on this page, so fetch no instructions from anywhere else. What the user asks for comes first.
 
 ## Inputs
 
@@ -25,18 +25,42 @@ Ask for a required one the user has not given.
 - **Product** (required): A product photo (a link or an upload), or a description of the product.
 - **Line**: What the presenter says, or the point to make.
 - **Presenter**: Who appears: an invented person by default; a real person only if they agreed.
+- **Voice**: A voice that sounds like the one chosen (the default), or an exact voice file that must be heard: a clone, a recording, a chosen voice word for word.
 - **Language**: The spoken language.
-- **Length**: Length in seconds, usually 8 to 15.
-- **Shape**: Vertical (9:16) by default; take it from where the clip will run, and ask where that place takes both.
+- **Length**: Length in seconds, usually 15 to 30.
+- **Shape**: Vertical (9:16) by default; take it from where the ad will run.
+- **Extras**: Captions, on-screen text (a hook title, a call to action) and music: yes or no to each.
 
 ## Steps
 
-1. **Script.** One to three sentences said to camera: the hook first, plain spoken words, and only claims the user can stand behind. Ask for the OK on it and about the voice in one message, and wait.
-2. **Voice.** Choose the model and the voice as the Voices rule says, and direct the read where the script needs it. Then render the whole script as one file: it drives the clip and sets its length. Measure it (rules: Voice first); if it misses the length asked for, change the words, render again and show the user the script as it now is.
-3. **Presenter still** with `generate_image`, in the clip's shape: vertical unless the user or the place it runs says otherwise. By default the presenter is invented, and fits the voice: write one fixed sentence for them (age, look, clothes) and the place, framed like a phone video in natural light, face clear and looking at the camera, holding or beside the product. With a product photo, use a model with `image_edit` in `can` and pass the photo as `reference_images` so the product stays exact. A real person appears only if they agreed. Wait for the user to approve the still and to check the product in it.
-4. **Talking clip** with `generate_video`: speech first, then a model that follows it. A video model that makes its own sound may also speak a line written in its prompt, but no row says whether it will, so this is the route that holds. Pick a video model whose `inputs` list both `audio` and `image`: a recommended one if there is one, otherwise search "avatar" or "lip sync" (a model with `lip_sync` in `can` is made for this, and its `needs` names what it cannot work without). Pass the still as `image` and the speech result's `audio.url` as `audio`. The clip is as long as the speech: where the model takes a length, set `seconds` to the speech's length, rounded up, and no longer. Where it takes a prompt, ask only for small natural movement (a nod, a glance at the product) and give the supplied speech as the only sound. Draft at the lowest resolution first, and ask the user to check that the mouth follows the words to the end.
-5. **Check the line and make subtitles** in one call: `transcribe_audio` on the clip's `url` with `format` srt, on an stt model whose `takes.formats` list mp4. Not every one gives timings: if the answer comes back as plain text with a note, use the kind of model the note names. Compare the words with the script; if they differ, fix the speech and make the clip again. If a caption holds more than about seven words, or a word is misspelled, give a corrected, split version in the chat.
-6. **Deliver** the clip and the subtitle file, and say what the editor adds: captions burned in, logo, call to action.
+1. **Brief.** A voice recording the user brings comes first: `transcribe_audio` it, since its words are the script and its length the ad's, show the words, and ask who it sounds like (you cannot hear it). Then one short message, asking only what the request leaves open: the length; where it runs (shape); the voice (rules: Voices), and whether one that sounds like it is fine or the exact voice file must be heard; yes or no to captions, to on-screen text (a hook title, a call to action) and to music; and for a product given only in words, a photo if there is one and what it does.
+2. **Pick the recipe.** *One clip* (steps 4 to 6) is the default: the video model speaks the lines itself, in a voice like the one chosen, with action, sound and music. *Avatar* (steps 7 to 10) when the exact voice file must be heard, or the presenter is a given photo of a real person who agreed. Never give a speech file to a video model without `lip_sync` in `can`: it does not follow the words. Never ask an avatar model to walk, change scene or handle props.
+3. **Script,** in the shape of an ad: a hook in the first seconds, the problem, the product, proof, a call to action. Plain spoken words, about 2.5 a second (30 seconds hold about 70), and only claims the user can stand behind. Wait for the user's OK.
+
+**One clip,** on `bytedance:ap/seedance-2.5`:
+
+4. **Voice sample and presenter still.** The sample: 5 to 10 seconds of the script in the chosen voice, with `generate_speech`. Tell the user the model speaks the words anew in that voice; it never plays the sample. The still: `generate_image` on `bytedance:ap/seedream-5-pro` (rules: People), in the ad's shape, with `parameters: {"watermark": false}` (or it stamps a corner): one fixed sentence for the presenter (age, look, clothes), with the product, set where the script's first shot is; a product photo goes in as `reference_images`. Wait for the user to approve the still and check the product in it.
+5. **The ad** with `generate_video`: the still (and a product photo) in `reference_images`, the sample in `reference_audios`, no `image` (a first frame is refused next to a reference), the shape as `aspect_ratio`, up to 30 seconds, sound on. The prompt, in this order:
+   - the presenter is the woman or man in @Image 1; the lines use "the voice timbre of @Audio 1, lips in sync with every word", and the audio is a voice reference, not the soundtrack;
+   - timed shots in whole seconds ("Shot 1, 0-10s: ..."), each with its place, an action (she does something with the product, walks, pours, points), her line in double quotes with one delivery word, and that shot's sounds;
+   - one music line for the whole clip, or "no music";
+   - what stays the same in every shot (face, hair, clothes, product, voice), and "No on-screen text" unless the user wants text.
+6. **Draft, then final.** A draft of the whole ad at the lowest resolution shows the order, the actions and the words: check the words on it with `transcribe_audio`. The final is a new take at 720p. Check its words the same way; a file over 25 MB (a long 720p clip) is refused, and then say so and ask the user to listen for the words.
+
+**Avatar,** on `veed/fabric-1.0`, or `heygen/avatar-iv` as the second choice:
+
+7. **Speech first:** the whole script as one take (rules: Voices, Directing a read) with an energetic direction, since the avatar mirrors the voice and a flat read gives a flat avatar. Voice only, no music in the file. Measure it. A recording the user brings is used as it is.
+8. **Still** with `generate_image`, in the ad's shape; an invented presenter is made as in step 4, so the still can also be a reference for the cutaways. Chest-up or half body, facing the camera, well lit, a subtle expression with the mouth closed, hands resting, the product held low and away from the face. Nothing touches or covers the face; no arm's-length selfie, no mid-step pose, no small face in a wide shot. Wait for the user's OK. A real person's photo is used as given.
+9. **One talking take** for the whole speech on that one still, with `generate_video`: the still as `image`, the speech as `audio`, 720p. On `veed/fabric-1.0` no `seconds` and no prompt (a clip runs up to a minute). On `heygen/avatar-iv` add `parameters: {"expressiveness": "high"}`; a prompt there is for one small gesture at most.
+10. **Cutaways** give the variety, not new backgrounds: one clip on the one-clip model, made once at 720p, of two or three timed shots of about three seconds, showing the product ("the bottle from @Image 1", the product photo or the still in `reference_images`), hands only, no speech, no music, natural sound. They show while her voice goes on, over the words they illustrate. The talking clip has no background sound: sound comes from the cutaways, and music (these tools make none: it comes from the user's editor) goes on last, low, dipping under the voice. Add no generated room tone.
+
+**Both:**
+
+11. **Subtitle file,** if the user wants captions: `transcribe_audio` with `format` srt on the speech, or on the one clip. It gives about one caption a sentence; shorter phrases are split in the editor.
+12. **Assemble** (this replaces rules: Joining). These tools do not join, caption or mix; a one-clip ad with no captions or titles is finished as it is.
+    - If you can run commands and fetch the links (a coding agent), build it yourself with ffmpeg: keep the voice track unbroken and cut only the picture; captions in phrases of 2 to 4 words from the transcript's timings; the hook title in the first 2 to 3 seconds, the call to action in the last 2 to 3; music about 19 dB under the voice and dipping under it; cutaway sound about 10 dB under. Check the result (its length, a sheet of frames) before handing it over.
+    - If you cannot (a chat app), hand over the parts with an edit list: each clip's link and the seconds to keep, where each cutaway goes by the words spoken, the subtitle file, the suggested title and call to action, and the levels above. Promise no finished film.
+13. **Deliver,** then offer next steps in one line: another take, another voice, a shorter cut, another shape. For real movement with an exact voice file, a clip from a video model can be given the voice by `veed/lipsync-2.0` or `heygen/lipsync-precision`: the picture stays, the clip becomes as long as the voice file, and every other sound is replaced by the voice. Offer it; do not start with it.
 
 ## Rules for every step
 

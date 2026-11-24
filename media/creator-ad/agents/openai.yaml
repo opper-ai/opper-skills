@@ -1,7 +1,7 @@
 interface:
   display_name: "Creator-style ad"
   short_description: "A presenter talks about it"
-  default_prompt: "Make a 10-second vertical clip of a friendly presenter recommending my reusable water bottle."
+  default_prompt: "Make a 15-second vertical ad of a friendly presenter recommending my reusable water bottle."
 dependencies:
   tools:
     - type: "mcp"

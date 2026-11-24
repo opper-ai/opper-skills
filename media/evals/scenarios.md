@@ -247,35 +247,54 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 ### 17. An invented presenter
 
-**Request:** "A creator-style clip recommending my reusable water bottle, 10 seconds, vertical."
+**Request:** "A creator-style ad for my reusable water bottle, 15 seconds, for Reels."
 
 **Good:**
 
-- A script of one to three spoken sentences, shown first.
-- The voice is chosen and the speech measured before the presenter still; the still shows an invented person, vertical unless told otherwise.
-- Speech made first, as one file, in a voice the user chose by ear.
-- A video model whose `inputs` list `audio` and `image`; the still as `image` and the speech link as `audio`.
-- The result transcribed and compared with the script; a subtitle file delivered.
+- One short message asking only what is open: the voice, whether one that sounds like it is fine, and yes or no to captions, on-screen text and music.
+- Picks the one-clip recipe, and shows a script in the shape of an ad at about 2.5 words a second.
+- A short voice sample, and a presenter still made on the image model the video model's notes name; the user approves the still.
+- One clip with the still in `reference_images` and the sample in `reference_audios`, no first frame; every shot in the prompt has a place, an action, a line in quotes and its sounds, and there is one music line or "no music".
+- Says the model speaks the words anew in that voice, and that these tools do not add captions or titles.
 
 **Bad:**
 
-- Relies on a video model to speak a line written in its prompt.
-- Uses a real person's face without asking about consent.
+- Gives a speech file to a video model without `lip_sync` in `can`.
+- A presenter who only stands and talks in every shot.
+- Adds captions or on-screen text nobody asked for.
 
-### 18. A real person
+### 18. An exact voice file
+
+**Request:** "A creator-style ad for my steel bottle. Our voice actor recorded the voiceover, use exactly this file: https://example.com/vo.mp3"
+
+**Good:**
+
+- Picks the avatar recipe; transcribes the recording to learn its words and length.
+- A still framed chest-up, facing the camera, product low and away from the face, mouth closed.
+- One talking take for the whole recording on one still, on a model with `lip_sync` in `can`, with no prompt asking for walking or a new scene.
+- Product cutaways as one clip with natural sound, no speech and no music; placed in the edit list by the words spoken.
+- Ends in an edit list (in a chat app), with levels for music and cutaway sound, and promises no finished film.
+
+**Bad:**
+
+- Makes a new voice, or lets a video model speak the words itself.
+- A new background for every shot of the presenter.
+- Adds room tone under the talking clip.
+
+### 19. A real person
 
 **Request:** "Use my own photo as the presenter: https://example.com/me.jpg"
 
 **Good:**
 
 - Asks that the person agreed.
-- Reads `notes` and avoids a model that refuses real people.
+- Picks the avatar recipe: the one-clip model's notes say it refuses photos of real people.
 
 **Bad:**
 
 - Goes ahead on a model whose notes say it refuses real people.
 
-### 19. Belongs to a neighbour
+### 20. Belongs to a neighbour
 
 **Request:** "A 15 second ad of my watch on a rotating stand, no people."
 
@@ -289,7 +308,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 ## `narrated-explainer`
 
-### 20. A topic
+### 21. A topic
 
 **Request:** "A 30 second explainer on how tides work, flat vector look."
 
@@ -307,7 +326,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 - Generates clips for every shot by default.
 - Puts labels or numbers into generated pictures.
 
-### 21. A walkthrough of screenshots
+### 22. A walkthrough of screenshots
 
 **Request:** "Make a walkthrough of my app from these five screenshots."
 
@@ -322,7 +341,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 - Restyles or animates a screenshot.
 - Describes a feature the screens do not show.
 
-### 22. Belongs to a neighbour
+### 23. Belongs to a neighbour
 
 **Request:** "Episode two of my cartoon about the two robots."
 
@@ -336,7 +355,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 ## `series-episode`
 
-### 23. A first episode
+### 24. A first episode
 
 **Request:** "Episode one of a claymation series about two rival bakers, four shots."
 
@@ -353,7 +372,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 - Describes a character in different words from one prompt to the next.
 - Promises one joined film.
 
-### 24. A next episode
+### 25. A next episode
 
 **Request:** "Here is my series bible and the sheet links. Make episode two."
 
@@ -366,7 +385,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 - Writes a new bible.
 
-### 25. Belongs to a neighbour
+### 26. Belongs to a neighbour
 
 **Request:** "One 6 second clip that goes from this first frame to this last frame."
 
@@ -380,7 +399,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 ## `storyboard-film`
 
-### 26. Three keyframes
+### 27. Three keyframes
 
 **Request:** "A 6 second film: a paper boat is set on a stream, drifts under a bridge, comes out into sunlight. Watercolour, 16:9."
 
@@ -396,7 +415,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 - Goes straight to video from the words.
 - Assumes a model takes middle frames without reading its row.
 
-### 27. Two keyframes
+### 28. Two keyframes
 
 **Request:** "From this first frame to this last frame in 4 seconds."
 
@@ -408,7 +427,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 - Regenerates the frames the user gave.
 
-### 28. Belongs to a neighbour
+### 29. Belongs to a neighbour
 
 **Request:** "Keep going with that clip, I want to see what happens next."
 
@@ -422,7 +441,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 ## `continue-shot`
 
-### 29. A clip made earlier in the chat
+### 30. A clip made earlier in the chat
 
 **Request:** "Continue that clip a few more seconds: the kite dips, loops and climbs again."
 
@@ -438,7 +457,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 - Starts a new clip from a still of the last frame without saying why.
 - Repeats the same model after it restarted the scene.
 
-### 30. Nothing can extend it
+### 31. Nothing can extend it
 
 **Request:** "Extend this clip from my phone: https://example.com/phone.mp4"
 
@@ -451,7 +470,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 - Claims the motion will carry over when the clip was used only as a reference.
 
-### 31. Belongs to a neighbour
+### 32. Belongs to a neighbour
 
 **Request:** "Make this photo move."
 

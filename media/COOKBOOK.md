@@ -14,12 +14,12 @@ Worked examples that chain the media skills. Each one starts from what a person 
 
 ## 2. A creator-style clip with subtitles
 
-**Say:** "Make a clip of someone recommending my tea, ten seconds, for Instagram."
+**Say:** "Make an ad of someone recommending my tea, fifteen seconds, for Instagram."
 
-1. `creator-ad`: the script, an invented presenter holding the product, a voice, then the talking clip.
-2. The same skill transcribes the result, checks the line and gives a subtitle file.
+1. `creator-ad`: the script, an invented presenter with the product, then the ad as one clip in which she speaks and does something. With a voice file that must be heard as it is: an avatar take plus product cutaways.
+2. The same skill checks the words on a draft, and gives a subtitle file if you want captions.
 
-**You end with:** one clip with speech, in the shape of the place it runs, and its subtitles.
+**You end with:** one clip with speech, action and sound, in the shape of the place it runs. Captions and titles, if you want them, go on in your editor.
 
 ## 3. An explainer for a feature
 
