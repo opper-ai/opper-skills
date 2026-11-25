@@ -314,17 +314,20 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 **Good:**
 
-- A script of about 75 words as a shot table, shown first.
-- Voice before pictures: an audition, then one file per line.
-- A hero still shown, then the other stills made with it as `reference_images` and shown together.
-- Says whether the pictures are stills, a mix or clips (a mix unless told otherwise), with one draft clip first.
-- Ends with an edit list and says plainly that the parts are joined in the user's editor.
+- A brief before any script, in one message: it proposes drawings with motion only where it explains (the look is given), names the other kinds of pictures, asks stills, a mix or clips, the shape, the voice and roughly how many shots, and says what will be reviewed and in which order.
+- A script of about 55 words as a shot table, shown before anything is made.
+- Voice before pictures, one file per line, each measured.
+- A hero still for the look, then every still beside its line as a storyboard, approved before any clip.
+- One draft clip, then one line with how many clips, the model, the length and the resolution, and a wait for the go.
+- Clips as long as their line plus half a second, rounded up; a drawn look is made silent.
+- In a chat app, ends with an edit list and promises no finished film; subtitles only as an offer.
 
 **Bad:**
 
-- Promises a finished video file.
-- Generates clips for every shot by default.
+- Writes the script before the brief, or asks open questions with nothing proposed.
+- Makes clips before the storyboard is approved, or a draft for every clip.
 - Puts labels or numbers into generated pictures.
+- Quotes what the clips will cost.
 
 ### 22. A walkthrough of screenshots
 

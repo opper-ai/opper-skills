@@ -40,13 +40,13 @@ Each recipe is one skill, so each is its own command and can be installed alone.
 | [`product-photos`](./media/product-photos/) | A set of product stills from one photo, several or a description: three by default (clean, in use, detail) |
 | [`creator-ad`](./media/creator-ad/) | An ad of a presenter talking to camera about a product: one clip with action, sound and speech, or an avatar take that keeps an exact voice file |
 | [`animate-photo`](./media/animate-photo/) | A still photo brought to life as a short clip |
-| [`narrated-explainer`](./media/narrated-explainer/) | Script, voice and pictures (stills, a mix, or clips) with an edit list; also a walkthrough built on your own screenshots, which are never regenerated |
+| [`narrated-explainer`](./media/narrated-explainer/) | A brief that proposes the kind of pictures, then script, voice, a storyboard of stills and, last, the clips; also a walkthrough built on your own screenshots, which are never regenerated |
 | [`series-episode`](./media/series-episode/) | An episode whose characters look the same in every shot and every episode |
 | [`storyboard-film`](./media/storyboard-film/) | A storyboard of keyframes with timings, approved as stills, then filmed through them |
 | [`continue-shot`](./media/continue-shot/) | A clip made longer, so its motion carries over the join |
 | [`voiceover`](./media/voiceover/) | A voice that suits the read, directed where it needs it, and one audio file per line |
 
-Nothing joins clips yet. `animate-photo`, `continue-shot`, `product-photos`, `voiceover`, a one-clip `creator-ad`, a `product-ad` that fits in one clip and a one-clip `storyboard-film` end in finished files. `narrated-explainer`, `series-episode`, a `product-ad` made clip by clip and a `creator-ad` built on an avatar take end in an edit list for your video editor, and say so. One exception: `creator-ad` tells an agent that can run commands (a coding agent) how to put its parts together itself.
+Nothing joins clips yet. `animate-photo`, `continue-shot`, `product-photos`, `voiceover`, a one-clip `creator-ad`, a `product-ad` that fits in one clip and a one-clip `storyboard-film` end in finished files. `narrated-explainer`, `series-episode`, a `product-ad` made clip by clip and a `creator-ad` built on an avatar take end in an edit list for your video editor, and say so. One exception: `creator-ad` and `narrated-explainer` tell an agent that can run commands (a coding agent) how to put the parts together itself.
 
 Install the plugin in Claude Code (the skills plus the connection; you sign in through the browser on first use):
 
