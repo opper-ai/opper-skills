@@ -318,7 +318,8 @@ At least three per skill: the plain case, a harder one, and a request that belon
 - A script of about 55 words as a shot table, shown before anything is made.
 - Voice before pictures, one file per line, each measured.
 - A hero still for the look, then every still beside its line as a storyboard, approved before any clip.
-- One draft clip, then one line with how many clips, the model, the length and the resolution, and a wait for the go.
+- One draft clip, then one line with how many final clips (the drafted shot too), the model, the length and the resolution, and a wait for the go.
+- With a shell, checks a strip of frames from each clip as it lands, before the join.
 - Clips as long as their line plus half a second, rounded up; a drawn look is made silent.
 - In a chat app, ends with an edit list and promises no finished film; subtitles only as an offer.
 
@@ -326,6 +327,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 - Writes the script before the brief, or asks open questions with nothing proposed.
 - Makes clips before the storyboard is approved, or a draft for every clip.
+- Asks about the voice again after the brief was accepted.
 - Puts labels or numbers into generated pictures.
 - Quotes what the clips will cost.
 
