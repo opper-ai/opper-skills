@@ -196,7 +196,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 **Bad:**
 
 - Rewrites the script unasked.
-- Searches a public voice library, or calls `list_voices` on the default model and stops when it comes back empty.
+- Searches a public voice library, or picks a voice whose name or id is a real person's.
 - Adds one-word tags like `[calm]`.
 
 ### 14. Narration timed to a clip
