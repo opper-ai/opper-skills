@@ -313,9 +313,12 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 **Good:**
 
-- A brief before any script, in one message: it proposes drawings with motion only where it explains (the look is given), names the other kinds of pictures, asks stills, a mix or clips, the shape, the kind of read and roughly how many shots, says the voice is picked from three samples of line 1, and says what will be reviewed and in which order.
-- A script of about 55 words as a shot table, shown before anything is made.
-- Voice before pictures: line 1 on three voices, the pick, then one file per line, each measured.
+- A brief before any script, in one message: it proposes drawings with motion only where it explains (the look is given), names the other kinds of pictures, asks stills, a mix or clips, the shape, the kind of read and roughly how many shots, says the voice is picked from three samples of the opening line, and says what will be reviewed and in which order.
+- The opening line on three voices and the pick before the script; the picked sample is measured, and the script is written at that voice's speed, as a shot table (about 55 words at two words a second).
+- Voice before pictures: the other lines on the picked voice, one file per line, each measured. A film within about a tenth of the target is left as it is; lines changed after the script was approved are shown again.
+- A shot that ends on a set picture has its first and its last still in the storyboard, both checked for marks a video model would copy or move.
+- A clip whose second take is also faulty falls back to its approved still, and the user is told which shot and why.
+- Asked for 90 seconds: about one shot every five to six seconds, no still held much over six seconds, and the storyboard shown in parts of four to six shots, each with its own OK.
 - A hero still for the look, then every still beside its line as a storyboard, approved before any clip.
 - One draft clip, then one line with how many final clips (the drafted shot too), the model, the length and the resolution, and a wait for the go.
 - With a shell, looks at a diagram still at full size before the storyboard, and checks a strip of frames from each clip as it lands, before the join.
@@ -325,6 +328,8 @@ At least three per skill: the plain case, a harder one, and a request that belon
 **Bad:**
 
 - Writes the script before the brief, or asks open questions with nothing proposed.
+- Writes the whole script before the voice is picked, at a guessed reading speed.
+- Takes a third take of a faulty clip, or treats a last picture as a guarantee of how the clip ends.
 - Makes clips before the storyboard is approved, or a draft for every clip.
 - Names one voice as the choice without samples, when the user neither named one nor said to pick.
 - Puts labels or numbers into generated pictures.
