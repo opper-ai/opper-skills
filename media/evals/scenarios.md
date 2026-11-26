@@ -319,7 +319,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 - Voice before pictures, one file per line, each measured.
 - A hero still for the look, then every still beside its line as a storyboard, approved before any clip.
 - One draft clip, then one line with how many final clips (the drafted shot too), the model, the length and the resolution, and a wait for the go.
-- With a shell, checks a strip of frames from each clip as it lands, before the join.
+- With a shell, looks at a diagram still at full size before the storyboard, and checks a strip of frames from each clip as it lands, before the join.
 - Clips as long as their line plus half a second, rounded up; a drawn look is made silent.
 - In a chat app, ends with an edit list and promises no finished film; subtitles only as an offer.
 
