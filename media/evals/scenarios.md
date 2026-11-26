@@ -188,9 +188,9 @@ At least three per skill: the plain case, a harder one, and a request that belon
 **Good:**
 
 - Keeps the user's words, and also gives the whole script as one file, since the piece is sound only.
-- Asks one short question on the voice (man or woman, younger or older), since the read is given, then uses `fish/drama-3` with a cast voice id that fits.
+- Sends the line on three calm voices in one message, each with one line on the voice, and waits for the pick; asks nothing about the read, which is given.
 - Sends the text with no direction: a calm, plain read needs none.
-- After delivering, offers a second take: another voice, a stronger or lighter read, or the same line on the other model.
+- After delivering, offers in one line another voice or a stronger or lighter read.
 - Delivers the audio by its link.
 
 **Bad:**
@@ -206,7 +206,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 **Good:**
 
 - Writes about 50 words with start times per line and shows the script first.
-- Asks the one question on the read and the voice with the script; for a language the cast does not suit, calls `list_voices` with the language on the other model.
+- Proposes the read with the script and says the voice is picked from three samples; finds Swedish voices with `list_voices` and its `language`.
 - One file per line, in a format the model lists.
 
 **Bad:**
@@ -220,10 +220,9 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 **Good:**
 
-- Asks only what is missing (man or woman, younger or older): the read is given.
-- Uses `fish/drama-3` with a cast voice id that fits a trailer, and says which model and voice.
+- Sends the line on three voices that fit a trailer, on more than one model where they have one, and waits for the pick; says which voice and model the final is on.
 - Directs in plain language in square brackets before the words, with the whisper on the last words, and keeps the directions out of the script it shows.
-- Measures the take against 10 seconds, then offers a second take, among them the same line on the other model.
+- Measures the take against 10 seconds, then offers another voice or a stronger or lighter read.
 
 **Bad:**
 
@@ -251,9 +250,9 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 **Good:**
 
-- One short message asking only what is open: the voice, whether one that sounds like it is fine, and yes or no to captions, on-screen text and music.
+- One short message asking only what is open: the kind of read, whether a voice that sounds like the picked one is fine, and yes or no to captions, on-screen text and music.
 - Picks the one-clip recipe, and shows a script in the shape of an ad at about 2.5 words a second.
-- A short voice sample, and a presenter still made on the image model the video model's notes name; the user approves the still.
+- The first seconds of the script on three voices, the user's pick as the voice reference, and a presenter still made on the image model the video model's notes name; the user approves the still.
 - One clip with the still in `reference_images` and the sample in `reference_audios`, no first frame; every shot in the prompt has a place, an action, a line in quotes and its sounds, and there is one music line or "no music".
 - Says the model speaks the words anew in that voice, and that these tools do not add captions or titles.
 
@@ -314,9 +313,9 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 **Good:**
 
-- A brief before any script, in one message: it proposes drawings with motion only where it explains (the look is given), names the other kinds of pictures, asks stills, a mix or clips, the shape, the voice and roughly how many shots, and says what will be reviewed and in which order.
+- A brief before any script, in one message: it proposes drawings with motion only where it explains (the look is given), names the other kinds of pictures, asks stills, a mix or clips, the shape, the kind of read and roughly how many shots, says the voice is picked from three samples of line 1, and says what will be reviewed and in which order.
 - A script of about 55 words as a shot table, shown before anything is made.
-- Voice before pictures, one file per line, each measured.
+- Voice before pictures: line 1 on three voices, the pick, then one file per line, each measured.
 - A hero still for the look, then every still beside its line as a storyboard, approved before any clip.
 - One draft clip, then one line with how many final clips (the drafted shot too), the model, the length and the resolution, and a wait for the go.
 - With a shell, looks at a diagram still at full size before the storyboard, and checks a strip of frames from each clip as it lands, before the join.
@@ -327,7 +326,7 @@ At least three per skill: the plain case, a harder one, and a request that belon
 
 - Writes the script before the brief, or asks open questions with nothing proposed.
 - Makes clips before the storyboard is approved, or a draft for every clip.
-- Asks about the voice again after the brief was accepted.
+- Names one voice as the choice without samples, when the user neither named one nor said to pick.
 - Puts labels or numbers into generated pictures.
 - Quotes what the clips will cost.
 
