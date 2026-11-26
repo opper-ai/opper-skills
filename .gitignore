@@ -6,3 +6,6 @@ _site/
 
 # Build output from scripts/build-claude-plugin.sh
 _claude-plugin/
+
+# Build output from scripts/build-chatgpt-plugin.sh
+_chatgpt-plugin/

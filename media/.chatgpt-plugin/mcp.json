@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "opper-media": {
+      "type": "streamable-http",
+      "url": "https://api.opper.ai/mcp/media-chatgpt",
+      "extensions": {
+        "com.openai": {
+          "auth": {
+            "type": "oauth"
+          }
+        }
+      }
+    }
+  },
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"
+}

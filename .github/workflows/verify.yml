@@ -38,3 +38,8 @@ jobs:
       # that would break it (a disallowed file, a frontmatter key) fails here.
       - name: Claude plugin build
         run: bash scripts/build-claude-plugin.sh "$RUNNER_TEMP/claude-plugin"
+
+      # Builds the Opper Media package for ChatGPT, so a PR that breaks its
+      # listing limits or puts money wording in it fails here.
+      - name: ChatGPT plugin build
+        run: bash scripts/build-chatgpt-plugin.sh "$RUNNER_TEMP/chatgpt-plugin"

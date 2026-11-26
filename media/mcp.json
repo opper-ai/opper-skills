@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "opper-media": {
+      "url": "https://api.opper.ai/mcp/media"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "opper-media",
+  "version": "0.2.0",
+  "description": "Make images, video and speech in the conversation with your Opper account, with guided recipes for ads, product photos, explainers, episodes and voiceovers.",
+  "author": {
+    "name": "Opper Technology AB",
+    "url": "https://opper.ai"
+  },
+  "homepage": "https://opper.ai",
+  "keywords": [
+    "images",
+    "video",
+    "speech",
+    "voiceover",
+    "ads",
+    "storyboard"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Opper Media",
+        "shortDescription": "Make images, video and speech",
+        "longDescription": "Opper Media makes images, video clips and spoken audio from a few words in your conversation.\n\nDescribe what you want. Opper Media picks a suitable model, starts the job and shows the result in the chat: an image, a video player or an audio player. Videos render in the background, and the card updates by itself when the clip is ready.\n\nWhat you can do:\n- Create images from a description, in the shape you need: square, portrait or widescreen.\n- Edit or restyle a photo you attach to the chat, or use your own photos as references.\n- Make short video clips from a description, or animate a still image, including clips that start and end on frames you choose.\n- Make a talking clip from a face and a voice, or extend a clip you already have.\n- Turn a script into natural speech, and pick a voice by language, accent or gender.\n- Get a transcript or a subtitle file from a recording or a video.\n- Find your earlier results again, or ask which model suits a task, such as a clip with sound or a voice in a given language.\n\nGuided recipes walk you through a whole piece: a product ad in one shot or several, a set of product photos, a creator-style clip with a presenter who speaks, a narrated explainer or a walkthrough of your own screenshots, an episode with the same characters, a film that follows your storyboard, a photo brought to life, a clip made longer, or a voiceover. You see a quick draft first and choose at every step.\n\nModels: Opper Media offers a selection of image, video and speech models from several model makers, and you can ask for a specific model by name. Each model lists what it accepts, such as lengths, sizes and voices, and where it runs.\n\nYour results: every result comes with a link that keeps working for 30 days, so you can open or download it later.\n\nAccount: Opper Media works with your Opper account. You sign in, or create an account, the first time you connect.\n\nPlease respect others: do not use Opper Media to depict a real person without their consent.\n\nOpper Media is made by Opper Technology AB in Stockholm, Sweden.",
+        "developerName": "Opper Technology AB",
+        "category": "Creativity",
+        "capabilities": [
+          "Generate and edit images",
+          "Generate video from text, images, audio or a clip",
+          "Generate speech and pick a voice",
+          "Transcribe recordings and make subtitles"
+        ],
+        "websiteURL": "https://opper.ai",
+        "privacyPolicyURL": "https://opper.ai/privacy-policy",
+        "termsOfServiceURL": "https://opper.ai/terms-of-service",
+        "defaultPrompt": [
+          "Turn my product photo into a 10-second vertical ad. Show me the plan first.",
+          "Make a 30-second narrated explainer on how tides work, in a flat vector style.",
+          "Write and voice a 20-second radio ad for a bakery. Let me pick from three voices."
+        ],
+        "supportURL": "https://opper.ai/contact",
+        "brandColor": "#1B2E40",
+        "brandColorDark": "#8BE9F0",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
+      }
+    }
+  },
+  "repository": "https://github.com/opper-ai/opper-skills",
+  "license": "MIT"
+}

@@ -1,0 +1,11 @@
+interface:
+  display_name: "Narrated explainer"
+  short_description: "Script, voice and pictures"
+  default_prompt: "Make a 30-second narrated explainer on how tides work, in a flat vector style."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "opper-media"
+      description: "Opper Media: image, video, speech and transcription tools"
+      transport: "streamable_http"
+      url: "https://api.opper.ai/mcp/media-chatgpt"

@@ -1,0 +1,11 @@
+interface:
+  display_name: "Storyboard to film"
+  short_description: "Keyframes and timings to film"
+  default_prompt: "Make a 6-second film from a storyboard: a paper boat drifts under a bridge into sunlight."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "opper-media"
+      description: "Opper Media: image, video, speech and transcription tools"
+      transport: "streamable_http"
+      url: "https://api.opper.ai/mcp/media-chatgpt"

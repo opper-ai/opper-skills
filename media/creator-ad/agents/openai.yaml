@@ -1,0 +1,11 @@
+interface:
+  display_name: "Creator-style ad"
+  short_description: "A presenter talks about it"
+  default_prompt: "Make a 15-second vertical ad of a friendly presenter recommending my reusable water bottle."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "opper-media"
+      description: "Opper Media: image, video, speech and transcription tools"
+      transport: "streamable_http"
+      url: "https://api.opper.ai/mcp/media-chatgpt"

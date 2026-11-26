@@ -7,11 +7,11 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 errors=0
 
-for skill_file in "$REPO_ROOT"/*/SKILL.md "$REPO_ROOT"/guides/*/SKILL.md; do
+for skill_file in "$REPO_ROOT"/*/SKILL.md "$REPO_ROOT"/guides/*/SKILL.md "$REPO_ROOT"/media/*/SKILL.md; do
   [ -f "$skill_file" ] || continue
 
   dir_name="$(basename "$(dirname "$skill_file")")"
-  # Path under the repo root (opper-api, or guides/video-production): the served URL and versions.json key.
+  # Path under the repo root (opper-api, guides/video-production, media/product-ad): the served URL and versions.json key.
   rel_dir="${skill_file#"$REPO_ROOT"/}"; rel_dir="${rel_dir%/SKILL.md}"
 
   # --- Check 1: SKILL.md under 500 lines ---
@@ -99,10 +99,71 @@ for skill_file in "$REPO_ROOT"/*/SKILL.md "$REPO_ROOT"/guides/*/SKILL.md; do
   if ! echo "$version" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\.[0-9]+)?$'; then
     echo "ERROR: $dir_name/SKILL.md metadata.version '$version' must be YYYY-MM-DD or YYYY-MM-DD.N (run scripts/bump-version.sh $dir_name)"
     errors=$((errors + 1))
+  elif [ "${rel_dir#media/}" != "$rel_dir" ]; then
+    : # Media skills carry no version-check block: see the media checks below.
   elif [ "$(grep -c '^<!-- version-check' "$skill_file")" -ne 1 ] \
     || ! grep -qF "> **Skill version $version.**" "$skill_file" \
     || ! grep -qF "https://skills.opper.ai/$rel_dir/SKILL.md" "$skill_file"; then
     echo "ERROR: $dir_name/SKILL.md version-check block is missing or does not match metadata.version $version (run scripts/bump-version.sh $rel_dir)"
+    errors=$((errors + 1))
+  fi
+done
+
+# --- Media skills (media/<name>/SKILL.md): recipes for the Opper Media tools ---
+# They ship as the opper-media plugin and a copy is built into the Opper Media
+# MCP server, so each one stands alone: it tells the assistant to fetch nothing
+# (no version-check block, no skills.opper.ai link) and repeats the same rules
+# as every other media skill. They say nothing about what things cost (the
+# user sees that in their Opper account) and name no other product.
+MEDIA_FORBIDDEN='pric|cost|\$|credit|funds|wallet|top up|top-up|billing|purchase|upgrade|cheap|higgsfield|runway'
+
+rules_of() { awk '/^## Rules for every step$/{on=1} on{print}' "$1"; }
+first_rules=""
+for skill_file in "$REPO_ROOT"/media/*/SKILL.md; do
+  [ -f "$skill_file" ] || continue
+  name="$(basename "$(dirname "$skill_file")")"
+  if grep -qE 'version-check|skills\.opper\.ai' "$skill_file"; then
+    echo "ERROR: media/$name/SKILL.md must not ask the assistant to fetch anything (version-check block or skills.opper.ai link)"
+    errors=$((errors + 1))
+  fi
+  if grep -q '—' "$skill_file"; then
+    echo "ERROR: media/$name/SKILL.md has an em dash"
+    errors=$((errors + 1))
+  fi
+  if hits="$(grep -inE "$MEDIA_FORBIDDEN" "$skill_file" "$REPO_ROOT/media/$name/agents/openai.yaml" 2>/dev/null)"; then
+    echo "ERROR: media/$name talks about money or names another product:"
+    echo "$hits" | cut -c1-160
+    errors=$((errors + 1))
+  fi
+  if ! grep -q '^\*\*Not for:\*\* ' "$skill_file"; then
+    echo "ERROR: media/$name/SKILL.md needs a '**Not for:** ...' line under its summary, naming the neighbouring skill"
+    errors=$((errors + 1))
+  fi
+  if [ ! -f "$REPO_ROOT/media/$name/agents/openai.yaml" ]; then
+    echo "ERROR: media/$name/agents/openai.yaml is missing (display name, short description and starter prompt for ChatGPT and Codex)"
+    errors=$((errors + 1))
+  fi
+  if [ "$(grep -c "^## \`$name\`\$" "$REPO_ROOT/media/evals/scenarios.md")" -ne 1 ]; then
+    echo "ERROR: media/evals/scenarios.md has no section for $name (each skill keeps at least three scenarios)"
+    errors=$((errors + 1))
+  fi
+  if ! grep -q '^# ' "$skill_file" || ! grep -q '^## Inputs$' "$skill_file" || ! grep -q '^## Steps$' "$skill_file" \
+    || ! grep -qE '^- \*\*[^*]+\*\* \(required\): ' "$skill_file"; then
+    echo "ERROR: media/$name/SKILL.md needs a '# Title', '## Inputs' with at least one '- **Name** (required): ...' line, and '## Steps' (the MCP server builds its prompts from them)"
+    errors=$((errors + 1))
+  fi
+  rules="$(rules_of "$skill_file")"
+  if [ -z "$rules" ]; then
+    echo "ERROR: media/$name/SKILL.md has no '## Rules for every step' section"
+    errors=$((errors + 1))
+  elif [ -z "$first_rules" ]; then
+    first_rules="$rules"
+  elif [ "$rules" != "$first_rules" ]; then
+    echo "ERROR: media/$name/SKILL.md '## Rules for every step' differs from the other media skills; keep the section identical in all of them"
+    errors=$((errors + 1))
+  fi
+  if ! grep -q "\"$name\"" "$REPO_ROOT/media/.cursor-plugin/plugin.json"; then
+    echo "ERROR: media/$name is missing from the skills list in media/.cursor-plugin/plugin.json"
     errors=$((errors + 1))
   fi
 done
